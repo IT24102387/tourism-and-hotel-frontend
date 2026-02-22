@@ -2,6 +2,7 @@ import axios from "axios";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
+import imageUpload from "../../utils/imageUpload";
 
 const categories = [
   { value: "travel", label: "Travel Accessories", icon: "✈️" },
@@ -19,10 +20,27 @@ export default function UpdateItemPage() {
   const [EquipmentCategory, setEquipmentCategory] = useState(location.state.category);
   const [EquipmentDescription, setEquipmentDescription] = useState(location.state.description);
   const [isLoading, setIsLoading] = useState(false);
+  const [productImages,setProductImages]=useState([]);
   const navigate = useNavigate();
   
 
-  async function handleAddItem() {
+  async function handleUpdateItem() {
+    let updatingImages= location.state.image
+    if(productImages.length>0){
+      const promises=[]
+      
+          for (let i=0;i<productImages.length;i++){
+            console.log(productImages[i])
+            const promise=imageUpload(productImages[i])
+            promises.push(promise)
+      
+          }
+          updatingImages=await Promise.all(promises);
+          
+      
+
+    }
+
     if (!EquipmentKey.trim() || !EquipmentName.trim() || !EquipmentDescription.trim()) {
       toast.error("Please fill in all required fields.");
       return;
@@ -48,6 +66,7 @@ export default function UpdateItemPage() {
           dailyRentalprice: parseFloat(PricePerDay),
           category: EquipmentCategory,
           description: EquipmentDescription,
+          image: updatingImages
         },
         { headers: { Authorization: "Bearer " + token } }
       );
@@ -159,6 +178,24 @@ export default function UpdateItemPage() {
             />
           </div>
 
+          <label className="flex items-center justify-center w-full px-4 py-2 border-2 border-dashed border-blue-400 rounded cursor-pointer bg-blue-50 hover:bg-blue-100 transition">
+          <span className="text-blue-600 font-semibold">
+          Choose files
+          </span>
+
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={(e) => setProductImages(Array.from(e.target.files))}
+            className="hidden"
+          />
+          </label>
+
+        <p className="mt-1 text-xs text-gray-500">Upload multiple product image</p>
+
+          
+
           {/* Buttons */}
           <div className="flex gap-3 pt-1">
             <button
@@ -169,7 +206,7 @@ export default function UpdateItemPage() {
               Cancel
             </button>
             <button
-              onClick={handleAddItem}
+              onClick={handleUpdateItem}
               disabled={isLoading}
               className="flex-[2] py-2.5 rounded-lg bg-indigo-900 hover:bg-indigo-800 active:scale-95 text-white text-sm font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
@@ -179,7 +216,7 @@ export default function UpdateItemPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                   </svg>
-                  Adding...
+                  updating...
                 </>
               ) : (
                 "Update Equipment"

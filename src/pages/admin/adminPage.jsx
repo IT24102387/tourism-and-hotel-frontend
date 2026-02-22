@@ -188,7 +188,7 @@ export default function AdminPage() {
                 lineHeight: 1.1,
               }}
             >
-              Kadiraa
+              Admin
             </div>
             <div
               style={{
