@@ -5,6 +5,8 @@
 //   </div>
 // </div>
 
+import { Link } from "react-router-dom";
+
 export default function ProductCard({ item }) {
   return (
     <div className="group w-full max-w-sm bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col cursor-pointer mx-3 my-2">
@@ -71,9 +73,10 @@ export default function ProductCard({ item }) {
 
           {/* CTA */}
           {item.availability ? (
-            <button className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold rounded-full shadow hover:shadow-lg transition-all duration-200 transform hover:scale-105">
+
+            <Link to={"/product/"+item.key} className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold rounded-full shadow hover:shadow-lg transition-all duration-200 transform hover:scale-105">
               Rent Now
-            </button>
+            </Link>
           ) : (
             <span className="px-5 py-2.5 bg-gray-100 text-gray-400 text-sm font-bold rounded-full">
               Unavailable
