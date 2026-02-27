@@ -8,37 +8,31 @@ const categories = [
   { value: "travel", label: "Travel Accessories", icon: "✈️" },
   { value: "camp", label: "Camping Equipment", icon: "⛺" },
   { value: "tools", label: "Outdoor Tools", icon: "🪓" },
+  { value: "cook", label: "Cook Tools", icon: "🍽️" },
 ];
 
+const categoryLabel = (value) =>
+  categories.find((c) => c.value === value)?.label ?? value;
+
 export default function UpdateItemPage() {
-    const location=useLocation();
-    console.log(location)
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const [EquipmentKey, setEquipmentKey] = useState(location.state.key);
   const [EquipmentName, setEquipmentName] = useState(location.state.name);
   const [PricePerDay, setPricePerDay] = useState(location.state.dailyRentalprice);
   const [EquipmentCategory, setEquipmentCategory] = useState(location.state.category);
   const [EquipmentDescription, setEquipmentDescription] = useState(location.state.description);
+  const [productImages, setProductImages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [productImages,setProductImages]=useState([]);
-  const navigate = useNavigate();
-  
 
-  async function handleUpdateItem() {
-    let updatingImages= location.state.image
-    if(productImages.length>0){
-      const promises=[]
-      
-          for (let i=0;i<productImages.length;i++){
-            console.log(productImages[i])
-            const promise=imageUpload(productImages[i])
-            promises.push(promise)
-      
-          }
-          updatingImages=await Promise.all(promises);
-          
-      
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
+    let updatingImages = location.state.image;
+    if (productImages.length > 0) {
+      const promises = productImages.map((img) => imageUpload(img));
+      updatingImages = await Promise.all(promises);
     }
 
     if (!EquipmentKey.trim() || !EquipmentName.trim() || !EquipmentDescription.trim()) {
@@ -52,7 +46,7 @@ export default function UpdateItemPage() {
 
     const token = localStorage.getItem("token");
     if (!token) {
-      toast.error("You are not authorized to add items.");
+      toast.error("You are not authorized to update items.");
       return;
     }
 
@@ -66,7 +60,7 @@ export default function UpdateItemPage() {
           dailyRentalprice: parseFloat(PricePerDay),
           category: EquipmentCategory,
           description: EquipmentDescription,
-          image: updatingImages
+          image: updatingImages,
         },
         { headers: { Authorization: "Bearer " + token } }
       );
@@ -79,152 +73,232 @@ export default function UpdateItemPage() {
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-lg bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
+      <div className="max-w-4xl mx-auto">
 
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">Update Equipment</h1>
+        <div className="text-center mb-10">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-3">
+            Update Equipment
+          </h1>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Modify the details below to update this rental item. All fields marked with{" "}
+            <span className="text-red-500">*</span> are required.
+          </p>
         </div>
 
-        <div className="space-y-5">
+        {/* Form Card */}
+        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-          {/* Equipment Key */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Equipment Key <span className="text-red-400">*</span>
-            </label>
-            <input
-              disabled
-              type="text"
-              placeholder="e.g. TENT-001"
-              value={EquipmentKey}
-              onChange={(e) => setEquipmentKey(e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-            />
-          </div>
+              {/* Equipment Key */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Equipment Key <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={EquipmentKey}
+                  disabled
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-400 cursor-not-allowed outline-none"
+                  placeholder="e.g. TENT-001"
+                />
+                <p className="text-xs text-gray-400">Equipment key cannot be changed.</p>
+              </div>
 
-          {/* Equipment Name */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Equipment Name <span className="text-red-400">*</span>
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. Alpine Tent"
-              value={EquipmentName}
-              onChange={(e) => setEquipmentName(e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-            />
-          </div>
+              {/* Equipment Name */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Equipment Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={EquipmentName}
+                  onChange={(e) => setEquipmentName(e.target.value)}
+                  required
+                  placeholder="e.g. Alpine Tent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 outline-none"
+                />
+              </div>
 
-          {/* Price Per Day */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Price Per Day <span className="text-red-400">*</span>
-            </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">Rs.</span>
-              <input
-                type="number"
-                placeholder="0.00"
-                value={PricePerDay}
-                min="0"
-                step="0.01"
-                onChange={(e) => setPricePerDay(e.target.value)}
-                className="w-full border border-gray-200 rounded-lg pl-7 pr-4 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-              />
+              {/* Price Per Day */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Price Per Day (Rs.) <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-3.5 text-gray-500 text-sm font-medium">Rs.</span>
+                  <input
+                    type="number"
+                    value={PricePerDay}
+                    onChange={(e) => setPricePerDay(e.target.value)}
+                    required
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Category */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Category
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {categories.map((cat) => (
+                    <button
+                      key={cat.value}
+                      type="button"
+                      onClick={() => setEquipmentCategory(cat.value)}
+                      className={`flex flex-col items-center gap-1 py-2.5 px-2 rounded-lg border text-xs font-medium transition cursor-pointer
+                        ${EquipmentCategory === cat.value
+                          ? "border-blue-500 bg-blue-50 text-blue-600"
+                          : "border-gray-200 bg-white text-gray-500 hover:border-gray-300 hover:bg-gray-50"
+                        }`}
+                    >
+                      <span className="text-xl">{cat.icon}</span>
+                      <span className="text-center leading-tight">{cat.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="space-y-2 md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Description <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={EquipmentDescription}
+                  onChange={(e) => setEquipmentDescription(e.target.value)}
+                  required
+                  rows={4}
+                  placeholder="Describe the equipment — condition, features, included accessories..."
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 outline-none resize-none"
+                />
+              </div>
+
+              {/* Image Upload */}
+              <div className="space-y-2 md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Product Images
+                </label>
+                <label className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-blue-400 rounded-lg cursor-pointer bg-blue-50 hover:bg-blue-100 transition">
+                  <span className="text-blue-600 font-semibold text-sm">
+                    {productImages.length > 0
+                      ? `${productImages.length} file(s) selected`
+                      : "Choose new files"}
+                  </span>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={(e) => setProductImages(Array.from(e.target.files))}
+                    className="hidden"
+                  />
+                </label>
+                <p className="text-xs text-gray-500">
+                  Leave empty to keep existing images. Upload new files to replace them.
+                </p>
+              </div>
             </div>
-          </div>
 
-          {/* Category */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Category
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {categories.map((cat) => (
-                <button
-                  key={cat.value}
-                  type="button"
-                  onClick={() => setEquipmentCategory(cat.value)}
-                  className={`flex flex-col items-center gap-1 py-3 px-2 rounded-lg border text-xs font-medium transition cursor-pointer
-                    ${EquipmentCategory === cat.value
-                      ? "border-blue-500 bg-blue-50 text-blue-600"
-                      : "border-gray-200 bg-white text-gray-500 hover:border-gray-300 hover:bg-gray-50"
-                    }`}
-                >
-                  <span className="text-xl">{cat.icon}</span>
-                  <span className="text-center leading-tight">{cat.label}</span>
-                </button>
-              ))}
+            {/* Info Banner */}
+            <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+              <div className="flex items-start">
+                <svg className="w-5 h-5 text-blue-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+                <p className="text-sm text-blue-700">
+                  All fields marked with <span className="text-red-500">*</span> are required.
+                  Changes will be applied to the inventory immediately upon submission.
+                </p>
+              </div>
             </div>
-          </div>
 
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description <span className="text-red-400">*</span>
-            </label>
-            <textarea
-              placeholder="Describe the equipment — condition, features, included accessories..."
-              value={EquipmentDescription}
-              rows={4}
-              onChange={(e) => setEquipmentDescription(e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
-            />
-          </div>
+            {/* Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={`flex-1 py-3 px-6 rounded-lg font-medium transition duration-200 shadow-md text-white flex items-center justify-center gap-2 ${
+                  isLoading
+                    ? "bg-indigo-400 cursor-not-allowed"
+                    : "bg-indigo-900 hover:bg-indigo-800 active:scale-[0.98]"
+                }`}
+              >
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Updating...
+                  </>
+                ) : (
+                  "Update Equipment"
+                )}
+              </button>
 
-          <label className="flex items-center justify-center w-full px-4 py-2 border-2 border-dashed border-blue-400 rounded cursor-pointer bg-blue-50 hover:bg-blue-100 transition">
-          <span className="text-blue-600 font-semibold">
-          Choose files
-          </span>
-
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={(e) => setProductImages(Array.from(e.target.files))}
-            className="hidden"
-          />
-          </label>
-
-        <p className="mt-1 text-xs text-gray-500">Upload multiple product image</p>
-
-          
-
-          {/* Buttons */}
-          <div className="flex gap-3 pt-1">
-            <button
-              onClick={() => navigate("/admin/items")}
-              disabled={isLoading}
-              className="flex-1 py-2.5 rounded-lg border border-gray-200 text-sm font-medium text-gray-500 hover:bg-gray-50 hover:border-gray-300 transition disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleUpdateItem}
-              disabled={isLoading}
-              className="flex-[2] py-2.5 rounded-lg bg-indigo-900 hover:bg-indigo-800 active:scale-95 text-white text-sm font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {isLoading ? (
-                <>
-                  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                  </svg>
-                  updating...
-                </>
-              ) : (
-                "Update Equipment"
-              )}
-            </button>
-          </div>
-
+              <button
+                type="button"
+                onClick={() => navigate("/admin/items")}
+                disabled={isLoading}
+                className="flex-1 py-3 px-6 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 active:scale-[0.98] transition duration-200 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
         </div>
+
+        {/* Preview Section */}
+        <div className="mt-10 bg-white rounded-2xl shadow-xl p-6 md:p-8">
+          <h2 className="text-xl font-bold text-gray-800 mb-6">Equipment Preview</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Equipment Key</h3>
+                <p className="text-lg font-semibold text-gray-800">{EquipmentKey || "Not set"}</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Equipment Name</h3>
+                <p className="text-lg font-semibold text-gray-800">{EquipmentName || "Not set"}</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Price Per Day</h3>
+                <p className="text-lg font-semibold text-blue-600">
+                  {PricePerDay ? `Rs. ${parseFloat(PricePerDay).toFixed(2)}` : "Rs. 0.00"}
+                </p>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Category</h3>
+                <p className="text-lg font-semibold text-gray-800">{categoryLabel(EquipmentCategory)}</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Images</h3>
+                <p className="text-lg font-semibold text-gray-800">
+                  {productImages.length > 0
+                    ? `${productImages.length} new file(s) selected`
+                    : "Using existing images"}
+                </p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Description Preview</h3>
+                <p className="text-gray-700 line-clamp-3">{EquipmentDescription || "No description provided"}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   );

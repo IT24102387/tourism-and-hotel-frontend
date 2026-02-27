@@ -6,6 +6,8 @@ import { MdOutlinePayments, MdOutlineReviews } from "react-icons/md";
 import { IoFastFoodOutline } from "react-icons/io5";
 import { IoMdLogOut } from "react-icons/io";
 import { MdOutlineBed } from "react-icons/md";
+import { FiMapPin } from "react-icons/fi";
+import { BsCalendar2Event } from "react-icons/bs";
 import { Link, Route, Routes, useLocation } from "react-router-dom";
 import AdminItemPage from "./adminItemPage";
 import AddItemPage from "./addItemPage";
@@ -14,8 +16,9 @@ import { useState, useEffect } from "react";
 
 
 
+
 const navItems = [
-  { label: "Dashboard",          icon: BsGraphUp,           to: "/admin/dashboard" },
+  { label: "Dashboard",          icon: BsGraphUp,            to: "/admin/dashboard" },
   { label: "Bookings",           icon: FaRegBookmark,        to: "/admin/bookings" },
   { label: "Rooms",              icon: MdOutlineBed,         to: "/admin/rooms" },
   { label: "Storage/Equipment",  icon: PiBagSimpleBold,      to: "/admin/items" },
@@ -24,6 +27,8 @@ const navItems = [
   { label: "Payments",           icon: MdOutlinePayments,    to: "/admin/payments" },
   { label: "Restaurant",         icon: IoFastFoodOutline,    to: "/admin/restaurant" },
   { label: "Reviews",            icon: MdOutlineReviews,     to: "/admin/reviews" },
+  { label: "Event Calendar",     icon: BsCalendar2Event ,    to: "/admin/Eventcalendar" },
+  { label: "Google Maps",        icon: FiMapPin ,            to: "/admin/googlemap" },
   { label: "Users",              icon: FaRegUser,            to: "/admin/users" },
 ];
 

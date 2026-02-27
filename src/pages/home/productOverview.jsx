@@ -2,6 +2,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom"
 import ImageSlider from "../../components/imageSlider";
+import { addToCart, loadCart } from "../../utils/cart";
 
 export default function ProductOverview(){
     const params=useParams();  //get product key (hook)
@@ -40,7 +41,18 @@ export default function ProductOverview(){
                         <p className="text-gray-700 mt-4">{product.description}</p>
                         <p className="text-lg font-bold text-emerald-500">{product.dailyRentalprice+" LKR"}</p>
 
+                        <button className="mt-4 bg-blue-400 text-white px-4 py-2 rounded-md" onClick={()=>{
+                            addToCart(product.key,1)
+                            console.log(loadCart())
+                        }}>Add to Cart</button>
                     </div>
+                    
+                </div>
+                
+            }
+            {
+                loadingStatus=="error" && <div className="w-full h-full flex justify-center items-center">
+                    <h1 className="text-3xl font-bold text-red-500">Error Occured !</h1>
                 </div>
             }
             
