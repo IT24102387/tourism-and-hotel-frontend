@@ -335,7 +335,7 @@ export default function Header() {
             {/* ── Desktop CTA ── */}
             <div className="hidden md:flex items-center gap-3">
               <Link to="/login" className="hdr-login-btn absolute right-3">Login</Link>
-              <Link to="/Roombooking" className="hdr-book-btn">Book Now</Link>
+              
                <Link
                   to="/booking"
                   className="text-[25px] font-bold m-1">

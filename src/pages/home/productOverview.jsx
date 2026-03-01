@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom"
 import ImageSlider from "../../components/imageSlider";
 import { addToCart, loadCart } from "../../utils/cart";
+import toast from "react-hot-toast";
 
 export default function ProductOverview(){
     const params=useParams();  //get product key (hook)
@@ -41,10 +42,11 @@ export default function ProductOverview(){
                         <p className="text-gray-700 mt-4">{product.description}</p>
                         <p className="text-lg font-bold text-emerald-500">{product.dailyRentalprice+" LKR"}</p>
 
-                        <button className="mt-4 bg-blue-400 text-white px-4 py-2 rounded-md" onClick={()=>{
+                        <button className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md " onClick={()=>{
                             addToCart(product.key,1)
+                            toast.success("Added to Cart")
                             console.log(loadCart())
-                        }}>Add to Cart</button>
+                        }}>Add to Cart 🛒</button>
                     </div>
                     
                 </div>
