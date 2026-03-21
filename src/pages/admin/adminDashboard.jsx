@@ -13,6 +13,7 @@ import {
   Filler,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
+import { PiBagSimpleBold } from "react-icons/pi";
 
 ChartJS.register(
   CategoryScale,
@@ -189,6 +190,11 @@ export default function AdminDashBoard() {
         <p className="text-gray-600 mt-1">Overview of your platform</p>
       </header>
 
+      <h5 className="flex items-center gap-2 text-2xl lg:text-2xl font-semibold text-gray-800 mb-4">
+      <PiBagSimpleBold className="text-2xl" />
+        Equipment Inventory
+      </h5>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
         {cards.map((card, i) => (
@@ -211,7 +217,7 @@ export default function AdminDashBoard() {
       </div>
 
       {/* Revenue Chart */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+      {/* <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
         <h2 className="text-lg font-semibold text-gray-800 mb-5">Revenue Analytics</h2>
         <div className="h-80 md:h-96">
           {loading ? (
@@ -222,7 +228,7 @@ export default function AdminDashBoard() {
             <Line data={chartData} options={chartOptions} />
           )}
         </div>
-      </div>
+      </div> */}
 
       {/* You can add more sections here later:
           - Recent Orders table

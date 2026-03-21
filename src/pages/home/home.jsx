@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import ProductCard from "../../components/productCard";
 import {
   FaBed,
   FaCampground,
@@ -13,7 +15,8 @@ import {
   FaCalendarAlt,
 } from "react-icons/fa";
 
-// Hero images
+// ── Static data ──────────────────────────────────────────────────────────────
+
 const heroImages = [
   "https://www.andbeyond.com/wp-content/uploads/sites/5/yala-national-park-sri-lanka-scenery.jpg",
   "elephant.jpeg",
@@ -40,12 +43,6 @@ const popularPlaces = [
     location: "Ancient monastery",
     distance: "12 km",
     image: "https://theportuguesetraveler.com/wp-content/uploads/2024/11/sithulpawwa-rock-temple-yala-sri-lanka-35.jpg.webp",
-  },
-  {
-    name: "Bundala National Park",
-    location: "Bird sanctuary",
-    distance: "15 km",
-    image: "https://images.unsplash.com/photo-1516426122078-c23e76319801?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
   },
 ];
 
@@ -76,18 +73,11 @@ const availableRooms = [
   },
 ];
 
-const equipmentItems = [
-  { name: "Safari Jeep (with driver)", price: "$50/day", image: "🚙" },
-  { name: "Camping Tent (4-person)", price: "$20/day", image: "🏕️" },
-  { name: "Sleeping Bag", price: "$8/day", image: "🛌" },
-  { name: "Camping Stove", price: "$10/day", image: "🍳" },
-];
-
 const foodItems = [
-  { name: "Rice & Curry", description: "Authentic Sri Lankan spread", price: "$10", image: "🍛" },
-  { name: "Kottu Roti", description: "Chopped roti with vegetables/meat", price: "$7", image: "🥘" },
-  { name: "Hoppers (Appa)", description: "Crispy bowl-shaped pancakes", price: "$5", image: "🥞" },
-  { name: "Fresh Seafood Platter", description: "Grilled fish, prawns, squid", price: "$18", image: "🦐" },
+  { name: "Rice & Curry",        description: "Authentic Sri Lankan spread",      price: "$10", image: "🍛" },
+  { name: "Kottu Roti",          description: "Chopped roti with vegetables/meat", price: "$7",  image: "🥘" },
+  { name: "Hoppers (Appa)",      description: "Crispy bowl-shaped pancakes",       price: "$5",  image: "🥞" },
+  { name: "Fresh Seafood Platter",description: "Grilled fish, prawns, squid",     price: "$18", image: "🦐" },
 ];
 
 const events = [
@@ -112,49 +102,27 @@ const events = [
 ];
 
 const packages = [
-  {
-    name: "Yala Safari Package",
-    includes: "2 Nights Lodge + 2 Safari Jeeps + Meals",
-    price: "$299",
-    popular: true,
-  },
-  {
-    name: "Kataragama Pilgrim Package",
-    includes: "2 Nights Hotel + Breakfast/Dinner + Temple Visit",
-    price: "$199",
-    popular: false,
-  },
-  {
-    name: "Adventure Combo",
-    includes: "3 Nights Camping + Jeep Safari + All Equipment",
-    price: "$399",
-    popular: false,
-  },
+  { name: "Yala Safari Package",       includes: "2 Nights Lodge + 2 Safari Jeeps + Meals",              price: "$299", popular: true  },
+  { name: "Kataragama Pilgrim Package",includes: "2 Nights Hotel + Breakfast/Dinner + Temple Visit",      price: "$199", popular: false },
+  { name: "Adventure Combo",           includes: "3 Nights Camping + Jeep Safari + All Equipment",        price: "$399", popular: false },
 ];
 
 const testimonials = [
-  {
-    name: "David W.",
-    rating: 5,
-    text: "Unforgettable experience in Yala! The jeep safari was thrilling and the lodge was very comfortable.",
-  },
-  {
-    name: "Priya K.",
-    rating: 5,
-    text: "Kataragama temple visit was spiritual, and the hotel staff were incredibly welcoming. Will come again.",
-  },
-  {
-    name: "Mike T.",
-    rating: 5,
-    text: "The camping gear was top-notch, and the food at the restaurant was delicious. Highly recommended!",
-  },
+  { name: "David W.", rating: 5, text: "Unforgettable experience in Yala! The jeep safari was thrilling and the lodge was very comfortable." },
+  { name: "Priya K.", rating: 5, text: "Kataragama temple visit was spiritual, and the hotel staff were incredibly welcoming. Will come again." },
+  { name: "Mike T.",  rating: 5, text: "The camping gear was top-notch, and the food at the restaurant was delicious. Highly recommended!" },
 ];
 
+// ── Component ────────────────────────────────────────────────────────────────
+
 export default function Home() {
-  const [currentImage, setCurrentImage] = useState(0);
-  const [isAutoplay, setIsAutoplay] = useState(true);
+  const [currentImage, setCurrentImage]     = useState(0);
+  const [isAutoplay, setIsAutoplay]         = useState(true);
+  const [equipmentState, setEquipmentState] = useState("loading"); // loading | success | error
+  const [equipmentItems, setEquipmentItems] = useState([]);
   const navigate = useNavigate();
 
+  // Hero slideshow
   useEffect(() => {
     if (!isAutoplay) return;
     const interval = setInterval(() => {
@@ -163,13 +131,26 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [isAutoplay]);
 
+  // Fetch products from API — show only first 4 on homepage
+  useEffect(() => {
+    axios
+      .get(`${import.meta.env.VITE_BACKEND_URL}/api/products`)
+      .then((res) => {
+        setEquipmentItems(res.data.slice(0, 4));
+        setEquipmentState("success");
+      })
+      .catch(() => {
+        setEquipmentState("error");
+      });
+  }, []);
+
   const nextImage = () => { setIsAutoplay(false); setCurrentImage((prev) => (prev + 1) % heroImages.length); };
   const prevImage = () => { setIsAutoplay(false); setCurrentImage((prev) => (prev - 1 + heroImages.length) % heroImages.length); };
 
   return (
     <div className="w-full min-h-screen" style={{ background: "#FFFBF5" }}>
 
-      {/* ── Hero Slideshow ── */}
+      {/* ── Hero Slideshow ─────────────────────────────────────────────── */}
       <div className="relative w-full h-[600px] overflow-hidden">
         {heroImages.map((img, index) => (
           <div
@@ -194,8 +175,7 @@ export default function Home() {
               AN ISLAND ESCAPE AWAITS YOU
             </p>
             <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-              Welcome to
-              <br />
+              Welcome to<br />
               <span style={{ color: "#FBBF24" }}>Yala & Kataragama</span>
             </h1>
             <p className="text-lg md:text-xl max-w-2xl mb-8 leading-relaxed" style={{ color: "#F5F0E8" }}>
@@ -222,7 +202,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── Services ── */}
+      {/* ── Services ───────────────────────────────────────────────────── */}
       <div className="max-w-7xl mx-auto py-20 px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: "#92400E" }}>Our Services</h2>
@@ -230,10 +210,10 @@ export default function Home() {
         </div>
         <div className="grid md:grid-cols-4 gap-8">
           {[
-            { icon: FaBed, title: "Room Booking", desc: "Comfortable lodges, hotels, and safari tents.", grad: "linear-gradient(135deg,#FBBF24,#D97706)", route: "/room-booking" },
-            { icon: FaCampground, title: "Equipment Rental", desc: "Camping gear, sleeping bags, stoves, and more.", grad: "linear-gradient(135deg,#F97316,#EA580C)", route: "/services" },
-            { icon: FaUtensils, title: "Restaurant Food", desc: "Authentic Sri Lankan meals and fresh seafood.", grad: "linear-gradient(135deg,#EF4444,#B91C1C)", route: "/restaurant-food" },
-            { icon: FaCar, title: "Vehicle Hire", desc: "Safari jeeps, cars, and bikes with or without driver.", grad: "linear-gradient(135deg,#D97706,#92400E)", route: "/vehicle-hire" },
+            { icon: FaBed,       title: "Room Booking",     desc: "Comfortable lodges, hotels, and safari tents.",             grad: "linear-gradient(135deg,#FBBF24,#D97706)", route: "/room-booking"     },
+            { icon: FaCampground,title: "Equipment Rental", desc: "Camping gear, sleeping bags, stoves, and more.",            grad: "linear-gradient(135deg,#F97316,#EA580C)", route: "/services"         },
+            { icon: FaUtensils,  title: "Restaurant Food",  desc: "Authentic Sri Lankan meals and fresh seafood.",             grad: "linear-gradient(135deg,#EF4444,#B91C1C)", route: "/restaurant-food"  },
+            { icon: FaCar,       title: "Vehicle Hire",     desc: "Safari jeeps, cars, and bikes with or without driver.",     grad: "linear-gradient(135deg,#D97706,#92400E)", route: "/vehicle-hire"     },
           ].map((item, index) => (
             <div
               key={index}
@@ -251,25 +231,20 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── Popular Places – Warm Editorial Staggered Layout ── */}
+      {/* ── Popular Places ─────────────────────────────────────────────── */}
       <div className="py-24 px-4 relative overflow-hidden" style={{ background: "#F5EDD8" }}>
-        {/* Subtle warm dot texture */}
-        <div className="absolute inset-0 opacity-[0.06]" style={{
-          backgroundImage: "radial-gradient(circle, #D97706 1px, transparent 1px)",
-          backgroundSize: "32px 32px",
-        }} />
+        <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "radial-gradient(circle, #D97706 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
 
         <div className="max-w-7xl mx-auto relative z-10">
-          {/* Header */}
           <div className="text-center mb-4">
             <p className="tracking-[0.35em] text-xs font-semibold mb-5" style={{ color: "#D97706" }}>DISCOVER THE REGION</p>
             <div className="flex items-center justify-center gap-4 mb-6">
               <div className="h-px w-20" style={{ background: "linear-gradient(to right, transparent, #D97706)" }} />
               <div className="flex gap-1 items-center">
                 <div className="w-1.5 h-1.5 rotate-45" style={{ background: "#D97706" }} />
-                <div className="w-3 h-px" style={{ background: "#D97706" }} />
+                <div className="w-3 h-px"               style={{ background: "#D97706" }} />
                 <div className="w-2 h-2 rotate-45 border" style={{ borderColor: "#D97706" }} />
-                <div className="w-3 h-px" style={{ background: "#D97706" }} />
+                <div className="w-3 h-px"               style={{ background: "#D97706" }} />
                 <div className="w-1.5 h-1.5 rotate-45" style={{ background: "#D97706" }} />
               </div>
               <div className="h-px w-20" style={{ background: "linear-gradient(to left, transparent, #D97706)" }} />
@@ -282,9 +257,8 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Staggered 3-column: sides up, center lower */}
           <div className="flex items-start justify-center gap-10 mt-14 flex-wrap">
-            {[popularPlaces[0], popularPlaces[1], popularPlaces[2]].map((place, i) => {
+            {popularPlaces.map((place, i) => {
               const isCenter = i === 1;
               return (
                 <div
@@ -292,7 +266,6 @@ export default function Home() {
                   className="relative group cursor-pointer flex-shrink-0"
                   style={{ width: isCenter ? "300px" : "260px", marginTop: isCenter ? "70px" : "0px" }}
                 >
-                  {/* Amber corner decorations */}
                   {["-top-3 -left-3 top left", "-top-3 -right-3 top right", "-bottom-3 -left-3 bottom left", "-bottom-3 -right-3 bottom right"].map((cfg, ci) => {
                     const [vt, hr, dv, dh] = cfg.split(" ");
                     return (
@@ -301,22 +274,12 @@ export default function Home() {
                       }} />
                     );
                   })}
-
-                  {/* Image */}
                   <div className="relative overflow-hidden" style={{ height: isCenter ? "380px" : "300px" }}>
-                    <img
-                      src={place.image}
-                      alt={place.name}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
+                    <img src={place.image} alt={place.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                     <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(41,37,36,0.45) 0%, transparent 55%)" }} />
                   </div>
-
-                  {/* Label */}
                   <div className="text-center pt-6 pb-4">
-                    <h3 className="text-2xl mb-2" style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: "#292524", fontWeight: 400 }}>
-                      {place.name}
-                    </h3>
+                    <h3 className="text-2xl mb-2" style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: "#292524", fontWeight: 400 }}>{place.name}</h3>
                     <p className="text-xs mb-4 flex items-center justify-center gap-1.5" style={{ color: "#78716C" }}>
                       <FaMapMarkerAlt style={{ color: "#F59E0B" }} />
                       {place.location} &middot; {place.distance}
@@ -329,39 +292,10 @@ export default function Home() {
               );
             })}
           </div>
-
-          {/* 4th card — cinematic wide banner */}
-          <div className="mt-16 relative overflow-hidden group cursor-pointer" style={{ height: "200px" }}>
-            <img
-              src={popularPlaces[3].image}
-              alt={popularPlaces[3].name}
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              style={{ objectPosition: "center 40%" }}
-            />
-            <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ background: "rgba(41,37,36,0.55)" }}>
-              <p className="tracking-[0.35em] text-xs mb-2 font-medium" style={{ color: "#FBBF24" }}>ALSO NEARBY</p>
-              <h3 className="text-3xl md:text-4xl mb-2" style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: "#FFFBF5", fontWeight: 400 }}>
-                {popularPlaces[3].name}
-              </h3>
-              <p className="text-sm mb-4 flex items-center gap-2" style={{ color: "#D6D3D1" }}>
-                <FaMapMarkerAlt style={{ color: "#FBBF24" }} />
-                {popularPlaces[3].location} &middot; {popularPlaces[3].distance}
-              </p>
-              <button className="tracking-[0.3em] text-xs font-semibold border-b pb-0.5 transition-all hover:tracking-[0.45em]" style={{ color: "#FBBF24", borderColor: "#FBBF24", background: "none" }}>
-                VIEW PLACE
-              </button>
-            </div>
-            {/* Banner corner decorations */}
-            {[["top-3 left-3","top left"], ["top-3 right-3","top right"], ["bottom-3 left-3","bottom left"], ["bottom-3 right-3","bottom right"]].map(([pos, dir], di) => (
-              <div key={di} className={`absolute ${pos} w-12 h-12 pointer-events-none`} style={{
-                background: `linear-gradient(#FBBF24,#FBBF24) ${dir}/2px 22px no-repeat, linear-gradient(#FBBF24,#FBBF24) ${dir}/22px 2px no-repeat`
-              }} />
-            ))}
-          </div>
         </div>
       </div>
 
-      {/* ── Available Rooms ── */}
+      {/* ── Available Rooms ────────────────────────────────────────────── */}
       <div className="max-w-7xl mx-auto py-20 px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: "#292524" }}>Available Rooms</h2>
@@ -390,35 +324,60 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── Equipment Rental ── */}
+      {/* ── Equipment Rental — live from API via ProductCard ───────────── */}
       <div className="py-20 px-4" style={{ background: "linear-gradient(135deg, #FEF3C7, #FDE8C8)" }}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: "#292524" }}>Rent Equipment</h2>
             <p className="text-lg" style={{ color: "#78716C" }}>Safari jeeps, camping gear, and more</p>
           </div>
-          <div className="grid md:grid-cols-4 gap-6">
-            {equipmentItems.map((item, index) => (
-              <div key={index} className="rounded-xl p-6 hover:shadow-2xl transition" style={{ background: "#FFFBF5", boxShadow: "0 4px 20px rgba(217,119,6,0.12)" }}>
-                <div className="text-6xl mb-4 text-center">{item.image}</div>
-                <h4 className="font-bold text-lg mb-2" style={{ color: "#292524" }}>{item.name}</h4>
-                <div className="flex justify-between items-center">
-                  <span className="font-bold text-xl" style={{ color: "#D97706" }}>{item.price}</span>
-                  <button
-                    onClick={() => navigate("/equipment-rental")}
-                    className="px-4 py-2 rounded-lg text-sm font-semibold transition hover:opacity-90"
-                    style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}
-                  >
-                    Rent
-                  </button>
-                </div>
+
+          {/* Loading */}
+          {equipmentState === "loading" && (
+            <div className="flex justify-center items-center py-20">
+              <div className="w-[50px] h-[50px] border-4 rounded-full border-t-amber-500 animate-spin" />
+            </div>
+          )}
+
+          {/* Error */}
+          {equipmentState === "error" && (
+            <div className="text-center py-16">
+              <p className="text-lg mb-6" style={{ color: "#78716C" }}>Could not load equipment. Please try again.</p>
+              <button
+                onClick={() => navigate("/services")}
+                className="px-8 py-3 rounded-full font-semibold transition hover:opacity-90"
+                style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}
+              >
+                Browse All Equipment
+              </button>
+            </div>
+          )}
+
+          {/* Product grid — reuses ProductCard exactly as Services page does */}
+          {equipmentState === "success" && (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+                {equipmentItems.map((item) => (
+                  <ProductCard key={item._id} item={item} />
+                ))}
               </div>
-            ))}
-          </div>
+
+              {/* View all */}
+              <div className="text-center mt-12">
+                <button
+                  onClick={() => navigate("/services")}
+                  className="px-10 py-3 rounded-full font-semibold border-2 transition hover:bg-amber-50"
+                  style={{ borderColor: "#D97706", color: "#D97706", background: "transparent" }}
+                >
+                  View All Equipment →
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
-      {/* ── Food ── */}
+      {/* ── Food ───────────────────────────────────────────────────────── */}
       <div className="max-w-7xl mx-auto py-20 px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: "#292524" }}>Taste Sri Lanka</h2>
@@ -445,7 +404,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── Events & Festivals ── */}
+      {/* ── Events & Festivals ─────────────────────────────────────────── */}
       <div className="py-20 px-4" style={{ background: "#F5EDD8" }}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
@@ -470,7 +429,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── Packages ── */}
+      {/* ── Packages ───────────────────────────────────────────────────── */}
       <div className="py-20 px-4" style={{ background: "linear-gradient(135deg, #92400E, #78350F)" }}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -479,8 +438,11 @@ export default function Home() {
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {packages.map((pkg, index) => (
-              <div key={index} className={`relative rounded-2xl p-8 ${pkg.popular ? "transform scale-105" : ""}`}
-                style={{ background: "#FFFBF5", boxShadow: pkg.popular ? "0 0 0 4px #FBBF24, 0 20px 60px rgba(0,0,0,0.3)" : "0 4px 24px rgba(0,0,0,0.2)" }}>
+              <div
+                key={index}
+                className={`relative rounded-2xl p-8 ${pkg.popular ? "transform scale-105" : ""}`}
+                style={{ background: "#FFFBF5", boxShadow: pkg.popular ? "0 0 0 4px #FBBF24, 0 20px 60px rgba(0,0,0,0.3)" : "0 4px 24px rgba(0,0,0,0.2)" }}
+              >
                 {pkg.popular && (
                   <div className="absolute top-0 right-0 px-4 py-1 rounded-bl-2xl rounded-tr-2xl font-bold flex items-center gap-1 text-sm" style={{ background: "#FBBF24", color: "#78350F" }}>
                     <FaTag /> Popular
@@ -500,7 +462,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── Testimonials ── */}
+      {/* ── Testimonials ───────────────────────────────────────────────── */}
       <div className="max-w-7xl mx-auto py-20 px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: "#292524" }}>What Our Customers Say</h2>
@@ -521,7 +483,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── CTA ── */}
+      {/* ── CTA ────────────────────────────────────────────────────────── */}
       <div className="text-white py-20 relative overflow-hidden" style={{ background: "linear-gradient(135deg, #D97706, #B45309, #92400E)" }}>
         <div className="absolute inset-0 bg-black/20" />
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
@@ -535,7 +497,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── Footer ── */}
+      {/* ── Footer ─────────────────────────────────────────────────────── */}
       <footer className="py-12 px-4" style={{ background: "#1C1917" }}>
         <div className="max-w-7xl mx-auto text-center">
           <p style={{ color: "#78716C" }}>© 2026 Yala & Kataragama Travel Hub. All rights reserved.</p>
