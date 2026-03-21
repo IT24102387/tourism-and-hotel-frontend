@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FaBed,
   FaCampground,
@@ -149,17 +150,10 @@ const testimonials = [
   },
 ];
 
-// ─── Color tokens matched to login page ─────────────────────────────────────
-// Primary CTA:  amber-400 → #FBBF24 / amber-500 → #F59E0B
-// Accent text:  amber-600 → #D97706
-// Dark bg:      stone-900 → #1C1917
-// Card bg:      warm-white/cream  #FFFBF5
-// Section bg:   warm-stone #FAF7F2  /  stone-100 #F5F0E8
-// ─────────────────────────────────────────────────────────────────────────────
-
 export default function Home() {
   const [currentImage, setCurrentImage] = useState(0);
   const [isAutoplay, setIsAutoplay] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!isAutoplay) return;
@@ -236,12 +230,17 @@ export default function Home() {
         </div>
         <div className="grid md:grid-cols-4 gap-8">
           {[
-            { icon: FaBed, title: "Room Booking", desc: "Comfortable lodges, hotels, and safari tents.", grad: "linear-gradient(135deg,#FBBF24,#D97706)" },
-            { icon: FaCampground, title: "Equipment Rental", desc: "Camping gear, sleeping bags, stoves, and more.", grad: "linear-gradient(135deg,#F97316,#EA580C)" },
-            { icon: FaUtensils, title: "Restaurant Food", desc: "Authentic Sri Lankan meals and fresh seafood.", grad: "linear-gradient(135deg,#EF4444,#B91C1C)" },
-            { icon: FaCar, title: "Vehicle Hire", desc: "Safari jeeps, cars, and bikes with or without driver.", grad: "linear-gradient(135deg,#D97706,#92400E)" },
+            { icon: FaBed, title: "Room Booking", desc: "Comfortable lodges, hotels, and safari tents.", grad: "linear-gradient(135deg,#FBBF24,#D97706)", route: "/room-booking" },
+            { icon: FaCampground, title: "Equipment Rental", desc: "Camping gear, sleeping bags, stoves, and more.", grad: "linear-gradient(135deg,#F97316,#EA580C)", route: "/services" },
+            { icon: FaUtensils, title: "Restaurant Food", desc: "Authentic Sri Lankan meals and fresh seafood.", grad: "linear-gradient(135deg,#EF4444,#B91C1C)", route: "/restaurant-food" },
+            { icon: FaCar, title: "Vehicle Hire", desc: "Safari jeeps, cars, and bikes with or without driver.", grad: "linear-gradient(135deg,#D97706,#92400E)", route: "/vehicle-hire" },
           ].map((item, index) => (
-            <div key={index} className="group rounded-2xl p-8 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border" style={{ background: "#FFFBF5", borderColor: "#F5EACF", boxShadow: "0 4px 24px rgba(217,119,6,0.08)" }}>
+            <div
+              key={index}
+              onClick={() => navigate(item.route)}
+              className="group rounded-2xl p-8 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border cursor-pointer"
+              style={{ background: "#FFFBF5", borderColor: "#F5EACF", boxShadow: "0 4px 24px rgba(217,119,6,0.08)" }}
+            >
               <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform" style={{ background: item.grad }}>
                 <item.icon className="text-white text-4xl" />
               </div>
@@ -377,7 +376,11 @@ export default function Home() {
                 <p className="text-sm mb-3" style={{ color: "#A8A29E" }}>{room.capacity}</p>
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-xl" style={{ color: "#D97706" }}>{room.price}</span>
-                  <button className="px-4 py-2 rounded-lg text-sm font-semibold transition hover:opacity-90" style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}>
+                  <button
+                    onClick={() => navigate("/room-booking")}
+                    className="px-4 py-2 rounded-lg text-sm font-semibold transition hover:opacity-90"
+                    style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}
+                  >
                     Book Now
                   </button>
                 </div>
@@ -401,7 +404,11 @@ export default function Home() {
                 <h4 className="font-bold text-lg mb-2" style={{ color: "#292524" }}>{item.name}</h4>
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-xl" style={{ color: "#D97706" }}>{item.price}</span>
-                  <button className="px-4 py-2 rounded-lg text-sm font-semibold transition hover:opacity-90" style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}>
+                  <button
+                    onClick={() => navigate("/equipment-rental")}
+                    className="px-4 py-2 rounded-lg text-sm font-semibold transition hover:opacity-90"
+                    style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}
+                  >
                     Rent
                   </button>
                 </div>
@@ -425,7 +432,11 @@ export default function Home() {
               <p className="text-sm mb-3" style={{ color: "#A8A29E" }}>{item.description}</p>
               <div className="flex justify-between items-center">
                 <span className="font-bold text-xl" style={{ color: "#D97706" }}>{item.price}</span>
-                <button className="px-4 py-2 rounded-lg text-sm font-semibold transition hover:opacity-90" style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}>
+                <button
+                  onClick={() => navigate("/restaurant-food")}
+                  className="px-4 py-2 rounded-lg text-sm font-semibold transition hover:opacity-90"
+                  style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}
+                >
                   Order
                 </button>
               </div>

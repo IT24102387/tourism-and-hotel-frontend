@@ -13,7 +13,6 @@ const services = [
     label: "Adventure Gear Rental",
     desc: "Everything you need for camping and travel",
   },
-  
   {
     to: "/services/restaurant",
     label: "Restaurant",
@@ -30,6 +29,8 @@ const navLinks = [
   { to: "/", label: "Home" },
   { to: "/gallery", label: "Gallery" },
   { to: "/contact", label: "Contact" },
+  { to: "/reviews", label: "Reviews" },
+  { to: "/packages", label: "Packages" },
 ];
 
 export default function Header() {
@@ -38,6 +39,7 @@ export default function Header() {
   const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const dropdownRef = useRef(null);
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 30);
@@ -112,7 +114,6 @@ export default function Header() {
         }
         .hdr-chevron.up { transform: rotate(180deg); }
 
-        /* ── Clean Dropdown ── */
         .hdr-dropdown {
           position: absolute;
           top: calc(100% + 16px);
@@ -133,8 +134,6 @@ export default function Header() {
           pointer-events: all;
           transform: translateX(-50%) translateY(0);
         }
-
-        /* Simple arrow pointer */
         .hdr-dropdown::before {
           content: '';
           position: absolute;
@@ -153,9 +152,7 @@ export default function Header() {
           text-decoration: none;
           transition: background 0.15s;
         }
-        .hdr-dropdown-item:hover {
-          background: rgba(212,168,67,0.1);
-        }
+        .hdr-dropdown-item:hover { background: rgba(212,168,67,0.1); }
         .hdr-dropdown-item .item-label {
           font-weight: 600;
           font-size: 13.5px;
@@ -175,6 +172,7 @@ export default function Header() {
           margin: 2px 8px;
         }
 
+        /* ── Login & Logout share exact same pill style ── */
         .hdr-login-btn {
           padding: 8px 22px;
           border: 1.5px solid rgba(212,168,67,0.7);
@@ -193,6 +191,47 @@ export default function Header() {
           background: #d4a843;
           color: #0f130e;
           box-shadow: 0 4px 18px rgba(212,168,67,0.4);
+        }
+
+        /* Logout uses same base as login but red-tinted hover */
+        .hdr-logout-btn {
+          padding: 8px 22px;
+          border: 1.5px solid rgba(212,168,67,0.7);
+          border-radius: 100px;
+          font-family: 'Outfit', sans-serif;
+          font-weight: 600; font-size: 14px;
+          color: #d4a843;
+          background: transparent;
+          cursor: pointer;
+          text-decoration: none;
+          transition: background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+          letter-spacing: 0.03em;
+          display: inline-block;
+        }
+        .hdr-logout-btn:hover {
+          background: rgba(220,60,60,0.15);
+          color: #ff6b6b;
+          border-color: rgba(220,60,60,0.6);
+          box-shadow: 0 4px 18px rgba(220,60,60,0.2);
+        }
+
+        /* Cart icon button */
+        .hdr-cart-btn {
+          display: flex; align-items: center; justify-content: center;
+          width: 40px; height: 40px;
+          border-radius: 50%;
+          border: 1.5px solid rgba(212,168,67,0.5);
+          color: #d4a843;
+          font-size: 17px;
+          text-decoration: none;
+          transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+        }
+        .hdr-cart-btn:hover {
+          background: #d4a843;
+          color: #0f130e;
+          border-color: #d4a843;
+          box-shadow: 0 4px 18px rgba(212,168,67,0.4);
+          transform: translateY(-1px);
         }
 
         .hdr-book-btn {
@@ -275,7 +314,7 @@ export default function Header() {
         {/* Gold accent line */}
         <div style={{ height: "3px", background: "linear-gradient(90deg, #6b4f0e, #d4a843, #f5c842, #d4a843, #6b4f0e)" }} />
 
-        <div className="max-w-7xl mx-auto px-5">
+        <div className="max-w-8xl mx-auto px-5">
           <div className="flex items-center justify-between" style={{ height: "76px" }}>
 
             {/* ── Logo ── */}
@@ -332,17 +371,29 @@ export default function Header() {
               </div>
             </nav>
 
-            {/* ── Desktop CTA ── */}
+            {/* ── Desktop CTA — ONLY THIS SECTION CHANGED ── */}
             <div className="hidden md:flex items-center gap-3">
-              <Link to="/login" className="hdr-login-btn absolute right-3">Login</Link>
-              
-               <Link
-                  to="/booking"
-                  className="text-[25px] font-bold m-1">
+              {/* Cart icon — always visible */}
+              <Link to="/booking" className="hdr-cart-btn">
+                <FaCartShopping />
+              </Link>
 
-                  <FaCartShopping/>  
-
+              {/* Login OR Logout — same pill shape, matched style */}
+              {token == null ? (
+                <Link to="/login" className="hdr-login-btn">
+                  Login
                 </Link>
+              ) : (
+                <button
+                  className="hdr-logout-btn"
+                  onClick={() => {
+                    localStorage.removeItem("token");
+                    window.location.href = "/login";
+                  }}
+                >
+                  Logout
+                </button>
+              )}
             </div>
 
             {/* ── Mobile Hamburger ── */}
@@ -408,11 +459,9 @@ export default function Header() {
               </div>
 
               {/* Mobile Login + Book */}
-              <div className="flex gap-3 pt-3 pb-2">
+              <div className="flex justify-end gap-3 pt-3 pb-2 ">
                 <Link to="/login" onClick={() => setMenuOpen(false)} className="hdr-login-btn" style={{ flex: 1, textAlign: "center" }}>Login</Link>
                 <Link to="/booking" onClick={() => setMenuOpen(false)} className="hdr-book-btn" style={{ flex: 1, textAlign: "center" }}>Book Now</Link>
-                
-               
               </div>
             </nav>
           )}

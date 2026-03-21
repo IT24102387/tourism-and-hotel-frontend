@@ -1,2 +1,8 @@
 sb_publishable_LNT20p1tPOu_HYOB6dqH2g_k3fbWuzB
 https://bvkitmjiwmevssnkioab.supabase.co
+
+
+google login
+262363908883-3pi34p5rk7mj588547ckqlvo267c1h0n.apps.googleusercontent.com-client ID
+
+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-Client Scret

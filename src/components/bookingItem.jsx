@@ -1,11 +1,11 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { addToCart, removeFromCart } from "../utils/cart";
-import { FaArrowDown, FaArrowUp, FaTrash } from "react-icons/fa";
+import { FaTrash } from "react-icons/fa";
 
 export default function BookingItem({ itemKey, qty, refresh }) {
   const [item, setItem] = useState(null);
-  const [status, setStatus] = useState("loading"); // loading | success | error
+  const [status, setStatus] = useState("loading");
 
   useEffect(() => {
     if (status === "loading") {
@@ -25,11 +25,19 @@ export default function BookingItem({ itemKey, qty, refresh }) {
 
   if (status === "loading") {
     return (
-      <div className="flex w-[600px] gap-4 p-4 rounded-lg bg-[var(--color-highlight)] animate-pulse">
-        <div className="w-20 h-20 rounded-md bg-gray-300" />
-        <div className="flex-1 space-y-2">
-          <div className="h-4 w-1/2 bg-gray-300 rounded" />
-          <div className="h-3 w-1/3 bg-gray-300 rounded" />
+      <div
+        className="flex w-full max-w-2xl gap-4 p-4 rounded-2xl animate-pulse"
+        style={{ background: "#FFFBF5", boxShadow: "0 4px 24px rgba(217,119,6,0.08)" }}
+      >
+        <div className="w-20 h-20 rounded-xl shrink-0" style={{ background: "#F5EACF" }} />
+        <div className="flex-1 space-y-3 py-1">
+          <div className="h-4 w-2/5 rounded-full" style={{ background: "#F5EACF" }} />
+          <div className="h-3 w-1/4 rounded-full" style={{ background: "#F5EACF" }} />
+          <div className="h-3 w-1/3 rounded-full" style={{ background: "#F5EACF" }} />
+        </div>
+        <div className="w-20 space-y-2 py-1 shrink-0">
+          <div className="h-3 w-full rounded-full" style={{ background: "#F5EACF" }} />
+          <div className="h-5 w-full rounded-full" style={{ background: "#F5EACF" }} />
         </div>
       </div>
     );
@@ -37,74 +45,84 @@ export default function BookingItem({ itemKey, qty, refresh }) {
 
   if (status === "error" || !item) return null;
 
+  const subtotal = (item.dailyRentalprice * qty).toLocaleString();
+
   return (
-    <div className="flex w-[600px] my-2 items-center gap-4 p-4 rounded-xl bg-[var(--color-primary)] shadow-sm border border-gray-200 relative">
-      <div className="absolute right-[-45px] text-red-500 hover:text-white hover:bg-red-500 p-[10px] rounded-full cursor-pointer" >
-      <FaTrash onClick={()=>{
-          removeFromCart(itemKey);
-          refresh();
-      }}
-      />
-      </div>
+    <div
+      className="flex w-full max-w-2xl items-center gap-4 p-4 rounded-2xl transition-shadow duration-200"
+      style={{ background: "#FFFBF5", boxShadow: "0 4px 24px rgba(217,119,6,0.08)" }}
+    >
       {/* Image */}
       <img
         src={item.image?.[0]}
         alt={item.name}
-        className="w-20 h-20 object-cover rounded-lg bg-[var(--color-highlight)]"
+        className="w-20 h-20 object-cover rounded-xl shrink-0"
+        style={{ background: "#F5EACF" }}
       />
 
       {/* Info */}
-      <div className="flex-1">
-        <h3 className="text-sm font-semibold text-blue-500">
+      <div className="flex-1 min-w-0">
+        <h3 className="text-sm font-bold capitalize truncate" style={{ color: "#292524" }}>
           {item.name}
         </h3>
-        <p className="text-xs text-gray-500">
-          {item.category} 
+        <p className="text-xs mt-0.5" style={{ color: "#A8A29E" }}>
+          {item.category}
+        </p>
+        <p className="text-xs font-semibold mt-1" style={{ color: "#D97706" }}>
+          {item.dailyRentalprice?.toLocaleString()} LKR / day
         </p>
 
-        <div className="mt-2 flex items-center gap-3 text-sm">
-          <span className="text-gray-600 w-[100px]">
-            Rs. {item.dailyRentalprice.toLocaleString()} / day
-          </span>
-          <span className="text-gray-400">×</span>
-          <span className="font-medium w-[100px] text-center text-gray-800 relative flex justify-center items-center">
-            <button
-                className="absolute top-[-20px] hover:text-blue-500"
-                onClick={()=>{
-                    addToCart(itemKey,1);
-                    refresh();
-                }}
-                >
-                    <FaArrowUp/>
-                </button>
-                {qty}
-                <button
-                    className="absolute bottom-[-20px] hover:text-blue-500"
-                    onClick={()=>{
-                        
-                          if(qty==1){
-                            removeFromCart(itemKey);
-                            refresh();
-                          }else{
-                            addToCart(itemKey, - 1);
-                            refresh();
-                          
-                        }
+        {/* Quantity Controls */}
+        <div className="flex items-center gap-2 mt-3">
+          <button
+            onClick={() => {
+              if (qty === 1) { removeFromCart(itemKey); refresh(); }
+              else { addToCart(itemKey, -1); refresh(); }
+            }}
+            className="w-7 h-7 flex items-center justify-center rounded-full font-bold text-base transition-all duration-150 select-none"
+            style={{ background: "#F5EACF", color: "#D97706" }}
+            onMouseEnter={e => { e.currentTarget.style.background = "#FBBF24"; e.currentTarget.style.color = "#1C1917"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "#F5EACF"; e.currentTarget.style.color = "#D97706"; }}
+          >
+            −
+          </button>
 
-                    }}
-                >
-                    <FaArrowDown/>
-                </button>
-            </span>
+          <span className="w-7 text-center text-sm font-black" style={{ color: "#292524" }}>
+            {qty}
+          </span>
+
+          <button
+            onClick={() => { addToCart(itemKey, 1); refresh(); }}
+            className="w-7 h-7 flex items-center justify-center rounded-full font-bold text-base transition-all duration-150 select-none"
+            style={{ background: "#F5EACF", color: "#D97706" }}
+            onMouseEnter={e => { e.currentTarget.style.background = "#FBBF24"; e.currentTarget.style.color = "#1C1917"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "#F5EACF"; e.currentTarget.style.color = "#D97706"; }}
+          >
+            +
+          </button>
         </div>
       </div>
 
-      {/* Price */}
-      <div className="text-right">
-        <p className="text-sm text-gray-500">Subtotal</p>
-        <p className="font-semibold text-gray-900">
-          Rs. {(item.dailyRentalprice.toFixed() * qty).toLocaleString()}
-        </p>
+      {/* Subtotal + Delete */}
+      <div className="flex flex-col items-end gap-3 shrink-0">
+        <div className="text-right">
+          <p className="text-xs" style={{ color: "#A8A29E" }}>Subtotal</p>
+          <p className="text-sm font-black" style={{ color: "#D97706" }}>
+            {subtotal}{" "}
+            <span className="text-xs font-semibold" style={{ color: "#A8A29E" }}>LKR</span>
+          </p>
+        </div>
+
+        <button
+          onClick={() => { removeFromCart(itemKey); refresh(); }}
+          className="w-8 h-8 flex items-center justify-center rounded-full transition-all duration-150"
+          style={{ color: "#A8A29E", background: "transparent" }}
+          onMouseEnter={e => { e.currentTarget.style.background = "#FEF3C7"; e.currentTarget.style.color = "#D97706"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#A8A29E"; }}
+          title="Remove item"
+        >
+          <FaTrash size={12} />
+        </button>
       </div>
     </div>
   );
