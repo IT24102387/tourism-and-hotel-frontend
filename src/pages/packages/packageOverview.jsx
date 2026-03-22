@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getPackageById, getVehicles } from "../../utils/api";
+import { getPackageById, getVehicles, getAddons } from "../../utils/api";
 import {
   FaCheckCircle,
   FaTimesCircle,
@@ -44,15 +44,22 @@ export default function PackageOverview() {
   });
   const [vehicles, setVehicles] = useState([]);
   const [vehiclesState, setVehiclesState] = useState("idle");
+  const [addons, setAddons] = useState([]);
+  const [addonsState, setAddonsState] = useState("idle");
+  const [selectedAddons, setSelectedAddons] = useState([]);
 
   const vehicleCost = form.vehicle ? form.vehicle.pricePerDay * (pkg?.duration?.days || 1) : 0;
-  const totalPrice = pkg ? pkg.price * form.guests + vehicleCost : 0;
+  const addonsCost = selectedAddons.reduce((sum, a) => sum + a.price, 0);
+  const totalPrice = pkg ? pkg.price * form.guests + vehicleCost + addonsCost : 0;
 
   function openCanvas() {
     setStep(1);
     setForm((prev) => ({ ...prev, vehicle: null }));
     setVehiclesState("idle");
     setVehicles([]);
+    setAddonsState("idle");
+    setAddons([]);
+    setSelectedAddons([]);
     setCanvasOpen(true);
   }
   function closeCanvas() {
@@ -60,6 +67,13 @@ export default function PackageOverview() {
   }
   function handleFormChange(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
+  }
+  function toggleAddon(addon) {
+    setSelectedAddons((prev) =>
+      prev.some((a) => a.addonId === addon.addonId)
+        ? prev.filter((a) => a.addonId !== addon.addonId)
+        : [...prev, addon]
+    );
   }
   function step1Valid() {
     return form.tourDate && form.guests >= 1 && form.phone.trim().length >= 7;
@@ -98,6 +112,17 @@ export default function PackageOverview() {
       })
       .catch(() => setVehiclesState("error"));
   }, [canvasOpen, step, vehiclesState]);
+
+  useEffect(() => {
+    if (!canvasOpen || step !== 3 || addonsState !== "idle") return;
+    setAddonsState("loading");
+    getAddons()
+      .then((res) => {
+        setAddons(res.data);
+        setAddonsState("success");
+      })
+      .catch(() => setAddonsState("error"));
+  }, [canvasOpen, step, addonsState]);
 
   if (state === "loading") {
     return (
@@ -345,7 +370,7 @@ export default function PackageOverview() {
 
             {/* Step indicator */}
             <div className="flex items-center gap-2 px-6 pt-5 pb-3 flex-shrink-0">
-              {[1, 2, 3].map((s) => (
+              {[1, 2, 3, 4].map((s) => (
                 <div key={s} className="flex items-center gap-2">
                   <div
                     className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition"
@@ -356,13 +381,14 @@ export default function PackageOverview() {
                   >
                     {s}
                   </div>
-                  {s < 3 && <div className="flex-1 h-px w-8" style={{ background: step > s ? "#F59E0B" : "#F5EACF" }} />}
+                  {s < 4 && <div className="flex-1 h-px w-5" style={{ background: step > s ? "#F59E0B" : "#F5EACF" }} />}
                 </div>
               ))}
               <span className="ml-2 text-xs font-medium" style={{ color: "#78716C" }}>
                 {step === 1 && "Trip Details"}
-                {step === 2 && "Customise"}
-                {step === 3 && "Confirm"}
+                {step === 2 && "Vehicle"}
+                {step === 3 && "Add-ons"}
+                {step === 4 && "Confirm"}
               </span>
             </div>
 
@@ -623,6 +649,120 @@ export default function PackageOverview() {
               </div>
             )}
 
+            {/* ── Step 3: Add-ons ──────────────────────────────── */}
+            {step === 3 && (
+              <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-4">
+                <p className="text-sm" style={{ color: "#78716C" }}>
+                  Enhance your trip with optional add-ons. Select as many as you like.
+                </p>
+
+                {/* Loading state */}
+                {addonsState === "loading" && (
+                  <div className="flex justify-center py-6">
+                    <div className="w-8 h-8 border-4 rounded-full border-t-amber-500 animate-spin" />
+                  </div>
+                )}
+
+                {/* Error state */}
+                {addonsState === "error" && (
+                  <p className="text-sm text-center py-2" style={{ color: "#78716C" }}>
+                    Could not load add-ons. You may proceed without any.
+                  </p>
+                )}
+
+                {/* Addons grid */}
+                {addonsState === "success" && addons.length > 0 && (
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {addons.map((addon) => {
+                      const selected = selectedAddons.some((a) => a.addonId === addon.addonId);
+                      return (
+                        <button
+                          key={addon.addonId}
+                          onClick={() => toggleAddon(addon)}
+                          className="text-left rounded-xl border-2 p-4 transition flex flex-col gap-2"
+                          style={{
+                            borderColor: selected ? "#D97706" : "#E7D9B8",
+                            background: selected ? "#FFFBF5" : "#FAFAFA",
+                          }}
+                        >
+                          {/* Category badge + checkbox row */}
+                          <div className="flex items-center justify-between gap-2">
+                            <span
+                              className="text-xs font-bold px-2 py-0.5 rounded-full"
+                              style={{ background: "#FEF3C7", color: "#92400E" }}
+                            >
+                              {addon.category}
+                            </span>
+                            <div
+                              className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition"
+                              style={{
+                                borderColor: selected ? "#D97706" : "#D1D5DB",
+                                background: selected ? "#D97706" : "transparent",
+                              }}
+                            >
+                              {selected && (
+                                <svg viewBox="0 0 12 10" className="w-3 h-3" fill="none">
+                                  <path d="M1 5l3 4 7-8" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                              )}
+                            </div>
+                          </div>
+
+                          <p className="font-bold text-sm" style={{ color: "#292524" }}>{addon.name}</p>
+
+                          {addon.description && (
+                            <p className="text-xs leading-relaxed" style={{ color: "#78716C" }}>
+                              {addon.description}
+                            </p>
+                          )}
+
+                          <p className="text-sm font-bold mt-auto pt-1" style={{ color: "#D97706" }}>
+                            Rs. {addon.price.toLocaleString()}
+                          </p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {addonsState === "success" && addons.length === 0 && (
+                  <p className="text-sm text-center py-4" style={{ color: "#78716C" }}>
+                    No add-ons available for this package.
+                  </p>
+                )}
+
+                {/* Price breakdown */}
+                <div className="rounded-xl p-4 mt-2" style={{ background: "#FEF3C7", border: "1px solid #FDE68A" }}>
+                  <p className="text-xs font-semibold mb-3" style={{ color: "#92400E" }}>PRICE BREAKDOWN</p>
+                  <div className="flex justify-between text-sm mb-2" style={{ color: "#57534E" }}>
+                    <span>Package &times; {form.guests} guest{form.guests !== 1 ? "s" : ""}</span>
+                    <span>Rs. {(pkg?.price * form.guests).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm mb-2" style={{ color: "#57534E" }}>
+                    <span>Vehicle</span>
+                    {form.vehicle ? (
+                      <span>Rs. {vehicleCost.toLocaleString()}</span>
+                    ) : (
+                      <span style={{ color: "#10B981" }}>Included</span>
+                    )}
+                  </div>
+                  {selectedAddons.map((a) => (
+                    <div key={a.addonId} className="flex justify-between text-sm mb-2" style={{ color: "#57534E" }}>
+                      <span>{a.name}</span>
+                      <span>Rs. {a.price.toLocaleString()}</span>
+                    </div>
+                  ))}
+                  <div
+                    className="flex justify-between font-bold text-base border-t pt-2"
+                    style={{ color: "#292524", borderColor: "#FDE68A" }}
+                  >
+                    <span>Total</span>
+                    <span style={{ color: "#D97706" }}>Rs. {totalPrice.toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Modal footer */}
             <div className="px-6 py-5 border-t flex-shrink-0" style={{ borderColor: "#F5EACF" }}>
               {step === 1 && (
@@ -650,6 +790,24 @@ export default function PackageOverview() {
                   </button>
                   <button
                     onClick={() => setStep(3)}
+                    className="flex-1 py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition hover:opacity-90"
+                    style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}
+                  >
+                    Next <FaChevronRight />
+                  </button>
+                </div>
+              )}
+              {step === 3 && (
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setStep(2)}
+                    className="flex-1 py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition hover:opacity-80"
+                    style={{ background: "#F5EACF", color: "#78716C" }}
+                  >
+                    <FaArrowLeft /> Back
+                  </button>
+                  <button
+                    onClick={() => setStep(4)}
                     className="flex-1 py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition hover:opacity-90"
                     style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}
                   >
