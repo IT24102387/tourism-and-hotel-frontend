@@ -13,3 +13,7 @@ export function getPackages() {
 export function getPackageById(packageId) {
   return axios.get(`${BASE_URL}/api/packages/${packageId}`);
 }
+
+export function getVehicles() {
+  return axios.get(`${BASE_URL}/api/vehicles`);
+}

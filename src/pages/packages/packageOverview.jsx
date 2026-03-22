@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getPackageById } from "../../utils/api";
+import { getPackageById, getVehicles } from "../../utils/api";
 import {
   FaCheckCircle,
   FaTimesCircle,
@@ -10,7 +10,21 @@ import {
   FaStar,
   FaArrowLeft,
   FaTag,
+  FaTimes,
+  FaChevronRight,
+  FaPhone,
+  FaCalendarAlt,
+  FaCar,
 } from "react-icons/fa";
+
+const featureLabels = {
+  ac: "A/C",
+  openRoof: "Open Roof",
+  fourWheelDrive: "4WD",
+  wifi: "WiFi",
+  firstAidKit: "First Aid",
+  coolerBox: "Cooler Box",
+};
 
 export default function PackageOverview() {
   const { packageId } = useParams();
@@ -18,6 +32,52 @@ export default function PackageOverview() {
   const [state, setState] = useState("loading");
   const [pkg, setPkg] = useState(null);
   const [activeImage, setActiveImage] = useState(0);
+
+  // Canvas / booking wizard state
+  const [canvasOpen, setCanvasOpen] = useState(false);
+  const [step, setStep] = useState(1);
+  const [form, setForm] = useState({
+    tourDate: "",
+    guests: 1,
+    phone: "",
+    vehicle: null,
+  });
+  const [vehicles, setVehicles] = useState([]);
+  const [vehiclesState, setVehiclesState] = useState("idle");
+
+  const vehicleCost = form.vehicle ? form.vehicle.pricePerDay * (pkg?.duration?.days || 1) : 0;
+  const totalPrice = pkg ? pkg.price * form.guests + vehicleCost : 0;
+
+  function openCanvas() {
+    setStep(1);
+    setForm((prev) => ({ ...prev, vehicle: null }));
+    setVehiclesState("idle");
+    setVehicles([]);
+    setCanvasOpen(true);
+  }
+  function closeCanvas() {
+    setCanvasOpen(false);
+  }
+  function handleFormChange(field, value) {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  }
+  function step1Valid() {
+    return form.tourDate && form.guests >= 1 && form.phone.trim().length >= 7;
+  }
+
+  const today = new Date().toISOString().split("T")[0];
+  const maxDate = new Date(Date.now() + 2 * 365 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+
+  function phoneValid(value) {
+    return /^0\d{9}$/.test(value.trim());
+  }
+  function dateValid(value) {
+    if (!value) return false;
+    return value >= today && value <= maxDate;
+  }
+  function step1Valid() {
+    return dateValid(form.tourDate) && form.guests >= 1 && phoneValid(form.phone);
+  }
 
   useEffect(() => {
     getPackageById(packageId)
@@ -27,6 +87,17 @@ export default function PackageOverview() {
       })
       .catch(() => setState("error"));
   }, [packageId]);
+
+  useEffect(() => {
+    if (!canvasOpen || step !== 2 || vehiclesState !== "idle") return;
+    setVehiclesState("loading");
+    getVehicles()
+      .then((res) => {
+        setVehicles(res.data);
+        setVehiclesState("success");
+      })
+      .catch(() => setVehiclesState("error"));
+  }, [canvasOpen, step, vehiclesState]);
 
   if (state === "loading") {
     return (
@@ -230,15 +301,366 @@ export default function PackageOverview() {
               </div>
 
               <button
+                onClick={openCanvas}
                 className="w-full py-4 rounded-xl font-bold text-lg transition hover:opacity-90"
                 style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}
               >
-                Book This Package
+                Customize &amp; Book
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* ── Booking Modal ─────────────────────────────────────────────── */}
+      {canvasOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.55)" }}
+          onClick={closeCanvas}
+        >
+          <div
+            className="relative flex flex-col rounded-2xl overflow-hidden w-full"
+            style={{
+              maxWidth: "520px",
+              maxHeight: "90vh",
+              background: "#FFFBF5",
+              boxShadow: "0 24px 80px rgba(0,0,0,0.3)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal header */}
+            <div
+              className="flex items-center justify-between px-6 py-5 border-b flex-shrink-0"
+              style={{ borderColor: "#F5EACF" }}
+            >
+              <div>
+                <p className="text-xs font-semibold tracking-widest mb-0.5" style={{ color: "#D97706" }}>CUSTOMIZE &amp; BOOK</p>
+                <h2 className="text-lg font-bold" style={{ color: "#292524" }}>{pkg?.name}</h2>
+              </div>
+              <button onClick={closeCanvas} className="p-2 rounded-full transition hover:bg-amber-50" style={{ color: "#78716C" }}>
+                <FaTimes className="text-xl" />
+              </button>
+            </div>
+
+            {/* Step indicator */}
+            <div className="flex items-center gap-2 px-6 pt-5 pb-3 flex-shrink-0">
+              {[1, 2, 3].map((s) => (
+                <div key={s} className="flex items-center gap-2">
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition"
+                    style={{
+                      background: step >= s ? "linear-gradient(135deg,#FBBF24,#F59E0B)" : "#F5EACF",
+                      color: step >= s ? "#1C1917" : "#A8A29E",
+                    }}
+                  >
+                    {s}
+                  </div>
+                  {s < 3 && <div className="flex-1 h-px w-8" style={{ background: step > s ? "#F59E0B" : "#F5EACF" }} />}
+                </div>
+              ))}
+              <span className="ml-2 text-xs font-medium" style={{ color: "#78716C" }}>
+                {step === 1 && "Trip Details"}
+                {step === 2 && "Customise"}
+                {step === 3 && "Confirm"}
+              </span>
+            </div>
+
+            {/* ── Step 1: Trip Details ──────────────────────────────── */}
+            {step === 1 && (
+              <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-6">
+
+                {/* Tour Date */}
+                <div>
+                  <label className="block text-sm font-semibold mb-2" style={{ color: "#292524" }}>
+                    <FaCalendarAlt className="inline mr-1.5" style={{ color: "#D97706" }} />
+                    Tour Date
+                  </label>
+                  <input
+                    type="date"
+                    value={form.tourDate}
+                    min={today}
+                    max={maxDate}
+                    onChange={(e) => handleFormChange("tourDate", e.target.value)}
+                    className="w-full border rounded-xl px-4 py-3 text-sm outline-none transition focus:border-amber-400"
+                    style={{
+                      borderColor: form.tourDate && !dateValid(form.tourDate) ? "#EF4444" : "#E7D9B8",
+                      background: "#FFFBF5",
+                      color: "#292524",
+                    }}
+                  />
+                  {form.tourDate && form.tourDate < today && (
+                    <p className="text-xs mt-1" style={{ color: "#EF4444" }}>Tour date cannot be in the past.</p>
+                  )}
+                  {form.tourDate && form.tourDate > maxDate && (
+                    <p className="text-xs mt-1" style={{ color: "#EF4444" }}>Please select a date within the next 2 years.</p>
+                  )}
+                </div>
+
+                {/* Number of Guests */}
+                <div>
+                  <label className="block text-sm font-semibold mb-2" style={{ color: "#292524" }}>
+                    <FaUsers className="inline mr-1.5" style={{ color: "#D97706" }} />
+                    Number of Guests
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => handleFormChange("guests", Math.max(1, form.guests - 1))}
+                      className="w-10 h-10 rounded-full font-bold text-xl flex items-center justify-center transition hover:opacity-80"
+                      style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}
+                    >
+                      -
+                    </button>
+                    <span className="text-2xl font-bold w-8 text-center" style={{ color: "#292524" }}>{form.guests}</span>
+                    <button
+                      onClick={() => handleFormChange("guests", Math.min(pkg?.maxGroupSize || 20, form.guests + 1))}
+                      className="w-10 h-10 rounded-full font-bold text-xl flex items-center justify-center transition hover:opacity-80"
+                      style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}
+                    >
+                      +
+                    </button>
+                    <span className="text-xs ml-1" style={{ color: "#A8A29E" }}>Max {pkg?.maxGroupSize}</span>
+                  </div>
+                </div>
+
+                {/* Phone Number */}
+                <div>
+                  <label className="block text-sm font-semibold mb-2" style={{ color: "#292524" }}>
+                    <FaPhone className="inline mr-1.5" style={{ color: "#D97706" }} />
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    placeholder="0771234567"
+                    value={form.phone}
+                    onChange={(e) => handleFormChange("phone", e.target.value)}
+                    className="w-full border rounded-xl px-4 py-3 text-sm outline-none transition focus:border-amber-400"
+                    style={{
+                      borderColor: form.phone && !phoneValid(form.phone) ? "#EF4444" : "#E7D9B8",
+                      background: "#FFFBF5",
+                      color: "#292524",
+                    }}
+                  />
+                  {form.phone && !phoneValid(form.phone) && (
+                    <p className="text-xs mt-1" style={{ color: "#EF4444" }}>
+                      {!/^0/.test(form.phone)
+                        ? "Phone number must start with 0."
+                        : "Phone number must be exactly 10 digits."}
+                    </p>
+                  )}
+                </div>
+
+                {/* Price breakdown */}
+                <div className="rounded-xl p-4" style={{ background: "#FEF3C7", border: "1px solid #FDE68A" }}>
+                  <p className="text-xs font-semibold mb-3" style={{ color: "#92400E" }}>PRICE BREAKDOWN</p>
+                  <div className="flex justify-between text-sm mb-2" style={{ color: "#57534E" }}>
+                    <span>Base price per person</span>
+                    <span>Rs. {pkg?.price.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm mb-3" style={{ color: "#57534E" }}>
+                    <span>&times; {form.guests} guest{form.guests !== 1 ? "s" : ""}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-base border-t pt-2" style={{ color: "#292524", borderColor: "#FDE68A" }}>
+                    <span>Total</span>
+                    <span style={{ color: "#D97706" }}>Rs. {totalPrice.toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── Step 2: Choose Vehicle ────────────────────────────── */}
+            {step === 2 && (
+              <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-4">
+                <p className="text-sm" style={{ color: "#78716C" }}>
+                  Select a vehicle for your trip. A standard vehicle is included — upgrading adds to the total.
+                </p>
+
+                {/* Standard Vehicle Card */}
+                <button
+                  onClick={() => handleFormChange("vehicle", null)}
+                  className="w-full text-left rounded-xl border-2 p-4 transition"
+                  style={{
+                    borderColor: form.vehicle === null ? "#D97706" : "#E7D9B8",
+                    background: form.vehicle === null ? "#FFFBF5" : "#FAFAFA",
+                  }}
+                >
+                  <div className="flex items-center gap-4">
+                    <div
+                      className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{ background: "#FEF3C7" }}
+                    >
+                      <FaCar className="text-xl" style={{ color: "#D97706" }} />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <p className="font-bold text-sm" style={{ color: "#292524" }}>Standard Vehicle</p>
+                        {form.vehicle === null && (
+                          <FaCheckCircle style={{ color: "#10B981", fontSize: "1.1rem" }} />
+                        )}
+                      </div>
+                      <p className="text-xs mt-0.5" style={{ color: "#78716C" }}>
+                        A comfortable vehicle arranged by the tour operator
+                      </p>
+                    </div>
+                    <span
+                      className="text-xs font-bold px-2 py-1 rounded-full flex-shrink-0"
+                      style={{ background: "#D1FAE5", color: "#065F46" }}
+                    >
+                      Included
+                    </span>
+                  </div>
+                </button>
+
+                {/* Loading state */}
+                {vehiclesState === "loading" && (
+                  <div className="flex justify-center py-4">
+                    <div className="w-8 h-8 border-4 rounded-full border-t-amber-500 animate-spin" />
+                  </div>
+                )}
+
+                {/* Error state */}
+                {vehiclesState === "error" && (
+                  <p className="text-sm text-center py-2" style={{ color: "#78716C" }}>
+                    Could not load additional vehicles. You may proceed with the standard option.
+                  </p>
+                )}
+
+                {/* Vehicle cards grid */}
+                {vehiclesState === "success" && vehicles.length > 0 && (
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {vehicles.map((v) => {
+                      const selected = form.vehicle?.vehicleId === v.vehicleId;
+                      const addedCost = v.pricePerDay * (pkg?.duration?.days || 1);
+                      const activeFeatures = Object.entries(v.features || {})
+                        .filter(([, val]) => val)
+                        .map(([key]) => featureLabels[key] || key);
+                      return (
+                        <button
+                          key={v.vehicleId}
+                          onClick={() => handleFormChange("vehicle", v)}
+                          className="text-left rounded-xl border-2 overflow-hidden transition"
+                          style={{
+                            borderColor: selected ? "#D97706" : "#E7D9B8",
+                            background: selected ? "#FFFBF5" : "#FAFAFA",
+                          }}
+                        >
+                          {v.images?.[0] && (
+                            <div className="w-full h-28 overflow-hidden">
+                              <img
+                                src={v.images[0]}
+                                alt={v.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          )}
+                          <div className="p-3">
+                            <div className="flex items-start justify-between gap-2 mb-1">
+                              <div>
+                                <p className="font-bold text-sm" style={{ color: "#292524" }}>{v.name}</p>
+                                <p className="text-xs" style={{ color: "#78716C" }}>
+                                  {v.type} &middot; {v.capacity} seats
+                                </p>
+                              </div>
+                              {selected && (
+                                <FaCheckCircle className="flex-shrink-0 mt-0.5" style={{ color: "#10B981" }} />
+                              )}
+                            </div>
+                            {activeFeatures.length > 0 && (
+                              <div className="flex flex-wrap gap-1 my-2">
+                                {activeFeatures.map((f) => (
+                                  <span
+                                    key={f}
+                                    className="text-xs px-1.5 py-0.5 rounded-full"
+                                    style={{ background: "#FEF3C7", color: "#92400E" }}
+                                  >
+                                    {f}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            <p className="text-sm font-bold mt-1" style={{ color: "#D97706" }}>
+                              +Rs. {addedCost.toLocaleString()}
+                            </p>
+                            <p className="text-xs" style={{ color: "#A8A29E" }}>
+                              Rs. {v.pricePerDay.toLocaleString()}/day &times; {pkg?.duration?.days} days
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {vehiclesState === "success" && vehicles.length === 0 && (
+                  <p className="text-sm text-center py-2" style={{ color: "#78716C" }}>
+                    No additional vehicles available. Your trip will use the standard vehicle.
+                  </p>
+                )}
+
+                {/* Price breakdown */}
+                <div className="rounded-xl p-4 mt-2" style={{ background: "#FEF3C7", border: "1px solid #FDE68A" }}>
+                  <p className="text-xs font-semibold mb-3" style={{ color: "#92400E" }}>PRICE BREAKDOWN</p>
+                  <div className="flex justify-between text-sm mb-2" style={{ color: "#57534E" }}>
+                    <span>Package &times; {form.guests} guest{form.guests !== 1 ? "s" : ""}</span>
+                    <span>Rs. {(pkg?.price * form.guests).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm mb-3" style={{ color: "#57534E" }}>
+                    <span>Vehicle</span>
+                    {form.vehicle ? (
+                      <span>Rs. {vehicleCost.toLocaleString()}</span>
+                    ) : (
+                      <span style={{ color: "#10B981" }}>Included</span>
+                    )}
+                  </div>
+                  <div
+                    className="flex justify-between font-bold text-base border-t pt-2"
+                    style={{ color: "#292524", borderColor: "#FDE68A" }}
+                  >
+                    <span>Total</span>
+                    <span style={{ color: "#D97706" }}>Rs. {totalPrice.toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Modal footer */}
+            <div className="px-6 py-5 border-t flex-shrink-0" style={{ borderColor: "#F5EACF" }}>
+              {step === 1 && (
+                <button
+                  onClick={() => setStep(2)}
+                  disabled={!step1Valid()}
+                  className="w-full py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition"
+                  style={{
+                    background: step1Valid() ? "linear-gradient(135deg,#FBBF24,#F59E0B)" : "#F5EACF",
+                    color: step1Valid() ? "#1C1917" : "#A8A29E",
+                    cursor: step1Valid() ? "pointer" : "not-allowed",
+                  }}
+                >
+                  Next <FaChevronRight />
+                </button>
+              )}
+              {step === 2 && (
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setStep(1)}
+                    className="flex-1 py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition hover:opacity-80"
+                    style={{ background: "#F5EACF", color: "#78716C" }}
+                  >
+                    <FaArrowLeft /> Back
+                  </button>
+                  <button
+                    onClick={() => setStep(3)}
+                    className="flex-1 py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition hover:opacity-90"
+                    style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}
+                  >
+                    Next <FaChevronRight />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
