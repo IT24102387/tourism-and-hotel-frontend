@@ -468,7 +468,8 @@ export default function Home() {
                 return (
                   <div
                     key={pkg._id || index}
-                    className={`relative rounded-2xl p-8 ${isPopular ? "transform scale-105" : ""}`}
+                    onClick={() => navigate(`/package/${pkg.packageId}`)}
+                    className={`relative rounded-2xl p-8 cursor-pointer transition hover:-translate-y-1 ${isPopular ? "transform scale-105" : ""}`}
                     style={{ background: "#FFFBF5", boxShadow: isPopular ? "0 0 0 4px #FBBF24, 0 20px 60px rgba(0,0,0,0.3)" : "0 4px 24px rgba(0,0,0,0.2)" }}
                   >
                     {isPopular && (

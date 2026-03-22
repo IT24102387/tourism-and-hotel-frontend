@@ -9,3 +9,7 @@ export function getProducts() {
 export function getPackages() {
   return axios.get(`${BASE_URL}/api/packages`);
 }
+
+export function getPackageById(packageId) {
+  return axios.get(`${BASE_URL}/api/packages/${packageId}`);
+}

@@ -8,6 +8,7 @@ import ErrorNotFound from "./error";
 import ProductOverview from "./productOverview";
 import BookingPage from "./equipmentBookingPage";
 import Reviews from "./reviews";
+import PackageOverview from "../packages/packageOverview";
 
 
 export default function HomePage(){
@@ -21,6 +22,7 @@ export default function HomePage(){
                     <Route path="/services" element={<Services/>}/>
                     <Route path="/booking" element={<BookingPage/>}/>
                     <Route path="/product/:key" element={<ProductOverview/>}/>
+                    <Route path="/package/:packageId" element={<PackageOverview/>}/>
                     <Route path="/" element={<Home/>}/>
                     <Route path="/*" element={<ErrorNotFound/>}/>
                     <Route path="/reviews" element={<Reviews/>} /> 
