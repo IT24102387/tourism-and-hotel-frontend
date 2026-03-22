@@ -21,3 +21,10 @@ export function getVehicles() {
 export function getAddons() {
   return axios.get(`${BASE_URL}/api/addons`);
 }
+
+export function createCustomBooking(payload) {
+  const token = localStorage.getItem("token");
+  return axios.post(`${BASE_URL}/api/custom-bookings`, payload, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}

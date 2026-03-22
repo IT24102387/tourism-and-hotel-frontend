@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getPackageById, getVehicles, getAddons } from "../../utils/api";
+import { getPackageById, getVehicles, getAddons, createCustomBooking } from "../../utils/api";
 import {
   FaCheckCircle,
   FaTimesCircle,
@@ -47,6 +47,9 @@ export default function PackageOverview() {
   const [addons, setAddons] = useState([]);
   const [addonsState, setAddonsState] = useState("idle");
   const [selectedAddons, setSelectedAddons] = useState([]);
+  const [bookingStatus, setBookingStatus] = useState("idle"); // idle | loading | success | error
+  const [bookingError, setBookingError] = useState("");
+  const [bookingResult, setBookingResult] = useState(null);
 
   const vehicleCost = form.vehicle ? form.vehicle.pricePerDay * (pkg?.duration?.days || 1) : 0;
   const addonsCost = selectedAddons.reduce((sum, a) => sum + a.price, 0);
@@ -60,6 +63,9 @@ export default function PackageOverview() {
     setAddonsState("idle");
     setAddons([]);
     setSelectedAddons([]);
+    setBookingStatus("idle");
+    setBookingError("");
+    setBookingResult(null);
     setCanvasOpen(true);
   }
   function closeCanvas() {
@@ -74,6 +80,51 @@ export default function PackageOverview() {
         ? prev.filter((a) => a.addonId !== addon.addonId)
         : [...prev, addon]
     );
+  }
+  function handleBookNow() {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setBookingError("Please log in to complete your booking.");
+      setBookingStatus("error");
+      return;
+    }
+    setBookingStatus("loading");
+    const payload = {
+      packageId: pkg.packageId || String(pkg._id),
+      packageName: pkg.name,
+      userPhone: form.phone,
+      tourDate: form.tourDate,
+      guests: form.guests,
+      selectedActivities: [],
+      selectedVehicle: form.vehicle
+        ? {
+            vehicleId: form.vehicle.vehicleId,
+            vehicleName: form.vehicle.name,
+            vehicleType: form.vehicle.type,
+            vehiclePricePerDay: form.vehicle.pricePerDay,
+          }
+        : { vehicleId: null, vehicleName: null, vehicleType: null, vehiclePricePerDay: 0 },
+      addOns: {},
+      specialRequests:
+        selectedAddons.length > 0
+          ? "Add-ons: " + selectedAddons.map((a) => a.name).join(", ")
+          : "",
+      basePricePerPerson: pkg.price,
+      vehicleTotal: vehicleCost,
+      addOnTotal: addonsCost,
+      totalPrice,
+    };
+    createCustomBooking(payload)
+      .then((res) => {
+        setBookingResult(res.data.booking);
+        setBookingStatus("success");
+      })
+      .catch((err) => {
+        const msg =
+          err.response?.data?.message || "Failed to create booking. Please try again.";
+        setBookingError(msg);
+        setBookingStatus("error");
+      });
   }
   function step1Valid() {
     return form.tourDate && form.guests >= 1 && form.phone.trim().length >= 7;
@@ -763,6 +814,160 @@ export default function PackageOverview() {
               </div>
             )}
 
+            {/* ── Step 4: Review & Confirm ─────────────────────── */}
+            {step === 4 && bookingStatus !== "success" && (
+              <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-4">
+
+                {/* Trip Details */}
+                <div className="rounded-xl p-4" style={{ background: "#F9F5EE", border: "1px solid #E7D9B8" }}>
+                  <p className="text-xs font-bold tracking-widest mb-3" style={{ color: "#92400E" }}>TRIP DETAILS</p>
+                  <div className="grid sm:grid-cols-2 gap-2">
+                    <div className="flex items-center gap-2 text-sm" style={{ color: "#57534E" }}>
+                      <FaCalendarAlt className="flex-shrink-0" style={{ color: "#D97706" }} />
+                      <span>
+                        {new Date(form.tourDate + "T00:00:00").toLocaleDateString("en-GB", {
+                          weekday: "short", year: "numeric", month: "short", day: "numeric",
+                        })}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm" style={{ color: "#57534E" }}>
+                      <FaUsers className="flex-shrink-0" style={{ color: "#D97706" }} />
+                      <span>{form.guests} guest{form.guests !== 1 ? "s" : ""}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm" style={{ color: "#57534E" }}>
+                      <FaPhone className="flex-shrink-0" style={{ color: "#D97706" }} />
+                      <span>{form.phone}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm" style={{ color: "#57534E" }}>
+                      <FaClock className="flex-shrink-0" style={{ color: "#D97706" }} />
+                      <span>
+                        {pkg.duration.days} Day{pkg.duration.days !== 1 ? "s" : ""}
+                        {pkg.duration.nights > 0 && ` / ${pkg.duration.nights} Night${pkg.duration.nights !== 1 ? "s" : ""}`}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Vehicle */}
+                <div className="rounded-xl p-4" style={{ background: "#F9F5EE", border: "1px solid #E7D9B8" }}>
+                  <p className="text-xs font-bold tracking-widest mb-3" style={{ color: "#92400E" }}>VEHICLE</p>
+                  {form.vehicle ? (
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "#FEF3C7" }}>
+                          <FaCar style={{ color: "#D97706" }} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold" style={{ color: "#292524" }}>{form.vehicle.name}</p>
+                          <p className="text-xs" style={{ color: "#78716C" }}>
+                            {form.vehicle.type} &middot; {form.vehicle.capacity} seats
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-sm font-bold flex-shrink-0" style={{ color: "#D97706" }}>
+                        Rs. {vehicleCost.toLocaleString()}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "#FEF3C7" }}>
+                          <FaCar style={{ color: "#D97706" }} />
+                        </div>
+                        <span className="text-sm" style={{ color: "#57534E" }}>Standard Vehicle</span>
+                      </div>
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: "#D1FAE5", color: "#065F46" }}>Included</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Add-ons */}
+                <div className="rounded-xl p-4" style={{ background: "#F9F5EE", border: "1px solid #E7D9B8" }}>
+                  <p className="text-xs font-bold tracking-widest mb-3" style={{ color: "#92400E" }}>ADD-ONS</p>
+                  {selectedAddons.length > 0 ? (
+                    <div className="flex flex-col gap-3">
+                      {selectedAddons.map((a) => (
+                        <div key={a.addonId} className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <FaCheckCircle className="flex-shrink-0" style={{ color: "#10B981", fontSize: "0.85rem" }} />
+                            <div>
+                              <p className="text-sm font-medium" style={{ color: "#292524" }}>{a.name}</p>
+                              <p className="text-xs" style={{ color: "#78716C" }}>{a.category}</p>
+                            </div>
+                          </div>
+                          <span className="text-sm font-semibold flex-shrink-0" style={{ color: "#D97706" }}>
+                            Rs. {a.price.toLocaleString()}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm" style={{ color: "#A8A29E" }}>No add-ons selected</p>
+                  )}
+                </div>
+
+                {/* Price Breakdown */}
+                <div className="rounded-xl p-4" style={{ background: "#FEF3C7", border: "1px solid #FDE68A" }}>
+                  <p className="text-xs font-bold tracking-widest mb-3" style={{ color: "#92400E" }}>PRICE BREAKDOWN</p>
+                  <div className="flex justify-between text-sm mb-2" style={{ color: "#57534E" }}>
+                    <span>Package &times; {form.guests} guest{form.guests !== 1 ? "s" : ""}</span>
+                    <span>Rs. {(pkg.price * form.guests).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm mb-2" style={{ color: "#57534E" }}>
+                    <span>Vehicle</span>
+                    {form.vehicle
+                      ? <span>Rs. {vehicleCost.toLocaleString()}</span>
+                      : <span style={{ color: "#10B981" }}>Included</span>}
+                  </div>
+                  {selectedAddons.map((a) => (
+                    <div key={a.addonId} className="flex justify-between text-sm mb-2" style={{ color: "#57534E" }}>
+                      <span>{a.name}</span>
+                      <span>Rs. {a.price.toLocaleString()}</span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between font-bold text-base border-t pt-2" style={{ color: "#292524", borderColor: "#FDE68A" }}>
+                    <span>Total</span>
+                    <span style={{ color: "#D97706" }}>Rs. {totalPrice.toLocaleString()}</span>
+                  </div>
+                </div>
+
+                {/* Booking error */}
+                {bookingStatus === "error" && (
+                  <div className="rounded-xl px-4 py-3 text-sm text-center" style={{ background: "#FEE2E2", color: "#991B1B" }}>
+                    {bookingError}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Success screen */}
+            {step === 4 && bookingStatus === "success" && (
+              <div className="flex-1 flex flex-col items-center justify-center px-6 py-10 gap-5 text-center">
+                <div
+                  className="w-16 h-16 rounded-full flex items-center justify-center"
+                  style={{ background: "#D1FAE5" }}
+                >
+                  <FaCheckCircle className="text-3xl" style={{ color: "#10B981" }} />
+                </div>
+                <div>
+                  <p className="text-xl font-bold mb-1" style={{ color: "#292524" }}>Booking Confirmed!</p>
+                  <p className="text-sm" style={{ color: "#78716C" }}>Your booking has been created successfully.</p>
+                </div>
+                {bookingResult && (
+                  <div
+                    className="rounded-xl px-6 py-4 w-full"
+                    style={{ background: "#FEF3C7", border: "1px solid #FDE68A" }}
+                  >
+                    <p className="text-xs font-bold tracking-widest mb-1" style={{ color: "#92400E" }}>BOOKING ID</p>
+                    <p className="text-lg font-bold" style={{ color: "#D97706" }}>{bookingResult.bookingId}</p>
+                  </div>
+                )}
+                <p className="text-sm" style={{ color: "#78716C" }}>
+                  Our team will contact you shortly to confirm the details.
+                </p>
+              </div>
+            )}
+
             {/* Modal footer */}
             <div className="px-6 py-5 border-t flex-shrink-0" style={{ borderColor: "#F5EACF" }}>
               {step === 1 && (
@@ -814,6 +1019,52 @@ export default function PackageOverview() {
                     Next <FaChevronRight />
                   </button>
                 </div>
+              )}
+              {step === 4 && bookingStatus !== "success" && (
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setStep(3)}
+                    disabled={bookingStatus === "loading"}
+                    className="flex-1 py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition hover:opacity-80"
+                    style={{
+                      background: "#F5EACF",
+                      color: bookingStatus === "loading" ? "#D1C4A8" : "#78716C",
+                      cursor: bookingStatus === "loading" ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    <FaArrowLeft /> Back
+                  </button>
+                  <button
+                    onClick={handleBookNow}
+                    disabled={bookingStatus === "loading"}
+                    className="flex-1 py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition"
+                    style={{
+                      background: bookingStatus === "loading"
+                        ? "#F5EACF"
+                        : "linear-gradient(135deg,#FBBF24,#F59E0B)",
+                      color: bookingStatus === "loading" ? "#A8A29E" : "#1C1917",
+                      cursor: bookingStatus === "loading" ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    {bookingStatus === "loading" ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" />
+                        Booking...
+                      </>
+                    ) : (
+                      "Book Now"
+                    )}
+                  </button>
+                </div>
+              )}
+              {step === 4 && bookingStatus === "success" && (
+                <button
+                  onClick={closeCanvas}
+                  className="w-full py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition hover:opacity-90"
+                  style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}
+                >
+                  Done
+                </button>
               )}
             </div>
           </div>
