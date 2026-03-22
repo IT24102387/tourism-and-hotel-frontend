@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import ProductCard from "../../components/productCard";
+import { getProducts, getPackages } from "../../utils/api";
 import {
   FaBed,
   FaCampground,
@@ -101,11 +101,7 @@ const events = [
   },
 ];
 
-const packages = [
-  { name: "Yala Safari Package",       includes: "2 Nights Lodge + 2 Safari Jeeps + Meals",              price: "$299", popular: true  },
-  { name: "Kataragama Pilgrim Package",includes: "2 Nights Hotel + Breakfast/Dinner + Temple Visit",      price: "$199", popular: false },
-  { name: "Adventure Combo",           includes: "3 Nights Camping + Jeep Safari + All Equipment",        price: "$399", popular: false },
-];
+
 
 const testimonials = [
   { name: "David W.", rating: 5, text: "Unforgettable experience in Yala! The jeep safari was thrilling and the lodge was very comfortable." },
@@ -120,6 +116,8 @@ export default function Home() {
   const [isAutoplay, setIsAutoplay]         = useState(true);
   const [equipmentState, setEquipmentState] = useState("loading"); // loading | success | error
   const [equipmentItems, setEquipmentItems] = useState([]);
+  const [packagesState, setPackagesState] = useState("loading"); // loading | success | error
+  const [packagesData, setPackagesData] = useState([]);
   const navigate = useNavigate();
 
   // Hero slideshow
@@ -133,14 +131,25 @@ export default function Home() {
 
   // Fetch products from API — show only first 4 on homepage
   useEffect(() => {
-    axios
-      .get(`${import.meta.env.VITE_BACKEND_URL}/api/products`)
+    getProducts()
       .then((res) => {
         setEquipmentItems(res.data.slice(0, 4));
         setEquipmentState("success");
       })
       .catch(() => {
         setEquipmentState("error");
+      });
+  }, []);
+
+  // Fetch packages from API — show only first 3 on homepage
+  useEffect(() => {
+    getPackages()
+      .then((res) => {
+        setPackagesData(res.data);
+        setPackagesState("success");
+      })
+      .catch(() => {
+        setPackagesState("error");
       });
   }, []);
 
@@ -436,29 +445,52 @@ export default function Home() {
             <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white">Special Packages</h2>
             <p className="text-lg" style={{ color: "#FDE68A" }}>Save more with our curated combos</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {packages.map((pkg, index) => (
-              <div
-                key={index}
-                className={`relative rounded-2xl p-8 ${pkg.popular ? "transform scale-105" : ""}`}
-                style={{ background: "#FFFBF5", boxShadow: pkg.popular ? "0 0 0 4px #FBBF24, 0 20px 60px rgba(0,0,0,0.3)" : "0 4px 24px rgba(0,0,0,0.2)" }}
-              >
-                {pkg.popular && (
-                  <div className="absolute top-0 right-0 px-4 py-1 rounded-bl-2xl rounded-tr-2xl font-bold flex items-center gap-1 text-sm" style={{ background: "#FBBF24", color: "#78350F" }}>
-                    <FaTag /> Popular
+
+          {/* Loading */}
+          {packagesState === "loading" && (
+            <div className="flex justify-center items-center py-20">
+              <div className="w-[50px] h-[50px] border-4 rounded-full border-t-amber-300 animate-spin" />
+            </div>
+          )}
+
+          {/* Error */}
+          {packagesState === "error" && (
+            <div className="text-center py-16">
+              <p className="text-lg mb-6" style={{ color: "#FDE68A" }}>Could not load packages. Please try again.</p>
+            </div>
+          )}
+
+          {/* Packages grid */}
+          {packagesState === "success" && (
+            <div className="grid md:grid-cols-3 gap-8">
+              {packagesData.map((pkg, index) => {
+                const isPopular = index === 0;
+                return (
+                  <div
+                    key={pkg._id || index}
+                    className={`relative rounded-2xl p-8 ${isPopular ? "transform scale-105" : ""}`}
+                    style={{ background: "#FFFBF5", boxShadow: isPopular ? "0 0 0 4px #FBBF24, 0 20px 60px rgba(0,0,0,0.3)" : "0 4px 24px rgba(0,0,0,0.2)" }}
+                  >
+                    {isPopular && (
+                      <div className="absolute top-0 right-0 px-4 py-1 rounded-bl-2xl rounded-tr-2xl font-bold flex items-center gap-1 text-sm" style={{ background: "#FBBF24", color: "#78350F" }}>
+                        <FaTag /> Popular
+                      </div>
+                    )}
+                    <h3 className="text-2xl font-bold mb-4" style={{ color: "#292524" }}>{pkg.name}</h3>
+                    <p className="mb-6" style={{ color: "#78716C" }}>
+                      {Array.isArray(pkg.includes) ? pkg.includes.join(" + ") : pkg.includes}
+                    </p>
+                    <div className="flex justify-between items-center">
+                      <span className="text-3xl font-bold" style={{ color: "#D97706" }}>${pkg.price}</span>
+                      <button className="px-6 py-3 rounded-lg font-semibold transition hover:opacity-90" style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}>
+                        Book Package
+                      </button>
+                    </div>
                   </div>
-                )}
-                <h3 className="text-2xl font-bold mb-4" style={{ color: "#292524" }}>{pkg.name}</h3>
-                <p className="mb-6" style={{ color: "#78716C" }}>{pkg.includes}</p>
-                <div className="flex justify-between items-center">
-                  <span className="text-3xl font-bold" style={{ color: "#D97706" }}>{pkg.price}</span>
-                  <button className="px-6 py-3 rounded-lg font-semibold transition hover:opacity-90" style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}>
-                    Book Package
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 
