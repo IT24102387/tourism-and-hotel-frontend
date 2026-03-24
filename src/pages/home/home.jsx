@@ -284,7 +284,8 @@ export default function Home() {
                       <FaMapMarkerAlt style={{ color: "#F59E0B" }} />
                       {place.location} &middot; {place.distance}
                     </p>
-                    <button className="tracking-[0.3em] text-xs font-semibold pb-0.5 border-b transition-all duration-300 hover:tracking-[0.45em]" style={{ color: "#D97706", borderColor: "#D97706", background: "none" }}>
+                    <button  onClick={() => navigate(`/place/${place.name}`)}
+                    className="tracking-[0.3em] text-xs font-semibold pb-0.5 border-b">
                       VIEW PLACE
                     </button>
                   </div>

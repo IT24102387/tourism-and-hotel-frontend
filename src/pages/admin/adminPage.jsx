@@ -2,7 +2,7 @@ import { BsGraphUp } from "react-icons/bs";
 import { FaRegBookmark, FaRegUser, FaCar, FaUmbrellaBeach } from "react-icons/fa";
 import { PiBagSimpleBold } from "react-icons/pi";
 import { LuPackageSearch } from "react-icons/lu";
-import { MdOutlinePayments, MdOutlineReviews } from "react-icons/md";
+import { MdFamilyRestroom, MdOutlineInventory2, MdOutlinePayments, MdOutlineReviews } from "react-icons/md";
 import { IoCartOutline, IoFastFoodOutline } from "react-icons/io5";
 import { IoMdLogOut } from "react-icons/io";
 import { MdOutlineBed } from "react-icons/md";
@@ -26,8 +26,8 @@ const navItems = [
   { label: "Dashboard",          icon: BsGraphUp,            to: "/admin/dashboard" },
   { label: "Orders",             icon: IoCartOutline,        to: "/admin/orders" },
   { label: "Rooms",              icon: MdOutlineBed,         to: "/admin/rooms" },
-  { label: "Storage/Equipment",  icon: PiBagSimpleBold,      to: "/admin/items" },
-  { label: "Tour Packages",      icon: LuPackageSearch,      to: "/admin/packages" },
+  { label: "Storage/Equipment",  icon: MdOutlineInventory2,      to: "/admin/items" },
+  { label: "Packages",           icon: MdFamilyRestroom,      to: "/admin/packages" },
   { label: "Transportation",     icon: FaCar,                to: "/admin/transport" },
   { label: "Payments",           icon: MdOutlinePayments,    to: "/admin/payments" },
   { label: "Restaurant",         icon: IoFastFoodOutline,    to: "/admin/restaurant" },
