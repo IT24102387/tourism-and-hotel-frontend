@@ -18,6 +18,7 @@ import ReviewsManagement from "./ReviewsManagement";
 import AdminOrdersPage from "./adminBookingPage";
 import AdminDashBoard from "./adminDashboard";
 import AdminPackagesPage from "./adminPackagesPage";
+import AdminVehiclesPage from "./adminVehiclesPage";
 import axios from "axios";
 
 
@@ -300,6 +301,7 @@ export default function AdminPage() {
           <Route path="/items/add" element={<AddItemPage />} />
           <Route path="/items/edit"element={<UpdateItemPage/>}/>
           <Route path="/packages"  element={<AdminPackagesPage />} />
+          <Route path="/transport" element={<AdminVehiclesPage />} />
           <Route path="/users"     element={<AdminUsersPage/>} />
           <Route path="/reviews" element={<ReviewsManagement />} />
           <Route path="/dashboard" element={<AdminDashBoard />} />
