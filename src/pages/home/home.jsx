@@ -15,8 +15,6 @@ import {
   FaCalendarAlt,
 } from "react-icons/fa";
 
-// ── Static data ──────────────────────────────────────────────────────────────
-
 const heroImages = [
   "https://www.andbeyond.com/wp-content/uploads/sites/5/yala-national-park-sri-lanka-scenery.jpg",
   "elephant.jpeg",
@@ -74,10 +72,10 @@ const availableRooms = [
 ];
 
 const foodItems = [
-  { name: "Rice & Curry",        description: "Authentic Sri Lankan spread",      price: "$10", image: "🍛" },
-  { name: "Kottu Roti",          description: "Chopped roti with vegetables/meat", price: "$7",  image: "🥘" },
-  { name: "Hoppers (Appa)",      description: "Crispy bowl-shaped pancakes",       price: "$5",  image: "🥞" },
-  { name: "Fresh Seafood Platter",description: "Grilled fish, prawns, squid",     price: "$18", image: "🦐" },
+  { name: "Rice & Curry", description: "Authentic Sri Lankan spread", price: "$10", image: "🍛" },
+  { name: "Kottu Roti", description: "Chopped roti with vegetables/meat", price: "$7", image: "🥘" },
+  { name: "Hoppers (Appa)", description: "Crispy bowl-shaped pancakes", price: "$5", image: "🥞" },
+  { name: "Fresh Seafood Platter", description: "Grilled fish, prawns, squid", price: "$18", image: "🦐" },
 ];
 
 const events = [
@@ -101,26 +99,21 @@ const events = [
   },
 ];
 
-
-
 const testimonials = [
   { name: "David W.", rating: 5, text: "Unforgettable experience in Yala! The jeep safari was thrilling and the lodge was very comfortable." },
   { name: "Priya K.", rating: 5, text: "Kataragama temple visit was spiritual, and the hotel staff were incredibly welcoming. Will come again." },
-  { name: "Mike T.",  rating: 5, text: "The camping gear was top-notch, and the food at the restaurant was delicious. Highly recommended!" },
+  { name: "Mike T.", rating: 5, text: "The camping gear was top-notch, and the food at the restaurant was delicious. Highly recommended!" },
 ];
 
-// ── Component ────────────────────────────────────────────────────────────────
-
 export default function Home() {
-  const [currentImage, setCurrentImage]     = useState(0);
-  const [isAutoplay, setIsAutoplay]         = useState(true);
-  const [equipmentState, setEquipmentState] = useState("loading"); // loading | success | error
+  const [currentImage, setCurrentImage] = useState(0);
+  const [isAutoplay, setIsAutoplay] = useState(true);
+  const [equipmentState, setEquipmentState] = useState("loading");
   const [equipmentItems, setEquipmentItems] = useState([]);
-  const [packagesState, setPackagesState] = useState("loading"); // loading | success | error
+  const [packagesState, setPackagesState] = useState("loading");
   const [packagesData, setPackagesData] = useState([]);
   const navigate = useNavigate();
 
-  // Hero slideshow
   useEffect(() => {
     if (!isAutoplay) return;
     const interval = setInterval(() => {
@@ -129,28 +122,16 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [isAutoplay]);
 
-  // Fetch products from API — show only first 4 on homepage
   useEffect(() => {
     getProducts()
-      .then((res) => {
-        setEquipmentItems(res.data.slice(0, 4));
-        setEquipmentState("success");
-      })
-      .catch(() => {
-        setEquipmentState("error");
-      });
+      .then((res) => { setEquipmentItems(res.data.slice(0, 4)); setEquipmentState("success"); })
+      .catch(() => setEquipmentState("error"));
   }, []);
 
-  // Fetch packages from API — show only first 3 on homepage
   useEffect(() => {
     getPackages()
-      .then((res) => {
-        setPackagesData(res.data);
-        setPackagesState("success");
-      })
-      .catch(() => {
-        setPackagesState("error");
-      });
+      .then((res) => { setPackagesData(res.data); setPackagesState("success"); })
+      .catch(() => setPackagesState("error"));
   }, []);
 
   const nextImage = () => { setIsAutoplay(false); setCurrentImage((prev) => (prev + 1) % heroImages.length); };
@@ -170,59 +151,46 @@ export default function Home() {
             <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(28,20,10,0.72) 0%, rgba(28,20,10,0.35) 60%, transparent 100%)" }} />
           </div>
         ))}
-
         <button onClick={prevImage} className="absolute left-4 top-1/2 -translate-y-1/2 z-20 text-white p-3 rounded-full transition" style={{ background: "rgba(251,191,36,0.25)", backdropFilter: "blur(6px)" }}>
           <FaChevronLeft className="text-2xl" />
         </button>
         <button onClick={nextImage} className="absolute right-4 top-1/2 -translate-y-1/2 z-20 text-white p-3 rounded-full transition" style={{ background: "rgba(251,191,36,0.25)", backdropFilter: "blur(6px)" }}>
           <FaChevronRight className="text-2xl" />
         </button>
-
         <div className="relative z-10 h-full flex flex-col justify-center items-start text-white px-8 md:px-16 max-w-7xl mx-auto">
           <div className="animate-fade-in max-w-3xl">
-            <p className="text-lg md:text-xl font-light tracking-widest mb-4" style={{ color: "#FCD34D" }}>
-              AN ISLAND ESCAPE AWAITS YOU
-            </p>
+            <p className="text-lg md:text-xl font-light tracking-widest mb-4" style={{ color: "#FCD34D" }}>AN ISLAND ESCAPE AWAITS YOU</p>
             <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-              Welcome to<br />
-              <span style={{ color: "#FBBF24" }}>Yala & Kataragama</span>
+              Welcome to<br /><span style={{ color: "#FBBF24" }}>Yala & Kataragama</span>
             </h1>
             <p className="text-lg md:text-xl max-w-2xl mb-8 leading-relaxed" style={{ color: "#F5F0E8" }}>
               Savour the unique experiences this island treasure has to offer — wildlife, heritage, and warm Sri Lankan hospitality.
             </p>
-            <button
-              className="font-semibold px-8 py-4 rounded-full shadow-2xl transition transform hover:scale-105"
-              style={{ background: "linear-gradient(135deg, #FBBF24, #F59E0B)", color: "#1C1917" }}
-            >
+            <button className="font-semibold px-8 py-4 rounded-full shadow-2xl transition transform hover:scale-105" style={{ background: "linear-gradient(135deg, #FBBF24, #F59E0B)", color: "#1C1917" }}>
               Discover Yala & Kataragama
             </button>
           </div>
         </div>
-
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-3">
           {heroImages.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => { setCurrentImage(index); setIsAutoplay(false); }}
-              className="h-3 rounded-full transition-all"
-              style={{ width: index === currentImage ? "2rem" : "0.75rem", background: index === currentImage ? "#FBBF24" : "rgba(255,255,255,0.5)" }}
-            />
+            <button key={index} onClick={() => { setCurrentImage(index); setIsAutoplay(false); }} className="h-3 rounded-full transition-all"
+              style={{ width: index === currentImage ? "2rem" : "0.75rem", background: index === currentImage ? "#FBBF24" : "rgba(255,255,255,0.5)" }} />
           ))}
         </div>
       </div>
 
       {/* ── Services ───────────────────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto py-20 px-4">
+      <div className="max-w-7xl mx-auto py-20 px-6 md:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: "#92400E" }}>Our Services</h2>
           <p className="text-lg max-w-2xl mx-auto" style={{ color: "#78716C" }}>Everything you need for an unforgettable trip</p>
         </div>
-        <div className="grid md:grid-cols-4 gap-8">
+        <div className="grid md:grid-cols-4 gap-10">
           {[
-            { icon: FaBed,       title: "Room Booking",     desc: "Comfortable lodges, hotels, and safari tents.",             grad: "linear-gradient(135deg,#FBBF24,#D97706)", route: "/room-booking"     },
-            { icon: FaCampground,title: "Equipment Rental", desc: "Camping gear, sleeping bags, stoves, and more.",            grad: "linear-gradient(135deg,#F97316,#EA580C)", route: "/services"         },
-            { icon: FaUtensils,  title: "Restaurant Food",  desc: "Authentic Sri Lankan meals and fresh seafood.",             grad: "linear-gradient(135deg,#EF4444,#B91C1C)", route: "/restaurant-food"  },
-            { icon: FaCar,       title: "Vehicle Hire",     desc: "Safari jeeps, cars, and bikes with or without driver.",     grad: "linear-gradient(135deg,#D97706,#92400E)", route: "/vehicle-hire"     },
+            { icon: FaBed, title: "Room Booking", desc: "Comfortable lodges, hotels, and safari tents.", grad: "linear-gradient(135deg,#FBBF24,#D97706)", route: "/room-booking" },
+            { icon: FaCampground, title: "Equipment Rental", desc: "Camping gear, sleeping bags, stoves, and more.", grad: "linear-gradient(135deg,#F97316,#EA580C)", route: "/services" },
+            { icon: FaUtensils, title: "Restaurant Food", desc: "Authentic Sri Lankan meals and fresh seafood.", grad: "linear-gradient(135deg,#EF4444,#B91C1C)", route: "/restaurant-food" },
+            { icon: FaCar, title: "Vehicle Hire", desc: "Safari jeeps, cars, and bikes with or without driver.", grad: "linear-gradient(135deg,#D97706,#92400E)", route: "/vehicle-hire" },
           ].map((item, index) => (
             <div
               key={index}
@@ -241,90 +209,64 @@ export default function Home() {
       </div>
 
       {/* ── Popular Places ─────────────────────────────────────────────── */}
-      <div className="py-24 px-4 relative overflow-hidden" style={{ background: "#F5EDD8" }}>
-        <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "radial-gradient(circle, #D97706 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
-
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center mb-4">
-            <p className="tracking-[0.35em] text-xs font-semibold mb-5" style={{ color: "#D97706" }}>DISCOVER THE REGION</p>
-            <div className="flex items-center justify-center gap-4 mb-6">
-              <div className="h-px w-20" style={{ background: "linear-gradient(to right, transparent, #D97706)" }} />
-              <div className="flex gap-1 items-center">
-                <div className="w-1.5 h-1.5 rotate-45" style={{ background: "#D97706" }} />
-                <div className="w-3 h-px"               style={{ background: "#D97706" }} />
-                <div className="w-2 h-2 rotate-45 border" style={{ borderColor: "#D97706" }} />
-                <div className="w-3 h-px"               style={{ background: "#D97706" }} />
-                <div className="w-1.5 h-1.5 rotate-45" style={{ background: "#D97706" }} />
-              </div>
-              <div className="h-px w-20" style={{ background: "linear-gradient(to left, transparent, #D97706)" }} />
-            </div>
-            <h2 className="text-5xl md:text-6xl mb-5" style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: "#292524", fontWeight: 400, letterSpacing: "-0.5px" }}>
-              Near Popular Places
-            </h2>
+      <div className="py-20 px-6 md:px-8" style={{ background: "#F5EDD8" }}>
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="text-xs font-semibold tracking-widest uppercase mb-2" style={{ color: "#D97706" }}>Discover the Region</p>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: "#292524" }}>Near Popular Places</h2>
             <p className="text-base max-w-xl mx-auto leading-relaxed" style={{ color: "#78716C" }}>
               Wildlife sanctuaries, ancient temples, and breathtaking landscapes — all within reach from your stay.
             </p>
           </div>
-
-          <div className="flex items-start justify-center gap-10 mt-14 flex-wrap">
-            {popularPlaces.map((place, i) => {
-              const isCenter = i === 1;
-              return (
-                <div
-                  key={i}
-                  className="relative group cursor-pointer flex-shrink-0"
-                  style={{ width: isCenter ? "300px" : "260px", marginTop: isCenter ? "70px" : "0px" }}
-                >
-                  {["-top-3 -left-3 top left", "-top-3 -right-3 top right", "-bottom-3 -left-3 bottom left", "-bottom-3 -right-3 bottom right"].map((cfg, ci) => {
-                    const [vt, hr, dv, dh] = cfg.split(" ");
-                    return (
-                      <div key={ci} className={`absolute ${vt} ${hr} w-14 h-14 z-20 pointer-events-none`} style={{
-                        background: `linear-gradient(#D97706,#D97706) ${dv} ${dh}/2px 28px no-repeat, linear-gradient(#D97706,#D97706) ${dv} ${dh}/28px 2px no-repeat`
-                      }} />
-                    );
-                  })}
-                  <div className="relative overflow-hidden" style={{ height: isCenter ? "380px" : "300px" }}>
-                    <img src={place.image} alt={place.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                    <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(41,37,36,0.45) 0%, transparent 55%)" }} />
-                  </div>
-                  <div className="text-center pt-6 pb-4">
-                    <h3 className="text-2xl mb-2" style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: "#292524", fontWeight: 400 }}>{place.name}</h3>
-                    <p className="text-xs mb-4 flex items-center justify-center gap-1.5" style={{ color: "#78716C" }}>
-                      <FaMapMarkerAlt style={{ color: "#F59E0B" }} />
-                      {place.location} &middot; {place.distance}
-                    </p>
-                    <button  onClick={() => navigate(`/place/${place.name}`)}
-                    className="tracking-[0.3em] text-xs font-semibold pb-0.5 border-b">
-                      VIEW PLACE
-                    </button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+            {popularPlaces.map((place, i) => (
+              <div
+                key={i}
+                className="group rounded-2xl overflow-hidden border hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+                style={{ background: "#FFFBF5", borderColor: "#F5EACF", boxShadow: "0 4px 20px rgba(217,119,6,0.08)" }}
+              >
+                <div className="relative h-56 overflow-hidden">
+                  <img src={place.image} alt={place.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                  <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(41,37,36,0.55) 0%, transparent 60%)" }} />
+                  <div className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold" style={{ background: "rgba(251,191,36,0.92)", color: "#78350F" }}>
+                    <FaMapMarkerAlt className="text-xs" />
+                    {place.distance}
                   </div>
                 </div>
-              );
-            })}
+                <div className="p-6">
+                  <p className="text-xs font-medium uppercase tracking-wider mb-1" style={{ color: "#D97706" }}>{place.location}</p>
+                  <h3 className="text-xl font-bold mb-5" style={{ color: "#292524" }}>{place.name}</h3>
+                  <button
+                    onClick={() => navigate(`/place/${place.name}`)}
+                    className="w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 hover:scale-[1.03] hover:shadow-lg active:scale-95"
+                    style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#78350F", boxShadow: "0 4px 14px rgba(251,191,36,0.45)", letterSpacing: "0.04em" }}
+                  >
+                    <FaMapMarkerAlt className="text-xs" />
+                    Explore This Place
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
       {/* ── Available Rooms ────────────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto py-20 px-4">
+      <div className="max-w-7xl mx-auto py-20 px-6 md:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: "#292524" }}>Available Rooms</h2>
           <p className="text-lg" style={{ color: "#78716C" }}>Choose your perfect stay</p>
         </div>
-        <div className="grid md:grid-cols-4 gap-6">
+        <div className="grid md:grid-cols-4 gap-8">
           {availableRooms.map((room, index) => (
             <div key={index} className="rounded-xl overflow-hidden hover:shadow-2xl transition" style={{ background: "#FFFBF5", boxShadow: "0 4px 20px rgba(146,64,14,0.10)" }}>
               <img src={room.image} alt={room.name} className="w-full h-48 object-cover" />
-              <div className="p-4">
+              <div className="p-5">
                 <h4 className="font-bold text-lg mb-1" style={{ color: "#292524" }}>{room.name}</h4>
-                <p className="text-sm mb-3" style={{ color: "#A8A29E" }}>{room.capacity}</p>
+                <p className="text-sm mb-4" style={{ color: "#A8A29E" }}>{room.capacity}</p>
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-xl" style={{ color: "#D97706" }}>{room.price}</span>
-                  <button
-                    onClick={() => navigate("/room-booking")}
-                    className="px-4 py-2 rounded-lg text-sm font-semibold transition hover:opacity-90"
-                    style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}
-                  >
+                  <button onClick={() => navigate("/room-booking")} className="px-4 py-2 rounded-lg text-sm font-semibold transition hover:opacity-90" style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}>
                     Book Now
                   </button>
                 </div>
@@ -335,51 +277,61 @@ export default function Home() {
       </div>
 
       {/* ── Equipment Rental — live from API via ProductCard ───────────── */}
-      <div className="py-20 px-4" style={{ background: "linear-gradient(135deg, #FEF3C7, #FDE8C8)" }}>
+      <div className="py-20 px-6 md:px-8" style={{ background: "#F8F4EE" }}>
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-14">
+            <p className="text-xs font-semibold tracking-widest uppercase mb-2" style={{ color: "#D97706" }}>Gear Up for Adventure</p>
             <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: "#292524" }}>Rent Equipment</h2>
-            <p className="text-lg" style={{ color: "#78716C" }}>Safari jeeps, camping gear, and more</p>
+            <p className="text-base max-w-xl mx-auto leading-relaxed" style={{ color: "#78716C" }}>
+              Everything you need for the wild — tents, sleeping bags, safari gear and more, available to hire.
+            </p>
+            <div className="flex items-center justify-center gap-3 mt-6">
+              <div className="h-px w-16" style={{ background: "linear-gradient(to right, transparent, #D97706)" }} />
+              <div className="w-2 h-2 rounded-full" style={{ background: "#D97706" }} />
+              <div className="h-px w-16" style={{ background: "linear-gradient(to left, transparent, #D97706)" }} />
+            </div>
           </div>
 
-          {/* Loading */}
           {equipmentState === "loading" && (
-            <div className="flex justify-center items-center py-20">
-              <div className="w-[50px] h-[50px] border-4 rounded-full border-t-amber-500 animate-spin" />
+            <div className="flex flex-col justify-center items-center py-20 gap-4">
+              <div className="w-12 h-12 border-4 rounded-full border-amber-200 border-t-amber-500 animate-spin" />
+              <p className="text-sm font-medium" style={{ color: "#A8A29E" }}>Loading equipment...</p>
             </div>
           )}
 
-          {/* Error */}
           {equipmentState === "error" && (
-            <div className="text-center py-16">
-              <p className="text-lg mb-6" style={{ color: "#78716C" }}>Could not load equipment. Please try again.</p>
-              <button
-                onClick={() => navigate("/services")}
-                className="px-8 py-3 rounded-full font-semibold transition hover:opacity-90"
-                style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}
-              >
+            <div className="text-center py-16 rounded-2xl border border-dashed max-w-md mx-auto" style={{ borderColor: "#F5EACF", background: "#FFFFFF" }}>
+              <div className="text-5xl mb-4">⚠️</div>
+              <p className="text-lg font-semibold mb-2" style={{ color: "#292524" }}>Could not load equipment</p>
+              <p className="text-sm mb-6" style={{ color: "#78716C" }}>Please check your connection and try again.</p>
+              <button onClick={() => navigate("/services")} className="px-8 py-3 rounded-full font-semibold transition hover:opacity-90" style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}>
                 Browse All Equipment
               </button>
             </div>
           )}
 
-          {/* Product grid — reuses ProductCard exactly as Services page does */}
           {equipmentState === "success" && (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
                 {equipmentItems.map((item) => (
-                  <ProductCard key={item._id} item={item} />
+                  <div
+                    key={item._id}
+                    className="group rounded-2xl overflow-hidden border hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                    style={{ background: "#FFFFFF", borderColor: "#EDE8DF", boxShadow: "0 2px 12px rgba(217,119,6,0.07)" }}
+                  >
+                    <ProductCard item={item} />
+                  </div>
                 ))}
               </div>
-
-              {/* View all */}
-              <div className="text-center mt-12">
+              <div className="text-center mt-14">
                 <button
                   onClick={() => navigate("/services")}
-                  className="px-10 py-3 rounded-full font-semibold border-2 transition hover:bg-amber-50"
-                  style={{ borderColor: "#D97706", color: "#D97706", background: "transparent" }}
+                  className="group inline-flex items-center gap-2 px-10 py-3.5 rounded-full font-semibold transition-all duration-200 hover:shadow-lg hover:scale-105"
+                  style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#78350F", boxShadow: "0 4px 14px rgba(251,191,36,0.40)" }}
                 >
-                  View All Equipment →
+                  
+                  View All Equipment
+                  <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
                 </button>
               </div>
             </>
@@ -388,24 +340,20 @@ export default function Home() {
       </div>
 
       {/* ── Food ───────────────────────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto py-20 px-4">
+      <div className="max-w-7xl mx-auto py-20 px-6 md:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: "#292524" }}>Taste Sri Lanka</h2>
           <p className="text-lg" style={{ color: "#78716C" }}>Authentic dishes from our restaurant</p>
         </div>
-        <div className="grid md:grid-cols-4 gap-6">
+        <div className="grid md:grid-cols-4 gap-8">
           {foodItems.map((item, index) => (
-            <div key={index} className="rounded-xl p-6 hover:shadow-2xl transition border" style={{ background: "#FFFBF5", borderColor: "#F5EACF", boxShadow: "0 4px 20px rgba(217,119,6,0.08)" }}>
-              <div className="text-6xl mb-4 text-center">{item.image}</div>
-              <h4 className="font-bold text-lg mb-1" style={{ color: "#292524" }}>{item.name}</h4>
-              <p className="text-sm mb-3" style={{ color: "#A8A29E" }}>{item.description}</p>
+            <div key={index} className="rounded-xl p-7 hover:shadow-2xl transition border" style={{ background: "#FFFBF5", borderColor: "#F5EACF", boxShadow: "0 4px 20px rgba(217,119,6,0.08)" }}>
+              <div className="text-6xl mb-5 text-center">{item.image}</div>
+              <h4 className="font-bold text-lg mb-2" style={{ color: "#292524" }}>{item.name}</h4>
+              <p className="text-sm mb-4" style={{ color: "#A8A29E" }}>{item.description}</p>
               <div className="flex justify-between items-center">
                 <span className="font-bold text-xl" style={{ color: "#D97706" }}>{item.price}</span>
-                <button
-                  onClick={() => navigate("/restaurant-food")}
-                  className="px-4 py-2 rounded-lg text-sm font-semibold transition hover:opacity-90"
-                  style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}
-                >
+                <button onClick={() => navigate("/restaurant-food")} className="px-4 py-2 rounded-lg text-sm font-semibold transition hover:opacity-90" style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}>
                   Order
                 </button>
               </div>
@@ -415,22 +363,22 @@ export default function Home() {
       </div>
 
       {/* ── Events & Festivals ─────────────────────────────────────────── */}
-      <div className="py-20 px-4" style={{ background: "#F5EDD8" }}>
+      <div className="py-20 px-6 md:px-8" style={{ background: "#F5EDD8" }}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: "#292524" }}>Upcoming Events & Festivals</h2>
             <p className="text-lg" style={{ color: "#78716C" }}>Experience the vibrant culture and celebrations</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-10">
             {events.map((event, index) => (
               <div key={index} className="rounded-xl overflow-hidden hover:shadow-2xl transition border" style={{ background: "#FFFBF5", borderColor: "#F5EACF", boxShadow: "0 4px 20px rgba(146,64,14,0.10)" }}>
                 <img src={event.image} alt={event.name} className="w-full h-48 object-cover" />
-                <div className="p-6">
+                <div className="p-7">
                   <div className="flex items-center gap-2 mb-3" style={{ color: "#D97706" }}>
                     <FaCalendarAlt />
                     <span className="text-sm font-medium">{event.date}</span>
                   </div>
-                  <h3 className="font-bold text-xl mb-2" style={{ color: "#292524" }}>{event.name}</h3>
+                  <h3 className="font-bold text-xl mb-3" style={{ color: "#292524" }}>{event.name}</h3>
                   <p style={{ color: "#78716C" }}>{event.description}</p>
                 </div>
               </div>
@@ -440,37 +388,34 @@ export default function Home() {
       </div>
 
       {/* ── Packages ───────────────────────────────────────────────────── */}
-      <div className="py-20 px-4" style={{ background: "linear-gradient(135deg, #92400E, #78350F)" }}>
+      <div className="py-20 px-6 md:px-8" style={{ background: "linear-gradient(135deg, #92400E, #78350F)" }}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white">Special Packages</h2>
             <p className="text-lg" style={{ color: "#FDE68A" }}>Save more with our curated combos</p>
           </div>
 
-          {/* Loading */}
           {packagesState === "loading" && (
             <div className="flex justify-center items-center py-20">
               <div className="w-[50px] h-[50px] border-4 rounded-full border-t-amber-300 animate-spin" />
             </div>
           )}
 
-          {/* Error */}
           {packagesState === "error" && (
             <div className="text-center py-16">
               <p className="text-lg mb-6" style={{ color: "#FDE68A" }}>Could not load packages. Please try again.</p>
             </div>
           )}
 
-          {/* Packages grid */}
           {packagesState === "success" && (
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-3 gap-10">
               {packagesData.map((pkg, index) => {
                 const isPopular = index === 0;
                 return (
                   <div
                     key={pkg._id || index}
                     onClick={() => navigate(`/package/${pkg.packageId}`)}
-                    className={`relative rounded-2xl p-8 cursor-pointer transition hover:-translate-y-1 ${isPopular ? "transform scale-105" : ""}`}
+                    className={`relative rounded-2xl p-9 cursor-pointer transition hover:-translate-y-1 ${isPopular ? "transform scale-105" : ""}`}
                     style={{ background: "#FFFBF5", boxShadow: isPopular ? "0 0 0 4px #FBBF24, 0 20px 60px rgba(0,0,0,0.3)" : "0 4px 24px rgba(0,0,0,0.2)" }}
                   >
                     {isPopular && (
@@ -479,7 +424,7 @@ export default function Home() {
                       </div>
                     )}
                     <h3 className="text-2xl font-bold mb-4" style={{ color: "#292524" }}>{pkg.name}</h3>
-                    <p className="mb-6" style={{ color: "#78716C" }}>
+                    <p className="mb-7" style={{ color: "#78716C" }}>
                       {Array.isArray(pkg.includes) ? pkg.includes.join(" + ") : pkg.includes}
                     </p>
                     <div className="flex justify-between items-center">
@@ -497,15 +442,15 @@ export default function Home() {
       </div>
 
       {/* ── Testimonials ───────────────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto py-20 px-4">
+      <div className="max-w-7xl mx-auto py-20 px-6 md:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: "#292524" }}>What Our Customers Say</h2>
           <p className="text-lg" style={{ color: "#78716C" }}>Real experiences from Yala & Kataragama</p>
         </div>
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-3 gap-10">
           {testimonials.map((testimonial, index) => (
-            <div key={index} className="rounded-xl p-8 border" style={{ background: "#FFFBF5", borderColor: "#F5EACF", boxShadow: "0 4px 24px rgba(217,119,6,0.08)" }}>
-              <div className="flex gap-1 mb-4">
+            <div key={index} className="rounded-xl p-9 border" style={{ background: "#FFFBF5", borderColor: "#F5EACF", boxShadow: "0 4px 24px rgba(217,119,6,0.08)" }}>
+              <div className="flex gap-1 mb-5">
                 {[...Array(testimonial.rating)].map((_, i) => (
                   <FaStar key={i} className="text-xl" style={{ color: "#FBBF24" }} />
                 ))}
@@ -546,7 +491,7 @@ export default function Home() {
       <style jsx>{`
         @keyframes fade-in {
           from { opacity: 0; transform: translateY(20px); }
-          to   { opacity: 1; transform: translateY(0); }
+          to { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-in { animation: fade-in 1s ease-out; }
       `}</style>
