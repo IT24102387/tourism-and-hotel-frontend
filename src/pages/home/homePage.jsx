@@ -5,6 +5,11 @@ import Services from "./services";
 import Gallery from "./gallery";
 import Contact from "./contact";
 import ErrorNotFound from "./error";
+import ProductOverview from "./productOverview";
+import BookingPage from "./equipmentBookingPage";
+import Reviews from "./reviews";
+import PackageOverview from "../packages/packageOverview";
+
 
 export default function HomePage(){
     return(
@@ -15,8 +20,12 @@ export default function HomePage(){
                     <Route path="/contact" element={<Contact/>}/>
                     <Route path="/gallery" element={<Gallery/>}/>
                     <Route path="/services" element={<Services/>}/>
+                    <Route path="/booking" element={<BookingPage/>}/>
+                    <Route path="/product/:key" element={<ProductOverview/>}/>
+                    <Route path="/package/:packageId" element={<PackageOverview/>}/>
                     <Route path="/" element={<Home/>}/>
                     <Route path="/*" element={<ErrorNotFound/>}/>
+                    <Route path="/reviews" element={<Reviews/>} /> 
                 </Routes>
             </div>
         </>

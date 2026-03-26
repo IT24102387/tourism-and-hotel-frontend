@@ -1,6 +1,6 @@
-import axios from "axios"
 import { useEffect, useState } from "react"
 import ProductCard from "../../components/productCard"
+import { getProducts } from "../../utils/api"
 
 export default function Services(){
     const [state,setState]=useState("loading")//loading,suceess,error
@@ -8,7 +8,7 @@ export default function Services(){
 
     useEffect(()=>{
         if(state == "loading"){
-            axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/products`).then((res)=>{
+            getProducts().then((res)=>{
                 console.log(res.data)
                 setItems(res.data)
                 setState("success")

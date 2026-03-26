@@ -2,28 +2,39 @@ import { BsGraphUp } from "react-icons/bs";
 import { FaRegBookmark, FaRegUser, FaCar, FaUmbrellaBeach } from "react-icons/fa";
 import { PiBagSimpleBold } from "react-icons/pi";
 import { LuPackageSearch } from "react-icons/lu";
-import { MdOutlinePayments, MdOutlineReviews } from "react-icons/md";
-import { IoFastFoodOutline } from "react-icons/io5";
+import { MdFamilyRestroom, MdOutlineInventory2, MdOutlinePayments, MdOutlineReviews } from "react-icons/md";
+import { IoCartOutline, IoFastFoodOutline } from "react-icons/io5";
 import { IoMdLogOut } from "react-icons/io";
 import { MdOutlineBed } from "react-icons/md";
+import { FiMapPin } from "react-icons/fi";
+import { BsCalendar2Event } from "react-icons/bs";
 import { Link, Route, Routes, useLocation } from "react-router-dom";
 import AdminItemPage from "./adminItemPage";
 import AddItemPage from "./addItemPage";
 import UpdateItemPage from "./updateItemPage";
 import { useState, useEffect } from "react";
+import AdminUsersPage from "./adminUsersPage";
+import ReviewsManagement from "./ReviewsManagement";
+import AdminOrdersPage from "./adminBookingPage";
+import AdminDashBoard from "./adminDashboard";
+import AdminPackagesPage from "./adminPackagesPage";
+import axios from "axios";
+
 
 
 
 const navItems = [
-  { label: "Dashboard",          icon: BsGraphUp,           to: "/admin/dashboard" },
-  { label: "Bookings",           icon: FaRegBookmark,        to: "/admin/bookings" },
+  { label: "Dashboard",          icon: BsGraphUp,            to: "/admin/dashboard" },
+  { label: "Orders",             icon: IoCartOutline,        to: "/admin/orders" },
   { label: "Rooms",              icon: MdOutlineBed,         to: "/admin/rooms" },
-  { label: "Storage/Equipment",  icon: PiBagSimpleBold,      to: "/admin/items" },
-  { label: "Tour Packages",      icon: LuPackageSearch,      to: "/admin/packages" },
+  { label: "Storage/Equipment",  icon: MdOutlineInventory2,      to: "/admin/items" },
+  { label: "Packages",           icon: MdFamilyRestroom,      to: "/admin/packages" },
   { label: "Transportation",     icon: FaCar,                to: "/admin/transport" },
   { label: "Payments",           icon: MdOutlinePayments,    to: "/admin/payments" },
   { label: "Restaurant",         icon: IoFastFoodOutline,    to: "/admin/restaurant" },
   { label: "Reviews",            icon: MdOutlineReviews,     to: "/admin/reviews" },
+  { label: "Event Calendar",     icon: BsCalendar2Event ,    to: "/admin/Eventcalendar" },
+  { label: "Google Maps",        icon: FiMapPin ,            to: "/admin/googlemap" },
   { label: "Users",              icon: FaRegUser,            to: "/admin/users" },
 ];
 
@@ -139,6 +150,33 @@ function LiveDateTime() {
 }
 
 export default function AdminPage() {
+  const [userValidated,setUserValidated]=useState(false)
+  useEffect(()=>{
+    const token=localStorage.getItem("token")
+    if(!token){
+      window.location.href="/login"
+    }
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/users/`,{
+      headers:{
+        Authorization:`Bearer ${token}`
+      }
+    }).then((res)=>{
+       console.log(res.data)
+       const user=res.data;
+       if(user.role == "admin"){
+        setUserValidated(true);
+        
+       }else{
+        window.location.href="/"
+
+       }
+       
+    }).catch((err)=>{
+      console.error(err);
+      setUserValidated(false)
+
+    })
+  },[])
   return (
     <div style={{ width: "100%", height: "100vh", display: "flex" }}>
 
@@ -188,7 +226,7 @@ export default function AdminPage() {
                 lineHeight: 1.1,
               }}
             >
-              Kadiraa
+              Admin
             </div>
             <div
               style={{
@@ -255,13 +293,17 @@ export default function AdminPage() {
 
       {/* ── Main content ── */}
       <div style={{ flex: 1, overflow: "auto", background: "#f4f6fb" }}>
-        <Routes>
-          <Route path="/bookings"  element={<h1>Booking</h1>} />
+        {userValidated&&<Routes >
+          <Route path="/orders"  element={<AdminOrdersPage/>} />
           <Route path="/rooms"     element={<h1>Rooms</h1>} />
           <Route path="/items"     element={<AdminItemPage />} />
           <Route path="/items/add" element={<AddItemPage />} />
           <Route path="/items/edit"element={<UpdateItemPage/>}/>
-        </Routes>
+          <Route path="/packages"  element={<AdminPackagesPage />} />
+          <Route path="/users"     element={<AdminUsersPage/>} />
+          <Route path="/reviews" element={<ReviewsManagement />} />
+          <Route path="/dashboard" element={<AdminDashBoard />} />
+        </Routes>}
       </div>
     </div>
   );

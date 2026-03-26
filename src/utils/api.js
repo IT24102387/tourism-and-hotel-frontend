@@ -1,112 +1,142 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:5000/api";
+/* ================= BASE URL ================= */
+// Use env if available, fallback to localhost
+const BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/api";
 
-// Get token from localStorage
+/* ================= AUTH ================= */
+
 function getToken() {
-    return localStorage.getItem("token");
+  return localStorage.getItem("token");
 }
 
-// Auth header
 function authHeader() {
-    return { Authorization: `Bearer ${getToken()}` };
+  return { Authorization: `Bearer ${getToken()}` };
 }
 
 /* ========== ROOM APIs ========== */
 
 export function getAllRooms() {
-    return axios.get(`${BASE_URL}/rooms`);
+  return axios.get(`${BASE_URL}/rooms`);
 }
 
 export function getRoomByKey(key) {
-    return axios.get(`${BASE_URL}/rooms/${key}`);
+  return axios.get(`${BASE_URL}/rooms/${key}`);
 }
 
 export function searchRooms(checkIn, checkOut, filters = {}) {
-    const params = { checkIn, checkOut, ...filters };
-    return axios.get(`${BASE_URL}/rooms/search`, { params });
+  const params = { checkIn, checkOut, ...filters };
+  return axios.get(`${BASE_URL}/rooms/search`, { params });
 }
 
 export function getRoomsByHotel(hotelName) {
-    return axios.get(`${BASE_URL}/rooms/hotel/${hotelName}`);
+  return axios.get(`${BASE_URL}/rooms/hotel/${hotelName}`);
 }
 
 export function bookRoom(key, bookingData) {
-    return axios.post(`${BASE_URL}/rooms/${key}/book`, bookingData, {
-        headers: authHeader()
-    });
+  return axios.post(`${BASE_URL}/rooms/${key}/book`, bookingData, {
+    headers: authHeader(),
+  });
 }
 
 export function addRoom(roomData) {
-    return axios.post(`${BASE_URL}/rooms`, roomData, {
-        headers: authHeader()
-    });
+  return axios.post(`${BASE_URL}/rooms`, roomData, {
+    headers: authHeader(),
+  });
 }
 
 export function updateRoom(key, roomData) {
-    return axios.put(`${BASE_URL}/rooms/${key}`, roomData, {
-        headers: authHeader()
-    });
+  return axios.put(`${BASE_URL}/rooms/${key}`, roomData, {
+    headers: authHeader(),
+  });
 }
 
 export function updateRoomAvailability(key, data) {
-    return axios.patch(`${BASE_URL}/rooms/${key}/availability`, data, {
-        headers: authHeader()
-    });
+  return axios.patch(`${BASE_URL}/rooms/${key}/availability`, data, {
+    headers: authHeader(),
+  });
 }
 
 export function deleteRoom(key) {
-    return axios.delete(`${BASE_URL}/rooms/${key}`, {
-        headers: authHeader()
-    });
+  return axios.delete(`${BASE_URL}/rooms/${key}`, {
+    headers: authHeader(),
+  });
 }
 
 export function confirmRoomBooking(data) {
-    return axios.post(`${BASE_URL}/rooms/confirm-booking`, data, {
-        headers: authHeader()
-    });
+  return axios.post(`${BASE_URL}/rooms/confirm-booking`, data, {
+    headers: authHeader(),
+  });
 }
 
 export function cancelRoomBooking(data) {
-    return axios.post(`${BASE_URL}/rooms/cancel-booking`, data, {
-        headers: authHeader()
-    });
+  return axios.post(`${BASE_URL}/rooms/cancel-booking`, data, {
+    headers: authHeader(),
+  });
 }
 
 /* ========== BOOKING APIs ========== */
 
 export function createBooking(bookingData) {
-    return axios.post(`${BASE_URL}/bookings`, bookingData, {
-        headers: authHeader()
-    });
+  return axios.post(`${BASE_URL}/bookings`, bookingData, {
+    headers: authHeader(),
+  });
 }
 
 export function getMyBookings() {
-    return axios.get(`${BASE_URL}/bookings/user/my-bookings`, {
-        headers: authHeader()
-    });
+  return axios.get(`${BASE_URL}/bookings/user/my-bookings`, {
+    headers: authHeader(),
+  });
 }
 
 export function cancelBooking(bookingId) {
-    return axios.put(`${BASE_URL}/bookings/${bookingId}/cancel`, {}, {
-        headers: authHeader()
-    });
+  return axios.put(`${BASE_URL}/bookings/${bookingId}/cancel`, {}, {
+    headers: authHeader(),
+  });
 }
 
 export function getAllBookings() {
-    return axios.get(`${BASE_URL}/bookings/admin/all-bookings`, {
-        headers: authHeader()
-    });
+  return axios.get(`${BASE_URL}/bookings/admin/all-bookings`, {
+    headers: authHeader(),
+  });
 }
 
 export function verifyPayment(bookingId) {
-    return axios.put(`${BASE_URL}/bookings/admin/${bookingId}/verify`, {}, {
-        headers: authHeader()
-    });
+  return axios.put(`${BASE_URL}/bookings/admin/${bookingId}/verify`, {}, {
+    headers: authHeader(),
+  });
 }
 
 export function updatePayment(data) {
-    return axios.put(`${BASE_URL}/bookings/payment/update`, data, {
-        headers: authHeader()
-    });
+  return axios.put(`${BASE_URL}/bookings/payment/update`, data, {
+    headers: authHeader(),
+  });
+}
+
+/* ========== PRODUCT / PACKAGE APIs ========== */
+
+export function getProducts() {
+  return axios.get(`${BASE_URL}/products`);
+}
+
+export function getPackages() {
+  return axios.get(`${BASE_URL}/packages`);
+}
+
+export function getPackageById(packageId) {
+  return axios.get(`${BASE_URL}/packages/${packageId}`);
+}
+
+export function getVehicles() {
+  return axios.get(`${BASE_URL}/vehicles`);
+}
+
+export function getAddons() {
+  return axios.get(`${BASE_URL}/addons`);
+}
+
+export function createCustomBooking(payload) {
+  return axios.post(`${BASE_URL}/custom-bookings`, payload, {
+    headers: authHeader(),
+  });
 }

@@ -104,10 +104,10 @@ export default function AdminItemPage() {
         <h1 className="text-3xl font-bold text-gray-800">Product Management</h1>
         <Link
           to="/admin/items/add"
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-md"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-md absolute bottom-8 right-9"
         >
           <CiCirclePlus size={20} />
-          Add New Product
+          Add New Equipment
         </Link>
       </div>
 
