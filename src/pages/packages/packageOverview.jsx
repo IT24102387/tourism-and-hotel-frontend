@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getPackageById, getPackageVehicles, getAddons, createCustomBooking } from "../../utils/api";
+import { getPackageById, getPackageVehicles, getAddons, createPackageBooking } from "../../utils/api";
 import {
   FaCheckCircle,
   FaTimesCircle,
@@ -114,7 +114,7 @@ export default function PackageOverview() {
       addOnTotal: addonsCost,
       totalPrice,
     };
-    createCustomBooking(payload)
+    createPackageBooking(payload)
       .then((res) => {
         setBookingResult(res.data.booking);
         setBookingStatus("success");

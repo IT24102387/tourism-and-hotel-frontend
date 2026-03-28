@@ -22,9 +22,9 @@ export function getAddons() {
   return axios.get(`${BASE_URL}/api/addons`);
 }
 
-export function createCustomBooking(payload) {
+export function createPackageBooking(payload) {
   const token = localStorage.getItem("token");
-  return axios.post(`${BASE_URL}/api/custom-bookings`, payload, {
+  return axios.post(`${BASE_URL}/api/package-bookings`, payload, {
     headers: { Authorization: `Bearer ${token}` },
   });
 }
