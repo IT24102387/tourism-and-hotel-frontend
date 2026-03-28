@@ -21,6 +21,7 @@ import AdminDashBoard from "./adminDashboard";
 import AdminPackagesPage from "./adminPackagesPage";
 import AdminVehiclesPage from "./adminVehiclesPage";
 import AdminPackageVehiclesPage from "./adminPackageVehiclesPage";
+import AdminPackageBookingsPage from "./adminPackageBookingsPage";
 import axios from "axios";
 
 
@@ -38,7 +39,8 @@ const navItems = [
   { label: "Reviews",            icon: MdOutlineReviews,     to: "/admin/reviews" },
   { label: "Event Calendar",     icon: BsCalendar2Event ,    to: "/admin/Eventcalendar" },
   { label: "Google Maps",        icon: FiMapPin ,            to: "/admin/googlemap" },
-  { label: "PackageVehicles",   icon: GiJeep,            to: "/admin/packageVehicles" },
+  { label: "Package Vehicles",   icon: GiJeep,            to: "/admin/packageVehicles" },
+  { label: "Package Bookings",   icon: FaRegBookmark,       to: "/admin/package-bookings" },
   { label: "Users",              icon: FaRegUser,            to: "/admin/users" },
 ];
 
@@ -306,6 +308,7 @@ export default function AdminPage() {
           <Route path="/packages"  element={<AdminPackagesPage />} />
           <Route path="/transport" element={<AdminVehiclesPage />} />
           <Route path="/packageVehicles" element={<AdminPackageVehiclesPage />} />
+          <Route path="/package-bookings" element={<AdminPackageBookingsPage />} />
           <Route path="/users"     element={<AdminUsersPage/>} />
           <Route path="/reviews" element={<ReviewsManagement />} />
           <Route path="/dashboard" element={<AdminDashBoard />} />
