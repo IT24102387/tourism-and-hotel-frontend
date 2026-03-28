@@ -468,7 +468,7 @@ export default function Header() {
                   </button>
                   <div className={`hdr-account-dropdown ${accountOpen ? "open" : ""}`}>
                     <Link
-                      to="/admin"
+                      to="/my-bookings"
                       className="hdr-account-menu-item"
                       onClick={() => setAccountOpen(false)}
                     >
@@ -559,7 +559,7 @@ export default function Header() {
                 </div>
               ) : (
                 <div className="flex justify-end gap-3 pt-3 pb-2">
-                  <Link to="/admin" onClick={() => setMenuOpen(false)} className="hdr-book-btn" style={{ flex: 1, textAlign: "center" }}>Dashboard</Link>
+                  <Link to="/my-bookings" onClick={() => setMenuOpen(false)} className="hdr-book-btn" style={{ flex: 1, textAlign: "center" }}>Dashboard</Link>
                   <button
                     className="hdr-logout-btn"
                     style={{ flex: 1, textAlign: "center" }}

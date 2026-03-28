@@ -28,3 +28,17 @@ export function createPackageBooking(payload) {
     headers: { Authorization: `Bearer ${token}` },
   });
 }
+
+export function getMyPackageBookings() {
+  const token = localStorage.getItem("token");
+  return axios.get(`${BASE_URL}/api/package-bookings`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export function cancelMyPackageBooking(bookingId) {
+  const token = localStorage.getItem("token");
+  return axios.delete(`${BASE_URL}/api/package-bookings/${bookingId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
