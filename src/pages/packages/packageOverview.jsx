@@ -202,7 +202,7 @@ export default function PackageOverview() {
     <div className="w-full min-h-full overflow-y-auto" style={{ background: "#FFFBF5" }}>
 
       {/* ── Back button ──────────────────────────────────────────────── */}
-      <div className="max-w-6xl mx-auto px-4 pt-8">
+      <div className="max-w-6xl mx-auto px-4 pt-24">
         <button
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-sm font-semibold mb-6 transition hover:opacity-70"

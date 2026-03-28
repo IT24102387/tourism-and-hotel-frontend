@@ -13,6 +13,9 @@ import {
   FaMapMarkerAlt,
   FaTag,
   FaCalendarAlt,
+  FaClock,
+  FaUsers,
+  FaArrowRight,
 } from "react-icons/fa";
 
 // ── Static data ──────────────────────────────────────────────────────────────
@@ -439,11 +442,23 @@ export default function Home() {
       </div>
 
       {/* ── Packages ───────────────────────────────────────────────────── */}
-      <div className="py-20 px-4" style={{ background: "linear-gradient(135deg, #92400E, #78350F)" }}>
-        <div className="max-w-7xl mx-auto">
+      <div className="py-24 px-4 relative overflow-hidden" style={{ background: "linear-gradient(160deg, #1a0a00 0%, #3b1600 45%, #5c2800 100%)" }}>
+        {/* dot pattern overlay */}
+        <div className="absolute inset-0" style={{ backgroundImage: "radial-gradient(circle, rgba(251,191,36,0.07) 1px, transparent 1px)", backgroundSize: "28px 28px" }} />
+
+        <div className="max-w-7xl mx-auto relative z-10">
+          {/* Section header */}
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white">Special Packages</h2>
-            <p className="text-lg" style={{ color: "#FDE68A" }}>Save more with our curated combos</p>
+            <p style={{ fontFamily: "'Outfit',sans-serif", fontSize: "11px", fontWeight: 700, letterSpacing: "0.28em", color: "#d4a843", textTransform: "uppercase", marginBottom: "14px" }}>
+              HANDCRAFTED EXPERIENCES
+            </p>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: "#F5F0E8" }}>Special Packages</h2>
+            <div className="flex items-center justify-center gap-3 mb-5">
+              <div className="h-px w-16" style={{ background: "linear-gradient(to right, transparent, #d4a843)" }} />
+              <div className="w-2 h-2 rotate-45" style={{ background: "#d4a843" }} />
+              <div className="h-px w-16" style={{ background: "linear-gradient(to left, transparent, #d4a843)" }} />
+            </div>
+            <p className="text-base max-w-xl mx-auto" style={{ color: "rgba(253,230,138,0.8)" }}>Save more with our curated safari &amp; cultural combos</p>
           </div>
 
           {/* Loading */}
@@ -456,41 +471,166 @@ export default function Home() {
           {/* Error */}
           {packagesState === "error" && (
             <div className="text-center py-16">
-              <p className="text-lg mb-6" style={{ color: "#FDE68A" }}>Could not load packages. Please try again.</p>
+              <p className="text-lg" style={{ color: "#FDE68A" }}>Could not load packages. Please try again.</p>
             </div>
           )}
 
           {/* Packages grid */}
           {packagesState === "success" && (
-            <div className="grid md:grid-cols-3 gap-8">
-              {packagesData.map((pkg, index) => {
-                const isPopular = index === 0;
-                return (
-                  <div
-                    key={pkg._id || index}
-                    onClick={() => navigate(`/package/${pkg.packageId}`)}
-                    className={`relative rounded-2xl p-8 cursor-pointer transition hover:-translate-y-1 ${isPopular ? "transform scale-105" : ""}`}
-                    style={{ background: "#FFFBF5", boxShadow: isPopular ? "0 0 0 4px #FBBF24, 0 20px 60px rgba(0,0,0,0.3)" : "0 4px 24px rgba(0,0,0,0.2)" }}
-                  >
-                    {isPopular && (
-                      <div className="absolute top-0 right-0 px-4 py-1 rounded-bl-2xl rounded-tr-2xl font-bold flex items-center gap-1 text-sm" style={{ background: "#FBBF24", color: "#78350F" }}>
-                        <FaTag /> Popular
+            <>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                {packagesData.slice(0, 6).map((pkg, index) => {
+                  const isPopular = index === 0;
+                  return (
+                    <div
+                      key={pkg._id || index}
+                      onClick={() => navigate(`/package/${pkg.packageId}`)}
+                      className="group relative rounded-2xl overflow-hidden cursor-pointer flex flex-col"
+                      style={{
+                        background: "#FFFBF5",
+                        boxShadow: isPopular
+                          ? "0 0 0 3px #FBBF24, 0 20px 60px rgba(0,0,0,0.45)"
+                          : "0 8px 32px rgba(0,0,0,0.35)",
+                        transform: isPopular ? "scale(1.04)" : "scale(1)",
+                        transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = isPopular ? "scale(1.06) translateY(-4px)" : "translateY(-6px)";
+                        e.currentTarget.style.boxShadow = isPopular
+                          ? "0 0 0 3px #FBBF24, 0 28px 70px rgba(0,0,0,0.5)"
+                          : "0 16px 48px rgba(0,0,0,0.45)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = isPopular ? "scale(1.04)" : "scale(1)";
+                        e.currentTarget.style.boxShadow = isPopular
+                          ? "0 0 0 3px #FBBF24, 0 20px 60px rgba(0,0,0,0.45)"
+                          : "0 8px 32px rgba(0,0,0,0.35)";
+                      }}
+                    >
+                      {/* ── Image ── */}
+                      <div className="relative overflow-hidden" style={{ height: "220px", flexShrink: 0 }}>
+                        <img
+                          src={pkg.images?.[0] || "https://www.shutterstock.com/image-vector/missing-picture-page-website-design-600nw-1552421075.jpg"}
+                          alt={pkg.name}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                        {/* gradient overlay */}
+                        <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.1) 55%, transparent 100%)" }} />
+
+                        {/* Popular badge */}
+                        {isPopular && (
+                          <div
+                            className="absolute top-3 left-3 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold"
+                            style={{ background: "#FBBF24", color: "#78350F" }}
+                          >
+                            <FaTag style={{ fontSize: "9px" }} /> MOST POPULAR
+                          </div>
+                        )}
+
+                        {/* Category badge */}
+                        <div
+                          className="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold tracking-wider"
+                          style={{ background: "rgba(0,0,0,0.55)", color: "#FDE68A", backdropFilter: "blur(6px)" }}
+                        >
+                          {pkg.category?.toUpperCase()}
+                        </div>
+
+                        {/* Duration & rating over image bottom */}
+                        <div className="absolute bottom-0 left-0 right-0 p-4 flex items-center justify-between">
+                          <div className="flex items-center gap-3 text-xs font-semibold" style={{ color: "rgba(255,255,255,0.9)" }}>
+                            <span className="flex items-center gap-1.5">
+                              <FaClock style={{ color: "#FBBF24" }} />
+                              {pkg.duration?.days}D / {pkg.duration?.nights}N
+                            </span>
+                            <span className="flex items-center gap-1.5">
+                              <FaUsers style={{ color: "#FBBF24" }} />
+                              Max {pkg.maxGroupSize}
+                            </span>
+                          </div>
+                          {pkg.rating > 0 && (
+                            <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: "rgba(0,0,0,0.5)", color: "#FBBF24", backdropFilter: "blur(6px)" }}>
+                              <FaStar style={{ fontSize: "10px" }} /> {pkg.rating}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    )}
-                    <h3 className="text-2xl font-bold mb-4" style={{ color: "#292524" }}>{pkg.name}</h3>
-                    <p className="mb-6" style={{ color: "#78716C" }}>
-                      {Array.isArray(pkg.includes) ? pkg.includes.join(" + ") : pkg.includes}
-                    </p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-3xl font-bold" style={{ color: "#D97706" }}>RS.{pkg.price}</span>
-                      <button className="px-6 py-3 rounded-lg font-semibold transition hover:opacity-90" style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}>
-                        Book Package
-                      </button>
+
+                      {/* ── Body ── */}
+                      <div style={{ padding: "20px 22px 22px", display: "flex", flexDirection: "column", flex: 1, gap: "10px" }}>
+                        <h3 style={{ fontFamily: "Georgia,'Times New Roman',serif", fontSize: "20px", fontWeight: 700, color: "#292524", lineHeight: 1.25, margin: 0 }}>
+                          {pkg.name}
+                        </h3>
+
+                        <p style={{ fontSize: "13px", color: "#78716C", lineHeight: 1.55, margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                          {pkg.description}
+                        </p>
+
+                        {/* Includes pills */}
+                        {Array.isArray(pkg.includes) && pkg.includes.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {pkg.includes.slice(0, 3).map((item, i) => (
+                              <span key={i} style={{ fontSize: "11px", padding: "3px 10px", borderRadius: "100px", background: "#FEF3C7", color: "#92400E", fontWeight: 600 }}>
+                                {item}
+                              </span>
+                            ))}
+                            {pkg.includes.length > 3 && (
+                              <span style={{ fontSize: "11px", padding: "3px 10px", borderRadius: "100px", background: "#F5EACF", color: "#78716C", fontWeight: 600 }}>
+                                +{pkg.includes.length - 3} more
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Footer */}
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "auto", paddingTop: "14px", borderTop: "1px solid rgba(0,0,0,0.07)" }}>
+                          <div>
+                            <p style={{ fontSize: "10px", color: "#aaa", margin: 0, fontWeight: 600, letterSpacing: "0.06em" }}>FROM</p>
+                            <p style={{ fontSize: "21px", fontWeight: 800, color: "#D97706", margin: 0, lineHeight: 1.1 }}>
+                              LKR {pkg.price?.toLocaleString()}
+                              <span style={{ fontSize: "11px", color: "#aaa", fontWeight: 500 }}> /person</span>
+                            </p>
+                          </div>
+                          <button
+                            style={{
+                              display: "flex", alignItems: "center", gap: "7px",
+                              padding: "10px 18px", borderRadius: "100px",
+                              background: "linear-gradient(135deg,#FBBF24,#F59E0B)",
+                              color: "#1C1917", fontWeight: 700, fontSize: "13px",
+                              border: "none", cursor: "pointer",
+                              boxShadow: "0 4px 14px rgba(251,191,36,0.4)",
+                              transition: "transform 0.2s, box-shadow 0.2s",
+                            }}
+                            onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.05)"; e.currentTarget.style.boxShadow = "0 6px 20px rgba(251,191,36,0.55)"; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 14px rgba(251,191,36,0.4)"; }}
+                          >
+                            Explore <FaArrowRight style={{ fontSize: "11px" }} />
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+
+              {/* View All */}
+              <div className="text-center mt-14">
+                <button
+                  onClick={() => navigate("/packages")}
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: "10px",
+                    padding: "14px 40px", borderRadius: "100px",
+                    border: "1.5px solid rgba(212,168,67,0.6)",
+                    color: "#d4a843", background: "transparent",
+                    fontWeight: 600, fontSize: "15px", cursor: "pointer",
+                    transition: "background 0.2s, color 0.2s, box-shadow 0.2s",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "#d4a843"; e.currentTarget.style.color = "#1a0a00"; e.currentTarget.style.boxShadow = "0 6px 24px rgba(212,168,67,0.4)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#d4a843"; e.currentTarget.style.boxShadow = "none"; }}
+                >
+                  View All Packages <FaArrowRight style={{ fontSize: "13px" }} />
+                </button>
+              </div>
+            </>
           )}
         </div>
       </div>
