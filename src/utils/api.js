@@ -31,7 +31,7 @@ export function createPackageBooking(payload) {
 
 export function getMyPackageBookings() {
   const token = localStorage.getItem("token");
-  return axios.get(`${BASE_URL}/api/package-bookings`, {
+  return axios.get(`${BASE_URL}/api/package-bookings/my`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 }
