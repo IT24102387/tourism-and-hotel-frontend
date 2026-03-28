@@ -104,11 +104,8 @@ export default function PackageOverview() {
             vehiclePricePerDay: form.vehicle.pricePerDay,
           }
         : { vehicleId: null, vehicleName: null, vehicleType: null, vehiclePricePerDay: 0 },
-      addOns: {},
-      specialRequests:
-        selectedAddons.length > 0
-          ? "Add-ons: " + selectedAddons.map((a) => a.name).join(", ")
-          : "",
+      addOns: pkg.customizationEnabled ? selectedAddons : (pkg.includes || []),
+      specialRequests: "",
       basePricePerPerson: pkg.price,
       vehicleTotal: vehicleCost,
       addOnTotal: addonsCost,

@@ -206,9 +206,7 @@ export default function MyBookings() {
           {!loading && bookings.length > 0 && (
             <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
               {bookings.map((b) => {
-                const addOns = Object.entries(b.addOns || {})
-                  .filter(([, v]) => v)
-                  .map(([k]) => k.replace(/([A-Z])/g, " $1").replace(/^./, s => s.toUpperCase()));
+                const addOns = (b.addOns || []).map((a) => typeof a === "string" ? a : a.name).filter(Boolean);
 
                 const canCancel = b.status === "Pending" || b.status === "Confirmed";
 

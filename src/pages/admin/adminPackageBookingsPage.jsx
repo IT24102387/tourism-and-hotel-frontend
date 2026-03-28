@@ -94,13 +94,20 @@ export default function AdminPackageBookingsPage() {
       .map(([name, d]) => [name, d.count, d.guests, fmtRs(d.revenue)]);
 
     // add-on popularity
-    const addonKeys = ["meals", "privateGuide", "photography", "hotelPickup"];
-    const addonLabels = { meals: "Meals", privateGuide: "Private Guide", photography: "Photography", hotelPickup: "Hotel Pickup" };
-    const addonRows = addonKeys.map((k) => [
-      addonLabels[k],
-      bookings.filter((b) => b.addOns?.[k]).length,
-      total ? `${((bookings.filter((b) => b.addOns?.[k]).length / total) * 100).toFixed(1)}%` : "0%",
-    ]);
+    const addonCountMap = {};
+    bookings.forEach((b) => {
+      (b.addOns || []).forEach((a) => {
+        const name = typeof a === "string" ? a : a.name;
+        if (name) addonCountMap[name] = (addonCountMap[name] || 0) + 1;
+      });
+    });
+    const addonRows = Object.entries(addonCountMap)
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, count]) => [
+        name,
+        count,
+        total ? `${((count / total) * 100).toFixed(1)}%` : "0%",
+      ]);
 
     // vehicle usage
     const withVehicle    = bookings.filter((b) => b.selectedVehicle?.vehicleName).length;
@@ -595,16 +602,18 @@ export default function AdminPackageBookingsPage() {
               <div>
                 <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Add-ons</h4>
                 <div className="flex flex-wrap gap-2">
-                  {Object.entries(activeBooking.addOns || {}).map(([key, val]) => (
-                    <span
-                      key={key}
-                      className={`text-xs font-medium px-3 py-1 rounded-full border ${
-                        val ? "bg-green-50 text-green-700 border-green-100" : "bg-gray-100 text-gray-400 border-gray-200"
-                      }`}
-                    >
-                      {key.replace(/([A-Z])/g, " $1").trim()}: {val ? "Yes" : "No"}
-                    </span>
-                  ))}
+                  {(activeBooking.addOns || []).length > 0 ? (
+                    activeBooking.addOns.map((a, i) => (
+                      <span
+                        key={i}
+                        className="text-xs font-medium px-3 py-1 rounded-full border bg-green-50 text-green-700 border-green-100"
+                      >
+                        {typeof a === "string" ? a : a.name}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-xs text-gray-400">No add-ons</span>
+                  )}
                 </div>
               </div>
 
