@@ -1,10 +1,12 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
 import { IoMdCloseCircleOutline } from "react-icons/io";
-import { FiCheckCircle, FiXCircle, FiCalendar } from "react-icons/fi";
+import { FiCheckCircle, FiXCircle, FiCalendar, FiDownload } from "react-icons/fi";
 import { MdOutlineBookmarks } from "react-icons/md";
 import { MdOutlineBookmarkAdded, MdPendingActions, MdOutlineCancel } from "react-icons/md";
 import { BsCurrencyDollar } from "react-icons/bs";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const STATUS_STYLES = {
   Pending:   "bg-yellow-100 text-yellow-700",
@@ -57,6 +59,258 @@ export default function AdminPackageBookingsPage() {
         fetchBookings();
       })
       .catch((err) => console.error(err));
+  }
+
+  function downloadReport() {
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const now = new Date();
+    const fmtDate = (d) => new Date(d).toLocaleDateString("en-LK");
+    const fmtRs   = (n) => `Rs. ${Number(n || 0).toLocaleString("en-LK", { minimumFractionDigits: 2 })}`;
+
+    // ── derived stats ──────────────────────────────────────────
+    const total        = bookings.length;
+    const pending      = bookings.filter((b) => b.status === "Pending").length;
+    const confirmed    = bookings.filter((b) => b.status === "Confirmed").length;
+    const cancelled    = bookings.filter((b) => b.status === "Cancelled").length;
+    const completed    = bookings.filter((b) => b.status === "Completed").length;
+    const totalRev     = bookings.reduce((s, b) => s + (b.totalPrice || 0), 0);
+    const confirmedRev = bookings.filter((b) => b.status === "Confirmed" || b.status === "Completed")
+                                 .reduce((s, b) => s + (b.totalPrice || 0), 0);
+    const pendingRev   = bookings.filter((b) => b.status === "Pending")
+                                 .reduce((s, b) => s + (b.totalPrice || 0), 0);
+    const totalGuests  = bookings.reduce((s, b) => s + (b.guests || 0), 0);
+    const avgGuests    = total ? (totalGuests / total).toFixed(1) : 0;
+
+    // bookings per package
+    const pkgMap = {};
+    bookings.forEach((b) => {
+      if (!pkgMap[b.packageName]) pkgMap[b.packageName] = { count: 0, revenue: 0, guests: 0 };
+      pkgMap[b.packageName].count   += 1;
+      pkgMap[b.packageName].revenue += b.totalPrice || 0;
+      pkgMap[b.packageName].guests  += b.guests || 0;
+    });
+    const pkgRows = Object.entries(pkgMap)
+      .sort((a, b) => b[1].revenue - a[1].revenue)
+      .map(([name, d]) => [name, d.count, d.guests, fmtRs(d.revenue)]);
+
+    // add-on popularity
+    const addonKeys = ["meals", "privateGuide", "photography", "hotelPickup"];
+    const addonLabels = { meals: "Meals", privateGuide: "Private Guide", photography: "Photography", hotelPickup: "Hotel Pickup" };
+    const addonRows = addonKeys.map((k) => [
+      addonLabels[k],
+      bookings.filter((b) => b.addOns?.[k]).length,
+      total ? `${((bookings.filter((b) => b.addOns?.[k]).length / total) * 100).toFixed(1)}%` : "0%",
+    ]);
+
+    // vehicle usage
+    const withVehicle    = bookings.filter((b) => b.selectedVehicle?.vehicleName).length;
+    const withoutVehicle = total - withVehicle;
+
+    // monthly revenue (current year)
+    const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const monthlyRev = Array(12).fill(0);
+    bookings.forEach((b) => {
+      const m = new Date(b.createdAt).getMonth();
+      monthlyRev[m] += b.totalPrice || 0;
+    });
+    const monthlyRows = monthNames.map((m, i) => [m, fmtRs(monthlyRev[i])]);
+
+    // ── PDF layout ────────────────────────────────────────────
+    const PRIMARY   = [47, 45, 143];
+    const ACCENT    = [255, 154, 60];
+    const LIGHT_BG  = [245, 246, 251];
+    const W = doc.internal.pageSize.getWidth();
+
+    // Header banner
+    doc.setFillColor(...PRIMARY);
+    doc.rect(0, 0, W, 28, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text("Package Bookings Report", 14, 12);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text("Tourism & Hotel Management System", 14, 20);
+    doc.text(`Generated: ${now.toLocaleString("en-LK")}`, W - 14, 20, { align: "right" });
+
+    let y = 36;
+
+    // ── Section helper ────────────────────────────────────────
+    function sectionTitle(title) {
+      doc.setFillColor(...ACCENT);
+      doc.rect(14, y, 4, 6, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(30, 30, 80);
+      doc.text(title, 21, y + 4.5);
+      y += 11;
+    }
+
+    function summaryBox(label, value, x, bw, color) {
+      doc.setFillColor(...LIGHT_BG);
+      doc.roundedRect(x, y, bw, 16, 2, 2, "F");
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(120, 120, 140);
+      doc.text(label.toUpperCase(), x + 4, y + 6);
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...color);
+      doc.text(String(value), x + 4, y + 13);
+    }
+
+    // ── 1. Summary stats ─────────────────────────────────────
+    sectionTitle("Summary Overview");
+    const boxW = (W - 28 - 10) / 6;
+    const boxes = [
+      ["Total",     total,            [47,45,143]],
+      ["Pending",   pending,          [202,138,4]],
+      ["Confirmed", confirmed,        [22,163,74]],
+      ["Cancelled", cancelled,        [220,38,38]],
+      ["Completed", completed,        [37,99,235]],
+      ["Revenue",   fmtRs(totalRev),  [5,150,105]],
+    ];
+    boxes.forEach(([lbl, val, col], i) => summaryBox(lbl, val, 14 + i * (boxW + 2), boxW, col));
+    y += 22;
+
+    // ── 2. Revenue breakdown ─────────────────────────────────
+    sectionTitle("Revenue Breakdown");
+    autoTable(doc, {
+      startY: y,
+      head: [["Category", "Amount", "% of Total"]],
+      body: [
+        ["Confirmed + Completed Revenue", fmtRs(confirmedRev), total ? `${((confirmedRev / totalRev) * 100).toFixed(1)}%` : "0%"],
+        ["Pending Revenue",               fmtRs(pendingRev),   total ? `${((pendingRev   / totalRev) * 100).toFixed(1)}%` : "0%"],
+        ["Total Revenue",                 fmtRs(totalRev),     "100%"],
+      ],
+      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: PRIMARY, textColor: 255, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: LIGHT_BG },
+      margin: { left: 14, right: 14 },
+    });
+    y = doc.lastAutoTable.finalY + 10;
+
+    // ── 3. Bookings by package ────────────────────────────────
+    sectionTitle("Bookings by Package");
+    autoTable(doc, {
+      startY: y,
+      head: [["Package Name", "Bookings", "Total Guests", "Revenue"]],
+      body: pkgRows.length ? pkgRows : [["No data", "", "", ""]],
+      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: PRIMARY, textColor: 255, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: LIGHT_BG },
+      margin: { left: 14, right: 14 },
+    });
+    y = doc.lastAutoTable.finalY + 10;
+
+    // ── 4. Guest statistics ───────────────────────────────────
+    sectionTitle("Guest Statistics");
+    autoTable(doc, {
+      startY: y,
+      head: [["Metric", "Value"]],
+      body: [
+        ["Total Guests Across All Bookings", totalGuests],
+        ["Average Guests per Booking",       avgGuests],
+        ["Bookings with Vehicle",            withVehicle],
+        ["Bookings without Vehicle",         withoutVehicle],
+      ],
+      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: PRIMARY, textColor: 255, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: LIGHT_BG },
+      margin: { left: 14, right: 14 },
+      columnStyles: { 0: { cellWidth: 120 } },
+    });
+    y = doc.lastAutoTable.finalY + 10;
+
+    // ── 5. Add-on popularity ─────────────────────────────────
+    sectionTitle("Add-on Popularity");
+    autoTable(doc, {
+      startY: y,
+      head: [["Add-on", "Bookings Selected", "% of Total"]],
+      body: addonRows,
+      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: PRIMARY, textColor: 255, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: LIGHT_BG },
+      margin: { left: 14, right: 14 },
+    });
+    y = doc.lastAutoTable.finalY + 10;
+
+    // ── 6. Monthly revenue ───────────────────────────────────
+    sectionTitle(`Monthly Revenue – ${now.getFullYear()}`);
+    autoTable(doc, {
+      startY: y,
+      head: [["Month", "Revenue"]],
+      body: monthlyRows,
+      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: PRIMARY, textColor: 255, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: LIGHT_BG },
+      margin: { left: 14, right: 14 },
+      columnStyles: { 0: { cellWidth: 40 } },
+    });
+
+    // ── 7. All bookings table (new page) ─────────────────────
+    doc.addPage();
+    doc.setFillColor(...PRIMARY);
+    doc.rect(0, 0, W, 18, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("All Package Bookings", 14, 12);
+    y = 26;
+
+    autoTable(doc, {
+      startY: y,
+      head: [["Booking ID", "Customer", "Package", "Tour Date", "Guests", "Total", "Status"]],
+      body: bookings.map((b) => [
+        b.bookingId,
+        b.userName,
+        b.packageName,
+        fmtDate(b.tourDate),
+        b.guests,
+        fmtRs(b.totalPrice),
+        b.status,
+      ]),
+      styles: { fontSize: 8, cellPadding: 2.5, overflow: "linebreak" },
+      headStyles: { fillColor: PRIMARY, textColor: 255, fontStyle: "bold", fontSize: 8 },
+      alternateRowStyles: { fillColor: LIGHT_BG },
+      margin: { left: 14, right: 14 },
+      columnStyles: {
+        0: { cellWidth: 28 },
+        1: { cellWidth: 32 },
+        2: { cellWidth: 40 },
+        3: { cellWidth: 24 },
+        4: { cellWidth: 14 },
+        5: { cellWidth: 30 },
+        6: { cellWidth: 20 },
+      },
+      didParseCell(data) {
+        if (data.section === "body" && data.column.index === 6) {
+          const s = data.cell.raw;
+          if (s === "Confirmed") data.cell.styles.textColor = [22, 163, 74];
+          else if (s === "Pending")   data.cell.styles.textColor = [202, 138, 4];
+          else if (s === "Cancelled") data.cell.styles.textColor = [220, 38, 38];
+          else if (s === "Completed") data.cell.styles.textColor = [37,  99, 235];
+          data.cell.styles.fontStyle = "bold";
+        }
+      },
+    });
+
+    // Footer on every page
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(160, 160, 180);
+      doc.text(
+        `Page ${i} of ${pageCount}  •  Tourism & Hotel Management System`,
+        W / 2,
+        doc.internal.pageSize.getHeight() - 8,
+        { align: "center" }
+      );
+    }
+
+    doc.save(`package-bookings-report-${now.toISOString().slice(0, 10)}.pdf`);
   }
 
   const filtered = bookings.filter((b) => {
@@ -127,9 +381,17 @@ export default function AdminPackageBookingsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <h1 className="text-3xl font-bold text-gray-800">Package Booking Management</h1>
-        <span className="bg-blue-100 text-blue-700 text-sm font-semibold px-4 py-2 rounded-full">
-          {bookings.length} Total Bookings
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="bg-blue-100 text-blue-700 text-sm font-semibold px-4 py-2 rounded-full">
+            {bookings.length} Total Bookings
+          </span>
+          <button
+            onClick={downloadReport}
+            className="flex items-center gap-2 bg-gradient-to-r from-[#2F2D8F] to-[#1E2269] hover:opacity-90 text-white text-sm font-semibold px-4 py-2 rounded-full shadow transition"
+          >
+            <FiDownload size={15} /> Download Report
+          </button>
+        </div>
       </div>
 
       {/* Stats Cards */}
