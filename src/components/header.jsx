@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
-import { FaCartShopping } from "react-icons/fa6";
+import { FaCartShopping, FaCircleUser } from "react-icons/fa6";
 
 const services = [
   {
@@ -45,7 +45,9 @@ export default function Header() {
   const [servicesOpen, setServicesOpen] = useState(false);
   const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const accountRef = useRef(null);
   const token = localStorage.getItem("token");
 
   useEffect(() => {
@@ -53,6 +55,8 @@ export default function Header() {
     const onClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target))
         setServicesOpen(false);
+      if (accountRef.current && !accountRef.current.contains(e.target))
+        setAccountOpen(false);
     };
     window.addEventListener("scroll", onScroll);
     document.addEventListener("mousedown", onClickOutside);
@@ -222,6 +226,76 @@ export default function Header() {
           box-shadow: 0 4px 18px rgba(220,60,60,0.2);
         }
 
+        /* Account icon button */
+        .hdr-account-btn {
+          display: flex; align-items: center; justify-content: center;
+          width: 40px; height: 40px;
+          border-radius: 50%;
+          border: 1.5px solid rgba(212,168,67,0.5);
+          color: #d4a843;
+          font-size: 20px;
+          background: transparent;
+          cursor: pointer;
+          transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+        }
+        .hdr-account-btn:hover, .hdr-account-btn.open {
+          background: #d4a843;
+          color: #0f130e;
+          border-color: #d4a843;
+          box-shadow: 0 4px 18px rgba(212,168,67,0.4);
+          transform: translateY(-1px);
+        }
+
+        .hdr-account-dropdown {
+          position: absolute;
+          top: calc(100% + 12px);
+          right: 0;
+          width: 180px;
+          background: #ffffff;
+          border: 1px solid rgba(0,0,0,0.08);
+          border-radius: 12px;
+          padding: 6px;
+          box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.2s ease, transform 0.2s ease;
+          transform: translateY(-6px);
+        }
+        .hdr-account-dropdown.open {
+          opacity: 1;
+          pointer-events: all;
+          transform: translateY(0);
+        }
+        .hdr-account-dropdown::before {
+          content: '';
+          position: absolute;
+          top: -7px;
+          right: 12px;
+          width: 13px; height: 7px;
+          background: #ffffff;
+          clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+        }
+
+        .hdr-account-menu-item {
+          display: flex;
+          align-items: center;
+          width: 100%;
+          padding: 10px 14px;
+          border-radius: 8px;
+          text-decoration: none;
+          font-family: 'Outfit', sans-serif;
+          font-weight: 600;
+          font-size: 13.5px;
+          color: #1a1a1a;
+          background: none;
+          border: none;
+          cursor: pointer;
+          transition: background 0.15s, color 0.15s;
+          text-align: left;
+        }
+        .hdr-account-menu-item:hover { background: rgba(212,168,67,0.1); color: #b8891e; }
+        .hdr-account-menu-item.logout:hover { background: rgba(220,60,60,0.08); color: #e05050; }
+
         /* Cart icon button */
         .hdr-cart-btn {
           display: flex; align-items: center; justify-content: center;
@@ -378,28 +452,47 @@ export default function Header() {
               </div>
             </nav>
 
-            {/* ── Desktop CTA — ONLY THIS SECTION CHANGED ── */}
+            {/* ── Desktop CTA ── */}
             <div className="hidden md:flex items-center gap-3">
               {/* Cart icon — always visible */}
               <Link to="/booking" className="hdr-cart-btn">
                 <FaCartShopping />
               </Link>
 
-              {/* Login OR Logout — same pill shape, matched style */}
+              {/* Login OR Account Icon with dropdown */}
               {token == null ? (
                 <Link to="/login" className="hdr-login-btn">
                   Login
                 </Link>
               ) : (
-                <button
-                  className="hdr-logout-btn"
-                  onClick={() => {
-                    localStorage.removeItem("token");
-                    window.location.href = "/login";
-                  }}
-                >
-                  Logout
-                </button>
+                <div ref={accountRef} style={{ position: "relative" }}>
+                  <button
+                    className={`hdr-account-btn ${accountOpen ? "open" : ""}`}
+                    onClick={() => setAccountOpen((v) => !v)}
+                    aria-label="Account menu"
+                  >
+                    <FaCircleUser />
+                  </button>
+                  <div className={`hdr-account-dropdown ${accountOpen ? "open" : ""}`}>
+                    <Link
+                      to="/my-bookings"
+                      className="hdr-account-menu-item"
+                      onClick={() => setAccountOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                    <div className="hdr-divider" />
+                    <button
+                      className="hdr-account-menu-item logout"
+                      onClick={() => {
+                        localStorage.removeItem("token");
+                        window.location.href = "/login";
+                      }}
+                    >
+                      Logout
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
 
@@ -465,11 +558,27 @@ export default function Header() {
                 </div>
               </div>
 
-              {/* Mobile Login + Book */}
-              <div className="flex justify-end gap-3 pt-3 pb-2 ">
-                <Link to="/login" onClick={() => setMenuOpen(false)} className="hdr-login-btn" style={{ flex: 1, textAlign: "center" }}>Login</Link>
-                <Link to="/booking" onClick={() => setMenuOpen(false)} className="hdr-book-btn" style={{ flex: 1, textAlign: "center" }}>Book Now</Link>
-              </div>
+              {/* Mobile Login + Book OR Dashboard + Logout */}
+              {token == null ? (
+                <div className="flex justify-end gap-3 pt-3 pb-2">
+                  <Link to="/login" onClick={() => setMenuOpen(false)} className="hdr-login-btn" style={{ flex: 1, textAlign: "center" }}>Login</Link>
+                  <Link to="/booking" onClick={() => setMenuOpen(false)} className="hdr-book-btn" style={{ flex: 1, textAlign: "center" }}>Book Now</Link>
+                </div>
+              ) : (
+                <div className="flex justify-end gap-3 pt-3 pb-2">
+                  <Link to="/my-bookings" onClick={() => setMenuOpen(false)} className="hdr-book-btn" style={{ flex: 1, textAlign: "center" }}>Dashboard</Link>
+                  <button
+                    className="hdr-logout-btn"
+                    style={{ flex: 1, textAlign: "center" }}
+                    onClick={() => {
+                      localStorage.removeItem("token");
+                      window.location.href = "/login";
+                    }}
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
             </nav>
           )}
         </div>

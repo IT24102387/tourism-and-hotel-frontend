@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getPackageById, getVehicles, getAddons, createCustomBooking } from "../../utils/api";
+import { getPackageById, getPackageVehicles, getAddons, createPackageBooking } from "../../utils/api";
 import {
   FaCheckCircle,
   FaTimesCircle,
@@ -114,7 +114,7 @@ export default function PackageOverview() {
       addOnTotal: addonsCost,
       totalPrice,
     };
-    createCustomBooking(payload)
+    createPackageBooking(payload)
       .then((res) => {
         setBookingResult(res.data.booking);
         setBookingStatus("success");
@@ -156,7 +156,7 @@ export default function PackageOverview() {
   useEffect(() => {
     if (!canvasOpen || step !== 2 || vehiclesState !== "idle") return;
     setVehiclesState("loading");
-    getVehicles()
+    getPackageVehicles()
       .then((res) => {
         setVehicles(res.data);
         setVehiclesState("success");
@@ -381,7 +381,7 @@ export default function PackageOverview() {
                 className="w-full py-4 rounded-xl font-bold text-lg transition hover:opacity-90"
                 style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}
               >
-                Customize &amp; Book
+                {pkg.customizationEnabled ? "Customize & Book" : "Book"}
               </button>
             </div>
           </div>
@@ -411,7 +411,7 @@ export default function PackageOverview() {
               style={{ borderColor: "#F5EACF" }}
             >
               <div>
-                <p className="text-xs font-semibold tracking-widest mb-0.5" style={{ color: "#D97706" }}>CUSTOMIZE &amp; BOOK</p>
+                <p className="text-xs font-semibold tracking-widest mb-0.5" style={{ color: "#D97706" }}>{pkg?.customizationEnabled ? "CUSTOMIZE & BOOK" : "BOOK"}</p>
                 <h2 className="text-lg font-bold" style={{ color: "#292524" }}>{pkg?.name}</h2>
               </div>
               <button onClick={closeCanvas} className="p-2 rounded-full transition hover:bg-amber-50" style={{ color: "#78716C" }}>
@@ -421,26 +421,54 @@ export default function PackageOverview() {
 
             {/* Step indicator */}
             <div className="flex items-center gap-2 px-6 pt-5 pb-3 flex-shrink-0">
-              {[1, 2, 3, 4].map((s) => (
-                <div key={s} className="flex items-center gap-2">
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition"
-                    style={{
-                      background: step >= s ? "linear-gradient(135deg,#FBBF24,#F59E0B)" : "#F5EACF",
-                      color: step >= s ? "#1C1917" : "#A8A29E",
-                    }}
-                  >
-                    {s}
-                  </div>
-                  {s < 4 && <div className="flex-1 h-px w-5" style={{ background: step > s ? "#F59E0B" : "#F5EACF" }} />}
-                </div>
-              ))}
-              <span className="ml-2 text-xs font-medium" style={{ color: "#78716C" }}>
-                {step === 1 && "Trip Details"}
-                {step === 2 && "Vehicle"}
-                {step === 3 && "Add-ons"}
-                {step === 4 && "Confirm"}
-              </span>
+              {pkg?.customizationEnabled ? (
+                <>
+                  {[1, 2, 3, 4].map((s) => (
+                    <div key={s} className="flex items-center gap-2">
+                      <div
+                        className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition"
+                        style={{
+                          background: step >= s ? "linear-gradient(135deg,#FBBF24,#F59E0B)" : "#F5EACF",
+                          color: step >= s ? "#1C1917" : "#A8A29E",
+                        }}
+                      >
+                        {s}
+                      </div>
+                      {s < 4 && <div className="flex-1 h-px w-5" style={{ background: step > s ? "#F59E0B" : "#F5EACF" }} />}
+                    </div>
+                  ))}
+                  <span className="ml-2 text-xs font-medium" style={{ color: "#78716C" }}>
+                    {step === 1 && "Trip Details"}
+                    {step === 2 && "Vehicle"}
+                    {step === 3 && "Add-ons"}
+                    {step === 4 && "Confirm"}
+                  </span>
+                </>
+              ) : (
+                <>
+                  {[1, 2].map((s) => {
+                    const active = s === 1 ? step >= 1 : step >= 4;
+                    return (
+                      <div key={s} className="flex items-center gap-2">
+                        <div
+                          className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition"
+                          style={{
+                            background: active ? "linear-gradient(135deg,#FBBF24,#F59E0B)" : "#F5EACF",
+                            color: active ? "#1C1917" : "#A8A29E",
+                          }}
+                        >
+                          {s}
+                        </div>
+                        {s < 2 && <div className="flex-1 h-px w-5" style={{ background: step === 4 ? "#F59E0B" : "#F5EACF" }} />}
+                      </div>
+                    );
+                  })}
+                  <span className="ml-2 text-xs font-medium" style={{ color: "#78716C" }}>
+                    {step === 1 && "Trip Details"}
+                    {step === 4 && "Confirm"}
+                  </span>
+                </>
+              )}
             </div>
 
             {/* ── Step 1: Trip Details ──────────────────────────────── */}
@@ -606,15 +634,15 @@ export default function PackageOverview() {
                 {vehiclesState === "success" && vehicles.length > 0 && (
                   <div className="grid sm:grid-cols-2 gap-3">
                     {vehicles.map((v) => {
-                      const selected = form.vehicle?.vehicleId === v.vehicleId;
+                      const selected = form.vehicle != null && String(form.vehicle._id) === String(v._id);
                       const addedCost = v.pricePerDay * (pkg?.duration?.days || 1);
                       const activeFeatures = Object.entries(v.features || {})
                         .filter(([, val]) => val)
                         .map(([key]) => featureLabels[key] || key);
                       return (
                         <button
-                          key={v.vehicleId}
-                          onClick={() => handleFormChange("vehicle", v)}
+                          key={v._id}
+                          onClick={() => handleFormChange("vehicle", selected ? null : v)}
                           className="text-left rounded-xl border-2 overflow-hidden transition"
                           style={{
                             borderColor: selected ? "#D97706" : "#E7D9B8",
@@ -881,28 +909,45 @@ export default function PackageOverview() {
                   )}
                 </div>
 
-                {/* Add-ons */}
+                {/* Add-ons / Includes */}
                 <div className="rounded-xl p-4" style={{ background: "#F9F5EE", border: "1px solid #E7D9B8" }}>
-                  <p className="text-xs font-bold tracking-widest mb-3" style={{ color: "#92400E" }}>ADD-ONS</p>
-                  {selectedAddons.length > 0 ? (
-                    <div className="flex flex-col gap-3">
-                      {selectedAddons.map((a) => (
-                        <div key={a.addonId} className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2">
-                            <FaCheckCircle className="flex-shrink-0" style={{ color: "#10B981", fontSize: "0.85rem" }} />
-                            <div>
-                              <p className="text-sm font-medium" style={{ color: "#292524" }}>{a.name}</p>
-                              <p className="text-xs" style={{ color: "#78716C" }}>{a.category}</p>
+                  <p className="text-xs font-bold tracking-widest mb-3" style={{ color: "#92400E" }}>
+                    {pkg?.customizationEnabled ? "ADD-ONS" : "WHAT'S INCLUDED"}
+                  </p>
+                  {pkg?.customizationEnabled ? (
+                    selectedAddons.length > 0 ? (
+                      <div className="flex flex-col gap-3">
+                        {selectedAddons.map((a) => (
+                          <div key={a.addonId} className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <FaCheckCircle className="flex-shrink-0" style={{ color: "#10B981", fontSize: "0.85rem" }} />
+                              <div>
+                                <p className="text-sm font-medium" style={{ color: "#292524" }}>{a.name}</p>
+                                <p className="text-xs" style={{ color: "#78716C" }}>{a.category}</p>
+                              </div>
                             </div>
+                            <span className="text-sm font-semibold flex-shrink-0" style={{ color: "#D97706" }}>
+                              Rs. {a.price.toLocaleString()}
+                            </span>
                           </div>
-                          <span className="text-sm font-semibold flex-shrink-0" style={{ color: "#D97706" }}>
-                            Rs. {a.price.toLocaleString()}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm" style={{ color: "#A8A29E" }}>No add-ons selected</p>
+                    )
                   ) : (
-                    <p className="text-sm" style={{ color: "#A8A29E" }}>No add-ons selected</p>
+                    pkg?.includes && pkg.includes.length > 0 ? (
+                      <div className="flex flex-col gap-2">
+                        {pkg.includes.map((item, i) => (
+                          <div key={i} className="flex items-center gap-2">
+                            <FaCheckCircle className="flex-shrink-0" style={{ color: "#10B981", fontSize: "0.85rem" }} />
+                            <p className="text-sm" style={{ color: "#292524" }}>{item}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm" style={{ color: "#A8A29E" }}>No inclusions listed</p>
+                    )
                   )}
                 </div>
 
@@ -972,7 +1017,7 @@ export default function PackageOverview() {
             <div className="px-6 py-5 border-t flex-shrink-0" style={{ borderColor: "#F5EACF" }}>
               {step === 1 && (
                 <button
-                  onClick={() => setStep(2)}
+                  onClick={() => setStep(pkg?.customizationEnabled ? 2 : 4)}
                   disabled={!step1Valid()}
                   className="w-full py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition"
                   style={{
@@ -1023,7 +1068,7 @@ export default function PackageOverview() {
               {step === 4 && bookingStatus !== "success" && (
                 <div className="flex gap-3">
                   <button
-                    onClick={() => setStep(3)}
+                    onClick={() => setStep(pkg?.customizationEnabled ? 3 : 1)}
                     disabled={bookingStatus === "loading"}
                     className="flex-1 py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition hover:opacity-80"
                     style={{

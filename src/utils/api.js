@@ -14,17 +14,31 @@ export function getPackageById(packageId) {
   return axios.get(`${BASE_URL}/api/packages/${packageId}`);
 }
 
-export function getVehicles() {
-  return axios.get(`${BASE_URL}/api/vehicles`);
+export function getPackageVehicles() {
+  return axios.get(`${BASE_URL}/api/package-vehicles`);
 }
 
 export function getAddons() {
   return axios.get(`${BASE_URL}/api/addons`);
 }
 
-export function createCustomBooking(payload) {
+export function createPackageBooking(payload) {
   const token = localStorage.getItem("token");
-  return axios.post(`${BASE_URL}/api/custom-bookings`, payload, {
+  return axios.post(`${BASE_URL}/api/package-bookings`, payload, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export function getMyPackageBookings() {
+  const token = localStorage.getItem("token");
+  return axios.get(`${BASE_URL}/api/package-bookings`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export function cancelMyPackageBooking(bookingId) {
+  const token = localStorage.getItem("token");
+  return axios.delete(`${BASE_URL}/api/package-bookings/${bookingId}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 }
