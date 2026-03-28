@@ -280,7 +280,7 @@ export default function MyBookings() {
                       <div>
                         <p className="mb-detail-label">Total</p>
                         <p style={{ fontSize: "20px", fontWeight: 700, color: "#d4a843" }}>
-                          ${b.totalPrice.toLocaleString()}
+                          LKR {b.totalPrice.toLocaleString()}
                         </p>
                       </div>
                       <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
