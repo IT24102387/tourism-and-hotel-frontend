@@ -12,6 +12,8 @@ import PlaceDetails from './pages/home/placeDetails';
 
 
 
+
+
 function App() {
   return (
     <GoogleOAuthProvider clientId="262363908883-3pi34p5rk7mj588547ckqlvo267c1h0n.apps.googleusercontent.com">
@@ -25,6 +27,7 @@ function App() {
       <Route path="/admin/*" element={<AdminPage/>}/>
       <Route path="/*" element={<HomePage/>}/>
       <Route path="/place/:name" element={<PlaceDetails />} />
+
 
       
 

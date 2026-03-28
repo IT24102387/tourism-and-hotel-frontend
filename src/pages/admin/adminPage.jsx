@@ -19,15 +19,14 @@ import AdminOrdersPage from "./adminBookingPage";
 import AdminDashBoard from "./adminDashboard";
 import AdminPackagesPage from "./adminPackagesPage";
 import axios from "axios";
-
-
-
+import EventManagement from "./EventManagement";
+import GoogleMapComponent from "./GoogleMapComponent";
 
 const navItems = [
   { label: "Dashboard",          icon: BsGraphUp,            to: "/admin/dashboard" },
   { label: "Orders",             icon: IoCartOutline,        to: "/admin/orders" },
   { label: "Rooms",              icon: MdOutlineBed,         to: "/admin/rooms" },
-  { label: "Storage/Equipment",  icon: MdOutlineInventory2,      to: "/admin/items" },
+  { label: "Storage/Equipment",  icon: MdOutlineInventory2,   to: "/admin/items" },
   { label: "Packages",           icon: MdFamilyRestroom,      to: "/admin/packages" },
   { label: "Transportation",     icon: FaCar,                to: "/admin/transport" },
   { label: "Payments",           icon: MdOutlinePayments,    to: "/admin/payments" },
@@ -35,7 +34,10 @@ const navItems = [
   { label: "Reviews",            icon: MdOutlineReviews,     to: "/admin/reviews" },
   { label: "Event Calendar",     icon: BsCalendar2Event ,    to: "/admin/Eventcalendar" },
   { label: "Google Maps",        icon: FiMapPin ,            to: "/admin/googlemap" },
+  
   { label: "Users",              icon: FaRegUser,            to: "/admin/users" },
+  
+
 ];
 
 function NavItem({ item }) {
@@ -303,6 +305,8 @@ export default function AdminPage() {
           <Route path="/users"     element={<AdminUsersPage/>} />
           <Route path="/reviews" element={<ReviewsManagement />} />
           <Route path="/dashboard" element={<AdminDashBoard />} />
+          <Route path="/Eventcalendar" element={<EventManagement />} />
+          <Route path="/googlemap " element={<GoogleMapComponent/>} />
         </Routes>}
       </div>
     </div>

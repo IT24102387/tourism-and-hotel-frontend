@@ -23,6 +23,12 @@ const services = [
     label: "Safari Vehicle Supply",
     desc: "4WD jeeps & guided tours",
   },
+
+  {
+    to: "/services/googlemap",
+    label: "Google Maps",
+    desc: "Plan your own route to explore Katharagama",
+  }
 ];
 
 const navLinks = [
@@ -31,6 +37,7 @@ const navLinks = [
   { to: "/contact", label: "Contact" },
   { to: "/reviews", label: "Reviews" },
   { to: "/packages", label: "Packages" },
+ 
 ];
 
 export default function Header() {
