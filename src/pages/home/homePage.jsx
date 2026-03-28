@@ -9,6 +9,7 @@ import ProductOverview from "./productOverview";
 import BookingPage from "./equipmentBookingPage";
 import Reviews from "./reviews";
 import PackageOverview from "../packages/packageOverview";
+import PackagesPage from "../packages/packagesPage";
 import MyBookings from "./myBookings";
 
 
@@ -24,6 +25,7 @@ export default function HomePage(){
                     <Route path="/booking" element={<BookingPage/>}/>
                     <Route path="/product/:key" element={<ProductOverview/>}/>
                     <Route path="/package/:packageId" element={<PackageOverview/>}/>
+                    <Route path="/packages" element={<PackagesPage/>}/>
                     <Route path="/" element={<Home/>}/>
                     <Route path="/*" element={<ErrorNotFound/>}/>
                     <Route path="/reviews" element={<Reviews/>} /> 
