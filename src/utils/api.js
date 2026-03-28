@@ -14,8 +14,8 @@ export function getPackageById(packageId) {
   return axios.get(`${BASE_URL}/api/packages/${packageId}`);
 }
 
-export function getVehicles() {
-  return axios.get(`${BASE_URL}/api/vehicles`);
+export function getPackageVehicles() {
+  return axios.get(`${BASE_URL}/api/package-vehicles`);
 }
 
 export function getAddons() {

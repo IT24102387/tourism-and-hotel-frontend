@@ -482,7 +482,7 @@ export default function Home() {
                       {Array.isArray(pkg.includes) ? pkg.includes.join(" + ") : pkg.includes}
                     </p>
                     <div className="flex justify-between items-center">
-                      <span className="text-3xl font-bold" style={{ color: "#D97706" }}>${pkg.price}</span>
+                      <span className="text-3xl font-bold" style={{ color: "#D97706" }}>RS.{pkg.price}</span>
                       <button className="px-6 py-3 rounded-lg font-semibold transition hover:opacity-90" style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}>
                         Book Package
                       </button>

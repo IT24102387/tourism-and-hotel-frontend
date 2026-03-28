@@ -8,6 +8,7 @@ import { IoMdLogOut } from "react-icons/io";
 import { MdOutlineBed } from "react-icons/md";
 import { FiMapPin } from "react-icons/fi";
 import { BsCalendar2Event } from "react-icons/bs";
+import { GiJeep } from "react-icons/gi";
 import { Link, Route, Routes, useLocation } from "react-router-dom";
 import AdminItemPage from "./adminItemPage";
 import AddItemPage from "./addItemPage";
@@ -19,6 +20,7 @@ import AdminOrdersPage from "./adminBookingPage";
 import AdminDashBoard from "./adminDashboard";
 import AdminPackagesPage from "./adminPackagesPage";
 import AdminVehiclesPage from "./adminVehiclesPage";
+import AdminPackageVehiclesPage from "./adminPackageVehiclesPage";
 import axios from "axios";
 
 
@@ -36,6 +38,7 @@ const navItems = [
   { label: "Reviews",            icon: MdOutlineReviews,     to: "/admin/reviews" },
   { label: "Event Calendar",     icon: BsCalendar2Event ,    to: "/admin/Eventcalendar" },
   { label: "Google Maps",        icon: FiMapPin ,            to: "/admin/googlemap" },
+  { label: "PackageVehicles",   icon: GiJeep,            to: "/admin/packageVehicles" },
   { label: "Users",              icon: FaRegUser,            to: "/admin/users" },
 ];
 
@@ -302,6 +305,7 @@ export default function AdminPage() {
           <Route path="/items/edit"element={<UpdateItemPage/>}/>
           <Route path="/packages"  element={<AdminPackagesPage />} />
           <Route path="/transport" element={<AdminVehiclesPage />} />
+          <Route path="/packageVehicles" element={<AdminPackageVehiclesPage />} />
           <Route path="/users"     element={<AdminUsersPage/>} />
           <Route path="/reviews" element={<ReviewsManagement />} />
           <Route path="/dashboard" element={<AdminDashBoard />} />
