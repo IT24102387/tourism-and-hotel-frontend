@@ -7,6 +7,8 @@ import Contact from "./contact";
 import ErrorNotFound from "./error";
 import ProductOverview from "./productOverview";
 import BookingPage from "./equipmentBookingPage";
+import Reviews from "./reviews";
+import TripPlanner from "./TripPlanner"; // 👈 import the new page
 
 
 export default function HomePage(){
@@ -22,12 +24,10 @@ export default function HomePage(){
                     <Route path="/product/:key" element={<ProductOverview/>}/>
                     <Route path="/" element={<Home/>}/>
                     <Route path="/*" element={<ErrorNotFound/>}/>
+                    <Route path="/reviews" element={<Reviews />} />
+                    <Route path="/google-maps" element={<TripPlanner />} /> {/* 👈 new route */}
                 </Routes>
             </div>
         </>
-
-        
-        
     )
-
 }
