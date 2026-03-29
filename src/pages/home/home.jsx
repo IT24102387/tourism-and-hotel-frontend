@@ -11,6 +11,8 @@ import {
   FaTag,
   FaCalendarAlt,
 } from "react-icons/fa";
+import axios from 'axios';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, isSameDay, addMonths, subMonths } from 'date-fns';
 
 // Hero images
 const heroImages = [
@@ -89,27 +91,6 @@ const foodItems = [
   { name: "Fresh Seafood Platter", description: "Grilled fish, prawns, squid", price: "$18", image: "🦐" },
 ];
 
-const events = [
-  {
-    name: "Kataragama Esala Festival",
-    date: "July - August 2026",
-    description: "A vibrant religious festival with processions and ceremonies.",
-    image: "https://images.unsplash.com/photo-1622115831922-ccd9a2c4b445?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-  },
-  {
-    name: "Yala Wildlife Photography Workshop",
-    date: "September 15-20, 2026",
-    description: "Capture the wilderness with expert guides.",
-    image: "https://images.unsplash.com/photo-1516426122078-c23e76319801?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-  },
-  {
-    name: "Traditional Dance Performance",
-    date: "Every Saturday at Kataragama Temple",
-    description: "Experience Kandyan and low-country dance.",
-    image: "https://images.unsplash.com/photo-1622115831922-ccd9a2c4b445?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-  },
-];
-
 const packages = [
   {
     name: "Yala Safari Package",
@@ -160,7 +141,21 @@ const testimonials = [
 export default function Home() {
   const [currentImage, setCurrentImage] = useState(0);
   const [isAutoplay, setIsAutoplay] = useState(true);
+  
+  // Reviews carousel
+  const [approvedReviews, setApprovedReviews] = useState([]);
+  const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
+  const [loadingReviews, setLoadingReviews] = useState(true);
 
+  // Calendar state
+  const [events, setEvents] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [eventsByDate, setEventsByDate] = useState({});
+  const [hoveredDay, setHoveredDay] = useState(null);
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+
+  // Hero slideshow autoplay
   useEffect(() => {
     if (!isAutoplay) return;
     const interval = setInterval(() => {
@@ -169,12 +164,101 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [isAutoplay]);
 
+  // Fetch approved reviews
+  useEffect(() => {
+    const fetchApprovedReviews = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/reviews');
+        setApprovedReviews(response.data);
+      } catch (error) {
+        console.error('Failed to fetch reviews', error);
+      } finally {
+        setLoadingReviews(false);
+      }
+    };
+    fetchApprovedReviews();
+  }, []);
+
+  // Reset review carousel index
+  useEffect(() => {
+    setCurrentReviewIndex(0);
+  }, [approvedReviews]);
+
+  // Fetch events from backend
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/events');
+        const allEvents = response.data.events || response.data;
+        // Filter upcoming events (date >= today)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const upcoming = allEvents.filter(event => new Date(event.date) >= today);
+        setEvents(upcoming);
+
+        // Group by date (YYYY-MM-DD)
+        const grouped = {};
+        upcoming.forEach(event => {
+          const dateKey = format(new Date(event.date), 'yyyy-MM-dd');
+          if (!grouped[dateKey]) grouped[dateKey] = [];
+          grouped[dateKey].push(event);
+        });
+        setEventsByDate(grouped);
+      } catch (error) {
+        console.error('Failed to fetch events:', error);
+      } finally {
+        setLoadingEvents(false);
+      }
+    };
+    fetchEvents();
+  }, []);
+
+  // Calendar helpers
+  const monthStart = startOfMonth(currentMonth);
+  const monthEnd = endOfMonth(currentMonth);
+  const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  const startDayOfWeek = monthStart.getDay(); // 0 = Sunday
+  const calendarDays = [];
+  // Empty cells for days before month start
+  for (let i = 0; i < startDayOfWeek; i++) {
+    calendarDays.push(null);
+  }
+  calendarDays.push(...daysInMonth);
+  // Fill to complete grid (6 rows max)
+  const totalCells = Math.ceil(calendarDays.length / 7) * 7;
+  for (let i = calendarDays.length; i < totalCells; i++) {
+    calendarDays.push(null);
+  }
+
+  const getEventsForDay = (day) => {
+    if (!day) return [];
+    const dateKey = format(day, 'yyyy-MM-dd');
+    return eventsByDate[dateKey] || [];
+  };
+
+  const handleMouseEnter = (e, day) => {
+    const eventsForDay = getEventsForDay(day);
+    if (eventsForDay.length === 0) return;
+    setHoveredDay(day);
+    const rect = e.currentTarget.getBoundingClientRect();
+    setTooltipPosition({
+      x: rect.left + rect.width / 2,
+      y: rect.top - 10,
+    });
+  };
+
+  const handleMouseLeave = () => setHoveredDay(null);
+
+  const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
+  const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
+
+  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
   const nextImage = () => { setIsAutoplay(false); setCurrentImage((prev) => (prev + 1) % heroImages.length); };
   const prevImage = () => { setIsAutoplay(false); setCurrentImage((prev) => (prev - 1 + heroImages.length) % heroImages.length); };
 
   return (
     <div className="w-full min-h-screen" style={{ background: "#FFFBF5" }}>
-
       {/* ── Hero Slideshow ── */}
       <div className="relative w-full h-[600px] overflow-hidden">
         {heroImages.map((img, index) => (
@@ -254,14 +338,12 @@ export default function Home() {
 
       {/* ── Popular Places – Warm Editorial Staggered Layout ── */}
       <div className="py-24 px-4 relative overflow-hidden" style={{ background: "#F5EDD8" }}>
-        {/* Subtle warm dot texture */}
         <div className="absolute inset-0 opacity-[0.06]" style={{
           backgroundImage: "radial-gradient(circle, #D97706 1px, transparent 1px)",
           backgroundSize: "32px 32px",
         }} />
 
         <div className="max-w-7xl mx-auto relative z-10">
-          {/* Header */}
           <div className="text-center mb-4">
             <p className="tracking-[0.35em] text-xs font-semibold mb-5" style={{ color: "#D97706" }}>DISCOVER THE REGION</p>
             <div className="flex items-center justify-center gap-4 mb-6">
@@ -283,7 +365,6 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Staggered 3-column: sides up, center lower */}
           <div className="flex items-start justify-center gap-10 mt-14 flex-wrap">
             {[popularPlaces[0], popularPlaces[1], popularPlaces[2]].map((place, i) => {
               const isCenter = i === 1;
@@ -293,7 +374,6 @@ export default function Home() {
                   className="relative group cursor-pointer flex-shrink-0"
                   style={{ width: isCenter ? "300px" : "260px", marginTop: isCenter ? "70px" : "0px" }}
                 >
-                  {/* Amber corner decorations */}
                   {["-top-3 -left-3 top left", "-top-3 -right-3 top right", "-bottom-3 -left-3 bottom left", "-bottom-3 -right-3 bottom right"].map((cfg, ci) => {
                     const [vt, hr, dv, dh] = cfg.split(" ");
                     return (
@@ -302,8 +382,6 @@ export default function Home() {
                       }} />
                     );
                   })}
-
-                  {/* Image */}
                   <div className="relative overflow-hidden" style={{ height: isCenter ? "380px" : "300px" }}>
                     <img
                       src={place.image}
@@ -312,8 +390,6 @@ export default function Home() {
                     />
                     <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(41,37,36,0.45) 0%, transparent 55%)" }} />
                   </div>
-
-                  {/* Label */}
                   <div className="text-center pt-6 pb-4">
                     <h3 className="text-2xl mb-2" style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: "#292524", fontWeight: 400 }}>
                       {place.name}
@@ -331,7 +407,6 @@ export default function Home() {
             })}
           </div>
 
-          {/* 4th card — cinematic wide banner */}
           <div className="mt-16 relative overflow-hidden group cursor-pointer" style={{ height: "200px" }}>
             <img
               src={popularPlaces[3].image}
@@ -352,7 +427,6 @@ export default function Home() {
                 VIEW PLACE
               </button>
             </div>
-            {/* Banner corner decorations */}
             {[["top-3 left-3","top left"], ["top-3 right-3","top right"], ["bottom-3 left-3","bottom left"], ["bottom-3 right-3","bottom right"]].map(([pos, dir], di) => (
               <div key={di} className={`absolute ${pos} w-12 h-12 pointer-events-none`} style={{
                 background: `linear-gradient(#FBBF24,#FBBF24) ${dir}/2px 22px no-repeat, linear-gradient(#FBBF24,#FBBF24) ${dir}/22px 2px no-repeat`
@@ -434,30 +508,117 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── Events & Festivals ── */}
-      <div className="py-20 px-4" style={{ background: "#F5EDD8" }}>
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: "#292524" }}>Upcoming Events & Festivals</h2>
-            <p className="text-lg" style={{ color: "#78716C" }}>Experience the vibrant culture and celebrations</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {events.map((event, index) => (
-              <div key={index} className="rounded-xl overflow-hidden hover:shadow-2xl transition border" style={{ background: "#FFFBF5", borderColor: "#F5EACF", boxShadow: "0 4px 20px rgba(146,64,14,0.10)" }}>
-                <img src={event.image} alt={event.name} className="w-full h-48 object-cover" />
-                <div className="p-6">
-                  <div className="flex items-center gap-2 mb-3" style={{ color: "#D97706" }}>
-                    <FaCalendarAlt />
-                    <span className="text-sm font-medium">{event.date}</span>
-                  </div>
-                  <h3 className="font-bold text-xl mb-2" style={{ color: "#292524" }}>{event.name}</h3>
-                  <p style={{ color: "#78716C" }}>{event.description}</p>
+    {/* ── Upcoming Events Calendar (Enhanced Attractive Design) ── */}
+<div className="py-20 px-4 relative overflow-hidden" style={{ background: "#F5EDD8" }}>
+  {/* Subtle background pattern */}
+  <div className="absolute inset-0 opacity-[0.03]" style={{
+    backgroundImage: "radial-gradient(circle, #D97706 1px, transparent 1px)",
+    backgroundSize: "24px 24px",
+  }} />
+
+  <div className="max-w-7xl mx-auto relative z-10">
+    <div className="text-center mb-12">
+      <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: "#292524" }}>
+        Upcoming Events & Festivals
+      </h2>
+      <p className="text-lg" style={{ color: "#78716C" }}>
+        Experience the vibrant culture and celebrations
+      </p>
+    </div>
+
+    {loadingEvents ? (
+      <div className="text-center py-8 text-gray-500">Loading events...</div>
+    ) : Object.keys(eventsByDate).length === 0 ? (
+      <div className="text-center py-8 text-gray-500">No upcoming events at the moment.</div>
+    ) : (
+      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden border border-amber-100/50">
+        {/* Calendar Header */}
+        <div className="flex justify-between items-center p-4 md:p-6 border-b border-amber-100/50 bg-gradient-to-r from-amber-50 to-white">
+          <button
+            onClick={prevMonth}
+            className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-amber-100 transition-colors"
+            style={{ color: "#D97706" }}
+          >
+            <FaChevronLeft />
+          </button>
+          <h3 className="text-xl md:text-2xl font-semibold tracking-wide" style={{ color: "#292524" }}>
+            {format(currentMonth, 'MMMM yyyy')}
+          </h3>
+          <button
+            onClick={nextMonth}
+            className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-amber-100 transition-colors"
+            style={{ color: "#D97706" }}
+          >
+            <FaChevronRight />
+          </button>
+        </div>
+
+        {/* Weekday Headers */}
+        <div className="grid grid-cols-7 bg-amber-50/40 border-b border-amber-100/50">
+          {weekDays.map(day => (
+            <div key={day} className="py-3 text-center text-sm font-semibold uppercase tracking-wider" style={{ color: "#92400E" }}>
+              {day}
+            </div>
+          ))}
+        </div>
+
+        {/* Calendar Grid */}
+        <div className="grid grid-cols-7 auto-rows-fr">
+          {calendarDays.map((day, idx) => {
+            if (!day) {
+              return <div key={`empty-${idx}`} className="p-3 border-r border-b border-amber-100/30" style={{ background: "#FFFBF5" }} />;
+            }
+            const eventsForDay = getEventsForDay(day);
+            const hasEvents = eventsForDay.length > 0;
+            const isCurrentMonth = isSameMonth(day, currentMonth);
+            const isTodayFlag = isToday(day);
+
+            return (
+              <div
+                key={day.toISOString()}
+                className={`
+                  relative group p-3 md:p-4 border-r border-b border-amber-100/30 transition-all duration-200
+                  ${!isCurrentMonth ? 'opacity-30' : 'hover:shadow-md hover:z-10'}
+                  ${hasEvents ? 'cursor-pointer' : ''}
+                `}
+                style={{ background: isTodayFlag ? '#FFF7ED' : '#FFFBF5' }}
+                onMouseEnter={(e) => handleMouseEnter(e, day)}
+                onMouseLeave={handleMouseLeave}
+              >
+                {/* Day number */}
+                <div className={`text-right mb-2 ${isTodayFlag ? 'font-bold' : ''}`}>
+                  <span
+                    className={`
+                      inline-block w-8 h-8 leading-8 text-center rounded-full text-sm font-medium
+                      ${isTodayFlag ? 'bg-amber-500 text-white shadow-md' : 'text-gray-700'}
+                      ${!isCurrentMonth ? 'text-gray-400' : ''}
+                    `}
+                  >
+                    {format(day, 'd')}
+                  </span>
                 </div>
+
+                {/* Events indicator */}
+                {hasEvents && (
+                  <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
+                    <div className="bg-amber-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-sm">
+                      {eventsForDay.length}
+                    </div>
+                  </div>
+                )}
+
+                {/* Decorative gradient overlay on hover */}
+                {hasEvents && (
+                  <div className="absolute inset-0 bg-amber-500/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                )}
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
       </div>
+    )}
+  </div>
+</div>
 
       {/* ── Packages ── */}
       <div className="py-20 px-4" style={{ background: "linear-gradient(135deg, #92400E, #78350F)" }}>
@@ -489,25 +650,85 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── Testimonials ── */}
+      {/* ── Testimonials Carousel ── */}
       <div className="max-w-7xl mx-auto py-20 px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: "#292524" }}>What Our Customers Say</h2>
           <p className="text-lg" style={{ color: "#78716C" }}>Real experiences from Yala & Kataragama</p>
         </div>
-        <div className="grid md:grid-cols-3 gap-8">
-          {testimonials.map((testimonial, index) => (
-            <div key={index} className="rounded-xl p-8 border" style={{ background: "#FFFBF5", borderColor: "#F5EACF", boxShadow: "0 4px 24px rgba(217,119,6,0.08)" }}>
-              <div className="flex gap-1 mb-4">
-                {[...Array(testimonial.rating)].map((_, i) => (
-                  <FaStar key={i} className="text-xl" style={{ color: "#FBBF24" }} />
+        {loadingReviews ? (
+          <div className="text-center py-8">Loading reviews...</div>
+        ) : approvedReviews.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">No reviews yet. Be the first to share your experience!</div>
+        ) : (
+          <div className="relative">
+            <div className="overflow-hidden">
+              <div
+                className="flex transition-transform duration-500 ease-in-out"
+                style={{ transform: `translateX(-${currentReviewIndex * 100}%)` }}
+              >
+                {approvedReviews.map((review, index) => (
+                  <div key={index} className="w-full flex-shrink-0 px-4">
+                    <div
+                      className="rounded-xl p-8 border mx-auto max-w-2xl"
+                      style={{ background: "#FFFBF5", borderColor: "#F5EACF", boxShadow: "0 4px 24px rgba(217,119,6,0.08)" }}
+                    >
+                      <div className="flex gap-1 mb-4 justify-center">
+                        {[...Array(review.rating)].map((_, i) => (
+                          <FaStar key={i} className="text-xl" style={{ color: "#FBBF24" }} />
+                        ))}
+                      </div>
+                      <p className="mb-6 italic leading-relaxed text-center" style={{ color: "#57534E" }}>
+                        "{review.comment}"
+                      </p>
+                      <p className="font-bold text-center" style={{ color: "#292524" }}>
+                        - {review.name}
+                      </p>
+                      {review.section && review.section !== 'All' && (
+                        <p className="text-sm text-center mt-2" style={{ color: "#D97706" }}>
+                          {review.section}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 ))}
               </div>
-              <p className="mb-6 italic leading-relaxed" style={{ color: "#57534E" }}>"{testimonial.text}"</p>
-              <p className="font-bold" style={{ color: "#292524" }}>- {testimonial.name}</p>
             </div>
-          ))}
-        </div>
+            {approvedReviews.length > 1 && (
+              <>
+                <button
+                  onClick={() => setCurrentReviewIndex(prev => (prev === 0 ? approvedReviews.length - 1 : prev - 1))}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 p-3 rounded-full"
+                  style={{ background: "rgba(251,191,36,0.25)", backdropFilter: "blur(6px)" }}
+                >
+                  <FaChevronLeft className="text-2xl text-white" />
+                </button>
+                <button
+                  onClick={() => setCurrentReviewIndex(prev => (prev === approvedReviews.length - 1 ? 0 : prev + 1))}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 p-3 rounded-full"
+                  style={{ background: "rgba(251,191,36,0.25)", backdropFilter: "blur(6px)" }}
+                >
+                  <FaChevronRight className="text-2xl text-white" />
+                </button>
+              </>
+            )}
+            {approvedReviews.length > 1 && (
+              <div className="flex justify-center gap-2 mt-6">
+                {approvedReviews.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentReviewIndex(index)}
+                    className="h-2 rounded-full transition-all"
+                    style={{
+                      width: index === currentReviewIndex ? "2rem" : "0.75rem",
+                      background: index === currentReviewIndex ? "#FBBF24" : "rgba(217,119,6,0.3)"
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ── CTA ── */}
@@ -535,6 +756,32 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* Tooltip for calendar */}
+      {hoveredDay && (
+        <div
+          className="fixed z-50 bg-white rounded-lg shadow-lg p-3 border border-amber-200 max-w-xs"
+          style={{
+            left: tooltipPosition.x,
+            top: tooltipPosition.y,
+            transform: 'translate(-50%, -100%)',
+            pointerEvents: 'none',
+          }}
+        >
+          <div className="text-sm font-bold mb-1" style={{ color: "#D97706" }}>
+            {format(hoveredDay, 'MMMM d, yyyy')}
+          </div>
+          {getEventsForDay(hoveredDay).map((event, i) => (
+            <div key={event._id} className="mb-2 last:mb-0">
+              <div className="font-semibold" style={{ color: "#292524" }}>{event.title}</div>
+              <div className="text-xs text-gray-500">
+                {event.startTime && event.endTime && `${event.startTime} – ${event.endTime}`}
+              </div>
+              <div className="text-sm text-gray-600 line-clamp-2">{event.description}</div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes fade-in {
