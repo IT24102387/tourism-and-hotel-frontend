@@ -21,6 +21,9 @@ import AdminPackagesPage from "./adminPackagesPage";
 import axios from "axios";
 import EventManagement from "./EventManagement";
 import GoogleMapComponent from "./GoogleMapComponent";
+import AdminVehiclePage from "./AdminVehiclepage";
+import AddVehiclePage from "./AddVehiclePage";
+import UpdateVehiclePage from "./UpdateVehiclePage";
 
 const navItems = [
   { label: "Dashboard",          icon: BsGraphUp,            to: "/admin/dashboard" },
@@ -307,6 +310,13 @@ export default function AdminPage() {
           <Route path="/dashboard" element={<AdminDashBoard />} />
           <Route path="/Eventcalendar" element={<EventManagement />} />
           <Route path="/googlemap " element={<GoogleMapComponent/>} />
+
+          {/* ── Transportation routes ── */}
+          <Route path="/transport"         element={<AdminVehiclePage />} />
+          <Route path="/transport/add"     element={<AddVehiclePage />} />
+          <Route path="/transport/edit"    element={<UpdateVehiclePage />} />
+
+
         </Routes>}
       </div>
     </div>

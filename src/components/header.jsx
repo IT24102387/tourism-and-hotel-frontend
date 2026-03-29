@@ -19,7 +19,7 @@ const services = [
     desc: "Local & international cuisine",
   },
   {
-    to: "/services/safari-vehicle",
+    to: "/safari-vehicles",
     label: "Safari Vehicle Supply",
     desc: "4WD jeeps & guided tours",
   },

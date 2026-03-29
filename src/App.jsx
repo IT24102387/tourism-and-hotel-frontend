@@ -9,6 +9,8 @@ import Testing from './components/testing';
 import BookingPage from './pages/home/equipmentBookingPage';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import PlaceDetails from './pages/home/placeDetails';
+import BookingDetails from './pages/home/VehicleBookingDetails';
+import SafariVehicles from './pages/home/SafariVehicles';
 
 
 
@@ -27,6 +29,9 @@ function App() {
       <Route path="/admin/*" element={<AdminPage/>}/>
       <Route path="/*" element={<HomePage/>}/>
       <Route path="/place/:name" element={<PlaceDetails />} />
+
+      
+      
 
 
       

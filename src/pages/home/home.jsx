@@ -13,6 +13,7 @@ import {
   FaMapMarkerAlt,
   FaTag,
   FaCalendarAlt,
+  FaUsers,
 } from "react-icons/fa";
 import axios from "axios";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, isSameDay, addMonths, subMonths } from 'date-fns';
@@ -74,15 +75,6 @@ const availableRooms = [
   },
 ];
 
-const foodItems = [
-  { name: "Rice & Curry", description: "Authentic Sri Lankan spread", price: "$10", image: "🍛" },
-  { name: "Kottu Roti", description: "Chopped roti with vegetables/meat", price: "$7", image: "🥘" },
-  { name: "Hoppers (Appa)", description: "Crispy bowl-shaped pancakes", price: "$5", image: "🥞" },
-  { name: "Fresh Seafood Platter", description: "Grilled fish, prawns, squid", price: "$18", image: "🦐" },
-];
-
-
-
 const testimonials = [
   { name: "David W.", rating: 5, text: "Unforgettable experience in Yala! The jeep safari was thrilling and the lodge was very comfortable." },
   { name: "Priya K.", rating: 5, text: "Kataragama temple visit was spiritual, and the hotel staff were incredibly welcoming. Will come again." },
@@ -96,10 +88,12 @@ export default function Home() {
   const [equipmentItems, setEquipmentItems] = useState([]);
   const [packagesState, setPackagesState] = useState("loading");
   const [packagesData, setPackagesData] = useState([]);
+  const [safariVehicles, setSafariVehicles] = useState([]);
+  const [vehiclesState, setVehiclesState] = useState("loading");
   const navigate = useNavigate();
 
-  //Reviews carousel
-   const [approvedReviews, setApprovedReviews] = useState([]);
+  // Reviews carousel
+  const [approvedReviews, setApprovedReviews] = useState([]);
   const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
   const [loadingReviews, setLoadingReviews] = useState(true);
 
@@ -137,13 +131,11 @@ export default function Home() {
       try {
         const response = await axios.get('http://localhost:5000/api/events');
         const allEvents = response.data.events || response.data;
-        // Filter upcoming events (date >= today)
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const upcoming = allEvents.filter(event => new Date(event.date) >= today);
         setEvents(upcoming);
 
-        // Group by date (YYYY-MM-DD)
         const grouped = {};
         upcoming.forEach(event => {
           const dateKey = format(new Date(event.date), 'yyyy-MM-dd');
@@ -160,18 +152,26 @@ export default function Home() {
     fetchEvents();
   }, []);
 
+  // Fetch safari vehicles
+  useEffect(() => {
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/vehicles`)
+      .then((res) => {
+        setSafariVehicles(res.data.slice(0, 4));
+        setVehiclesState("success");
+      })
+      .catch(() => setVehiclesState("error"));
+  }, []);
+
   // Calendar helpers
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
-  const startDayOfWeek = monthStart.getDay(); // 0 = Sunday
+  const startDayOfWeek = monthStart.getDay();
   const calendarDays = [];
-  // Empty cells for days before month start
   for (let i = 0; i < startDayOfWeek; i++) {
     calendarDays.push(null);
   }
   calendarDays.push(...daysInMonth);
-  // Fill to complete grid (6 rows max)
   const totalCells = Math.ceil(calendarDays.length / 7) * 7;
   for (let i = calendarDays.length; i < totalCells; i++) {
     calendarDays.push(null);
@@ -200,8 +200,8 @@ export default function Home() {
   const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
 
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  
-  //hero slideshow autoplay
+
+  // Hero slideshow autoplay
   useEffect(() => {
     if (!isAutoplay) return;
     const interval = setInterval(() => {
@@ -227,8 +227,6 @@ export default function Home() {
 
   return (
     <div className="w-full min-h-screen" style={{ background: "#FFFBF5" }}>
-
-      
 
       {/* ── Hero Slideshow ─────────────────────────────────────────────── */}
       <div className="relative w-full h-[600px] overflow-hidden">
@@ -280,7 +278,7 @@ export default function Home() {
             { icon: FaBed, title: "Room Booking", desc: "Comfortable lodges, hotels, and safari tents.", grad: "linear-gradient(135deg,#FBBF24,#D97706)", route: "/room-booking" },
             { icon: FaCampground, title: "Equipment Rental", desc: "Camping gear, sleeping bags, stoves, and more.", grad: "linear-gradient(135deg,#F97316,#EA580C)", route: "/services" },
             { icon: FaUtensils, title: "Restaurant Food", desc: "Authentic Sri Lankan meals and fresh seafood.", grad: "linear-gradient(135deg,#EF4444,#B91C1C)", route: "/restaurant-food" },
-            { icon: FaCar, title: "Vehicle Hire", desc: "Safari jeeps, cars, and bikes with or without driver.", grad: "linear-gradient(135deg,#D97706,#92400E)", route: "/vehicle-hire" },
+            { icon: FaCar, title: "Vehicle Hire", desc: "Safari jeeps, cars, and bikes with or without driver.", grad: "linear-gradient(135deg,#D97706,#92400E)", route: "/safari-vehicles" },
           ].map((item, index) => (
             <div
               key={index}
@@ -327,7 +325,7 @@ export default function Home() {
                   <p className="text-xs font-medium uppercase tracking-wider mb-1" style={{ color: "#D97706" }}>{place.location}</p>
                   <h3 className="text-xl font-bold mb-5" style={{ color: "#292524" }}>{place.name}</h3>
                   <button
-                    onClick={() => navigate(`/place/${place.name}`,{state:{image:place.image}})}
+                    onClick={() => navigate(`/place/${place.name}`, { state: { image: place.image } })}
                     className="w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 hover:scale-[1.03] hover:shadow-lg active:scale-95"
                     style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#78350F", boxShadow: "0 4px 14px rgba(251,191,36,0.45)", letterSpacing: "0.04em" }}
                   >
@@ -419,7 +417,6 @@ export default function Home() {
                   className="group inline-flex items-center gap-2 px-10 py-3.5 rounded-full font-semibold transition-all duration-200 hover:shadow-lg hover:scale-105"
                   style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#78350F", boxShadow: "0 4px 14px rgba(251,191,36,0.40)" }}
                 >
-                  
                   View All Equipment
                   <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
                 </button>
@@ -429,141 +426,221 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── Food ───────────────────────────────────────────────────────── */}
+      {/* ── Rent Safari Vehicles — live from API ───────────────────────── */}
       <div className="max-w-7xl mx-auto py-20 px-6 md:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: "#292524" }}>Taste Sri Lanka</h2>
-          <p className="text-lg" style={{ color: "#78716C" }}>Authentic dishes from our restaurant</p>
-        </div>
-        <div className="grid md:grid-cols-4 gap-8">
-          {foodItems.map((item, index) => (
-            <div key={index} className="rounded-xl p-7 hover:shadow-2xl transition border" style={{ background: "#FFFBF5", borderColor: "#F5EACF", boxShadow: "0 4px 20px rgba(217,119,6,0.08)" }}>
-              <div className="text-6xl mb-5 text-center">{item.image}</div>
-              <h4 className="font-bold text-lg mb-2" style={{ color: "#292524" }}>{item.name}</h4>
-              <p className="text-sm mb-4" style={{ color: "#A8A29E" }}>{item.description}</p>
-              <div className="flex justify-between items-center">
-                <span className="font-bold text-xl" style={{ color: "#D97706" }}>{item.price}</span>
-                <button onClick={() => navigate("/restaurant-food")} className="px-4 py-2 rounded-lg text-sm font-semibold transition hover:opacity-90" style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}>
-                  Order
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Events & Festivals ─────────────────────────────────────────── */}
-       {/* ── Upcoming Events Calendar (Enhanced Attractive Design) ── */}
-<div className="py-20 px-4 relative overflow-hidden" style={{ background: "#F5EDD8" }}>
-  {/* Subtle background pattern */}
-  <div className="absolute inset-0 opacity-[0.03]" style={{
-    backgroundImage: "radial-gradient(circle, #D97706 1px, transparent 1px)",
-    backgroundSize: "24px 24px",
-  }} />
-
-  <div className="max-w-7xl mx-auto relative z-10">
-    <div className="text-center mb-12">
-      <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: "#292524" }}>
-        Upcoming Events & Festivals
-      </h2>
-      <p className="text-lg" style={{ color: "#78716C" }}>
-        Experience the vibrant culture and celebrations
-      </p>
-    </div>
-
-    {loadingEvents ? (
-      <div className="text-center py-8 text-gray-500">Loading events...</div>
-    ) : Object.keys(eventsByDate).length === 0 ? (
-      <div className="text-center py-8 text-gray-500">No upcoming events at the moment.</div>
-    ) : (
-      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden border border-amber-100/50">
-        {/* Calendar Header */}
-        <div className="flex justify-between items-center p-4 md:p-6 border-b border-amber-100/50 bg-gradient-to-r from-amber-50 to-white">
-          <button
-            onClick={prevMonth}
-            className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-amber-100 transition-colors"
-            style={{ color: "#D97706" }}
-          >
-            <FaChevronLeft />
-          </button>
-          <h3 className="text-xl md:text-2xl font-semibold tracking-wide" style={{ color: "#292524" }}>
-            {format(currentMonth, 'MMMM yyyy')}
-          </h3>
-          <button
-            onClick={nextMonth}
-            className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-amber-100 transition-colors"
-            style={{ color: "#D97706" }}
-          >
-            <FaChevronRight />
-          </button>
+          <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: "#292524" }}>Rent Safari Vehicles</h2>
+          <p className="text-lg" style={{ color: "#78716C" }}>Explore Yala in style — jeeps and cars available</p>
         </div>
 
-        {/* Weekday Headers */}
-        <div className="grid grid-cols-7 bg-amber-50/40 border-b border-amber-100/50">
-          {weekDays.map(day => (
-            <div key={day} className="py-3 text-center text-sm font-semibold uppercase tracking-wider" style={{ color: "#92400E" }}>
-              {day}
-            </div>
-          ))}
-        </div>
+        {vehiclesState === "loading" && (
+          <div className="flex flex-col justify-center items-center py-20 gap-4">
+            <div className="w-12 h-12 border-4 rounded-full border-amber-200 border-t-amber-500 animate-spin" />
+            <p className="text-sm font-medium" style={{ color: "#A8A29E" }}>Loading vehicles...</p>
+          </div>
+        )}
 
-        {/* Calendar Grid */}
-        <div className="grid grid-cols-7 auto-rows-fr">
-          {calendarDays.map((day, idx) => {
-            if (!day) {
-              return <div key={`empty-${idx}`} className="p-3 border-r border-b border-amber-100/30" style={{ background: "#FFFBF5" }} />;
-            }
-            const eventsForDay = getEventsForDay(day);
-            const hasEvents = eventsForDay.length > 0;
-            const isCurrentMonth = isSameMonth(day, currentMonth);
-            const isTodayFlag = isToday(day);
+        {vehiclesState === "error" && (
+          <div className="text-center py-16 rounded-2xl border border-dashed max-w-md mx-auto" style={{ borderColor: "#F5EACF", background: "#FFFFFF" }}>
+            <div className="text-5xl mb-4">🚗</div>
+            <p className="text-lg font-semibold mb-2" style={{ color: "#292524" }}>Could not load vehicles</p>
+            <p className="text-sm mb-6" style={{ color: "#78716C" }}>Please check your connection and try again.</p>
+            <button onClick={() => navigate("/safari-vehicles", { state: { bookVehicleId: vehicle._id } })} className="px-8 py-3 rounded-full font-semibold transition hover:opacity-90" style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#1C1917" }}>
+              Browse All Vehicles
+            </button>
+          </div>
+        )}
 
-            return (
-              <div
-                key={day.toISOString()}
-                className={`
-                  relative group p-3 md:p-4 border-r border-b border-amber-100/30 transition-all duration-200
-                  ${!isCurrentMonth ? 'opacity-30' : 'hover:shadow-md hover:z-10'}
-                  ${hasEvents ? 'cursor-pointer' : ''}
-                `}
-                style={{ background: isTodayFlag ? '#FFF7ED' : '#FFFBF5' }}
-                onMouseEnter={(e) => handleMouseEnter(e, day)}
-                onMouseLeave={handleMouseLeave}
-              >
-                {/* Day number */}
-                <div className={`text-right mb-2 ${isTodayFlag ? 'font-bold' : ''}`}>
-                  <span
-                    className={`
-                      inline-block w-8 h-8 leading-8 text-center rounded-full text-sm font-medium
-                      ${isTodayFlag ? 'bg-amber-500 text-white shadow-md' : 'text-gray-700'}
-                      ${!isCurrentMonth ? 'text-gray-400' : ''}
-                    `}
-                  >
-                    {format(day, 'd')}
-                  </span>
-                </div>
-
-                {/* Events indicator */}
-                {hasEvents && (
-                  <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
-                    <div className="bg-amber-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-sm">
-                      {eventsForDay.length}
+        {vehiclesState === "success" && (
+          <>
+            <div className="grid md:grid-cols-4 gap-8">
+              {safariVehicles.map((vehicle) => (
+                <div
+                  key={vehicle._id}
+                  className="rounded-xl overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border"
+                  style={{ background: "#FFFBF5", borderColor: "#F5EACF", boxShadow: "0 4px 20px rgba(217,119,6,0.08)" }}
+                >
+                  <div className="relative h-44 overflow-hidden">
+                    <img
+                      src={vehicle.image?.[0] || "/placeholder-vehicle.jpg"}
+                      alt={vehicle.name}
+                      className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                    />
+                    <div className="absolute top-2 left-2">
+                      <span
+                        className="text-[10px] font-semibold px-2 py-0.5 rounded-sm"
+                        style={{ background: vehicle.availability ? "#10B981" : "#EF4444", color: "white" }}
+                      >
+                        {vehicle.availability ? "Available" : "Unavailable"}
+                      </span>
+                    </div>
+                    <div className="absolute top-2 right-2">
+                      <span
+                        className="text-[10px] font-bold px-2 py-1 rounded"
+                        style={{ background: "rgba(0,0,0,0.70)", color: "#F59E0B" }}
+                      >
+                        {vehicle.type === "Safari Jeep" ? "4×4" : "CAR"}
+                      </span>
                     </div>
                   </div>
-                )}
+                  <div className="p-5">
+                    <h4 className="font-bold text-base mb-1" style={{ color: "#292524" }}>{vehicle.name}</h4>
+                    <p className="text-xs mb-3 line-clamp-2" style={{ color: "#A8A29E" }}>
+                      {vehicle.description || "No description available"}
+                    </p>
+                    <div className="flex items-center justify-between text-xs mb-3" style={{ color: "#6B7280" }}>
+                      <div className="flex items-center gap-1">
+                        <FaMapMarkerAlt className="text-[10px]" style={{ color: "#F59E0B" }} />
+                        <span>Kataragama</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <FaUsers className="text-[10px]" />
+                        <span>{vehicle.capacity} persons</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="font-bold text-lg" style={{ color: "#D97706" }}>
+                        LKR {vehicle.pricePerDay?.toLocaleString()}
+                        <span className="text-xs font-normal ml-1" style={{ color: "#9CA3AF" }}>/day</span>
+                      </span>
+                      <button
+                        onClick={() => navigate("/safari-vehicles", { state: { bookVehicleId: vehicle._id } })}
+                        disabled={!vehicle.availability}
+                        className="px-4 py-2 rounded-lg text-xs font-semibold transition hover:opacity-90"
+                        style={{
+                          background: vehicle.availability ? "linear-gradient(135deg,#FBBF24,#F59E0B)" : "#E5E7EB",
+                          color: vehicle.availability ? "#1C1917" : "#9CA3AF",
+                          cursor: vehicle.availability ? "pointer" : "not-allowed"
+                        }}
+                      >
+                        {vehicle.availability ? "Book Vehicle" : "Unavailable"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="text-center mt-12">
+              <button
+                onClick={() => navigate("/safari-vehicles")}
+                className="group inline-flex items-center gap-2 px-10 py-3.5 rounded-full font-semibold transition-all duration-200 hover:shadow-lg hover:scale-105"
+                style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#78350F", boxShadow: "0 4px 14px rgba(251,191,36,0.40)" }}
+              >
+                View All Vehicles
+                <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+              </button>
+            </div>
+          </>
+        )}
+      </div>
 
-                {/* Decorative gradient overlay on hover */}
-                {hasEvents && (
-                  <div className="absolute inset-0 bg-amber-500/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                )}
+      {/* ── Upcoming Events Calendar ────────────────────────────────────── */}
+      <div className="py-20 px-4 relative overflow-hidden" style={{ background: "#F5EDD8" }}>
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: "radial-gradient(circle, #D97706 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+        }} />
+
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: "#292524" }}>
+              Upcoming Events & Festivals
+            </h2>
+            <p className="text-lg" style={{ color: "#78716C" }}>
+              Experience the vibrant culture and celebrations
+            </p>
+          </div>
+
+          {loadingEvents ? (
+            <div className="text-center py-8 text-gray-500">Loading events...</div>
+          ) : Object.keys(eventsByDate).length === 0 ? (
+            <div className="text-center py-8 text-gray-500">No upcoming events at the moment.</div>
+          ) : (
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden border border-amber-100/50">
+              {/* Calendar Header */}
+              <div className="flex justify-between items-center p-4 md:p-6 border-b border-amber-100/50 bg-gradient-to-r from-amber-50 to-white">
+                <button
+                  onClick={prevMonth}
+                  className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-amber-100 transition-colors"
+                  style={{ color: "#D97706" }}
+                >
+                  <FaChevronLeft />
+                </button>
+                <h3 className="text-xl md:text-2xl font-semibold tracking-wide" style={{ color: "#292524" }}>
+                  {format(currentMonth, 'MMMM yyyy')}
+                </h3>
+                <button
+                  onClick={nextMonth}
+                  className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-amber-100 transition-colors"
+                  style={{ color: "#D97706" }}
+                >
+                  <FaChevronRight />
+                </button>
               </div>
-            );
-          })}
+
+              {/* Weekday Headers */}
+              <div className="grid grid-cols-7 bg-amber-50/40 border-b border-amber-100/50">
+                {weekDays.map(day => (
+                  <div key={day} className="py-3 text-center text-sm font-semibold uppercase tracking-wider" style={{ color: "#92400E" }}>
+                    {day}
+                  </div>
+                ))}
+              </div>
+
+              {/* Calendar Grid */}
+              <div className="grid grid-cols-7 auto-rows-fr">
+                {calendarDays.map((day, idx) => {
+                  if (!day) {
+                    return <div key={`empty-${idx}`} className="p-3 border-r border-b border-amber-100/30" style={{ background: "#FFFBF5" }} />;
+                  }
+                  const eventsForDay = getEventsForDay(day);
+                  const hasEvents = eventsForDay.length > 0;
+                  const isCurrentMonth = isSameMonth(day, currentMonth);
+                  const isTodayFlag = isToday(day);
+
+                  return (
+                    <div
+                      key={day.toISOString()}
+                      className={`
+                        relative group p-3 md:p-4 border-r border-b border-amber-100/30 transition-all duration-200
+                        ${!isCurrentMonth ? 'opacity-30' : 'hover:shadow-md hover:z-10'}
+                        ${hasEvents ? 'cursor-pointer' : ''}
+                      `}
+                      style={{ background: isTodayFlag ? '#FFF7ED' : '#FFFBF5' }}
+                      onMouseEnter={(e) => handleMouseEnter(e, day)}
+                      onMouseLeave={handleMouseLeave}
+                    >
+                      <div className={`text-right mb-2 ${isTodayFlag ? 'font-bold' : ''}`}>
+                        <span
+                          className={`
+                            inline-block w-8 h-8 leading-8 text-center rounded-full text-sm font-medium
+                            ${isTodayFlag ? 'bg-amber-500 text-white shadow-md' : 'text-gray-700'}
+                            ${!isCurrentMonth ? 'text-gray-400' : ''}
+                          `}
+                        >
+                          {format(day, 'd')}
+                        </span>
+                      </div>
+
+                      {hasEvents && (
+                        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
+                          <div className="bg-amber-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-sm">
+                            {eventsForDay.length}
+                          </div>
+                        </div>
+                      )}
+
+                      {hasEvents && (
+                        <div className="absolute inset-0 bg-amber-500/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
-    )}
-  </div>
-</div>
 
       {/* ── Packages ───────────────────────────────────────────────────── */}
       <div className="py-20 px-6 md:px-8" style={{ background: "linear-gradient(135deg, #92400E, #78350F)" }}>
@@ -726,7 +803,7 @@ export default function Home() {
         </div>
       </footer>
 
-     {/* Tooltip for calendar */}
+      {/* Tooltip for calendar */}
       {hoveredDay && (
         <div
           className="fixed z-50 bg-white rounded-lg shadow-lg p-3 border border-amber-200 max-w-xs"
@@ -751,7 +828,6 @@ export default function Home() {
           ))}
         </div>
       )}
-  
 
       <style jsx>{`
         @keyframes fade-in {

@@ -206,7 +206,9 @@ export default function MyBookings() {
           {!loading && bookings.length > 0 && (
             <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
               {bookings.map((b) => {
-                const addOns = (b.addOns || []).map((a) => typeof a === "string" ? a : a.name).filter(Boolean);
+                const addOns = Object.entries(b.addOns || {})
+                  .filter(([, v]) => v)
+                  .map(([k]) => k.replace(/([A-Z])/g, " $1").replace(/^./, s => s.toUpperCase()));
 
                 const canCancel = b.status === "Pending" || b.status === "Confirmed";
 
@@ -280,7 +282,7 @@ export default function MyBookings() {
                       <div>
                         <p className="mb-detail-label">Total</p>
                         <p style={{ fontSize: "20px", fontWeight: 700, color: "#d4a843" }}>
-                          LKR {b.totalPrice.toLocaleString()}
+                          ${b.totalPrice.toLocaleString()}
                         </p>
                       </div>
                       <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
