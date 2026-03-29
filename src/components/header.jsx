@@ -24,12 +24,20 @@ const services = [
     label: "Safari Vehicle Supply",
     desc: "4WD jeeps & guided tours",
   },
+
+   // ✅ New Google Maps service
+  {
+    to: "/google-maps",
+    label: "Google Maps",
+    desc: "Plan your own route to explore Kataragama",
+  },
 ];
 
 const navLinks = [
   { to: "/", label: "Home" },
   { to: "/gallery", label: "Gallery" },
   { to: "/contact", label: "Contact" },
+  { to: "/reviews", label: "Reviews" },
 ];
 
 export default function Header() {
