@@ -144,7 +144,7 @@ export default function Home() {
       });
   }, []);
 
-  // Fetch packages from API — show only first 3 on homepage
+  // Fetch packages from API
   useEffect(() => {
     getPackages()
       .then((res) => {
