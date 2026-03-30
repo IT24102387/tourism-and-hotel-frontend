@@ -578,40 +578,7 @@ export default function PackageOverview() {
                 </p>
 
                 {/* Standard Vehicle Card */}
-                <button
-                  onClick={() => handleFormChange("vehicle", null)}
-                  className="w-full text-left rounded-xl border-2 p-4 transition"
-                  style={{
-                    borderColor: form.vehicle === null ? "#D97706" : "#E7D9B8",
-                    background: form.vehicle === null ? "#FFFBF5" : "#FAFAFA",
-                  }}
-                >
-                  <div className="flex items-center gap-4">
-                    <div
-                      className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
-                      style={{ background: "#FEF3C7" }}
-                    >
-                      <FaCar className="text-xl" style={{ color: "#D97706" }} />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <p className="font-bold text-sm" style={{ color: "#292524" }}>Standard Vehicle</p>
-                        {form.vehicle === null && (
-                          <FaCheckCircle style={{ color: "#10B981", fontSize: "1.1rem" }} />
-                        )}
-                      </div>
-                      <p className="text-xs mt-0.5" style={{ color: "#78716C" }}>
-                        A comfortable vehicle arranged by the tour operator
-                      </p>
-                    </div>
-                    <span
-                      className="text-xs font-bold px-2 py-1 rounded-full flex-shrink-0"
-                      style={{ background: "#D1FAE5", color: "#065F46" }}
-                    >
-                      Included
-                    </span>
-                  </div>
-                </button>
+                
 
                 {/* Loading state */}
                 {vehiclesState === "loading" && (

@@ -5,7 +5,7 @@ import { FiEdit, FiTrash2, FiSearch, FiX, FiPlus } from "react-icons/fi";
 import { GiJeep } from "react-icons/gi";
 import imageUpload from "../../utils/imageUpload";
 
-const VEHICLE_TYPES = ["Mahindra Jeep", "Toyota Hilux"];
+const VEHICLE_TYPES = ["Mahindra Jeep", "Toyota Hilux","Nissan Patrol", "Land Rover Defender", ];
 const STATUS_OPTIONS = ["Available", "On Trip", "Maintenance"];
 const BLOCKED_KEYS = ["-", "+", "e", "E"];
 

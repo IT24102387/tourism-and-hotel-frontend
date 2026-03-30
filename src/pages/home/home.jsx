@@ -480,7 +480,6 @@ export default function Home() {
             <>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {packagesData.slice(0, 6).map((pkg, index) => {
-                  const isPopular = index === 0;
                   return (
                     <div
                       key={pkg._id || index}
@@ -488,23 +487,16 @@ export default function Home() {
                       className="group relative rounded-2xl overflow-hidden cursor-pointer flex flex-col"
                       style={{
                         background: "#FFFBF5",
-                        boxShadow: isPopular
-                          ? "0 0 0 3px #FBBF24, 0 20px 60px rgba(0,0,0,0.45)"
-                          : "0 8px 32px rgba(0,0,0,0.35)",
-                        transform: isPopular ? "scale(1.04)" : "scale(1)",
+                        boxShadow: "0 8px 32px rgba(0,0,0,0.35)",
                         transition: "transform 0.3s ease, box-shadow 0.3s ease",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = isPopular ? "scale(1.06) translateY(-4px)" : "translateY(-6px)";
-                        e.currentTarget.style.boxShadow = isPopular
-                          ? "0 0 0 3px #FBBF24, 0 28px 70px rgba(0,0,0,0.5)"
-                          : "0 16px 48px rgba(0,0,0,0.45)";
+                        e.currentTarget.style.transform = "translateY(-6px)";
+                        e.currentTarget.style.boxShadow = "0 16px 48px rgba(0,0,0,0.45)";
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = isPopular ? "scale(1.04)" : "scale(1)";
-                        e.currentTarget.style.boxShadow = isPopular
-                          ? "0 0 0 3px #FBBF24, 0 20px 60px rgba(0,0,0,0.45)"
-                          : "0 8px 32px rgba(0,0,0,0.35)";
+                        e.currentTarget.style.transform = "scale(1)";
+                        e.currentTarget.style.boxShadow = "0 8px 32px rgba(0,0,0,0.35)";
                       }}
                     >
                       {/* ── Image ── */}
@@ -516,16 +508,6 @@ export default function Home() {
                         />
                         {/* gradient overlay */}
                         <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.1) 55%, transparent 100%)" }} />
-
-                        {/* Popular badge */}
-                        {isPopular && (
-                          <div
-                            className="absolute top-3 left-3 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold"
-                            style={{ background: "#FBBF24", color: "#78350F" }}
-                          >
-                            <FaTag style={{ fontSize: "9px" }} /> MOST POPULAR
-                          </div>
-                        )}
 
                         {/* Category badge */}
                         <div
