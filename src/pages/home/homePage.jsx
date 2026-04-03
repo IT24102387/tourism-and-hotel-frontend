@@ -13,6 +13,7 @@ import PackagesPage from "../packages/packagesPage";
 import MyBookings from "./myBookings";
 import SafariVehicles from "./SafariVehicles";
 import BookingDetails from "./VehicleBookingDetails";
+import Restaurants from "./Restaurants";
 
 
 export default function HomePage(){
@@ -35,6 +36,7 @@ export default function HomePage(){
 
                     <Route path="/safari-vehicles" element={<SafariVehicles />} />
                     <Route path="/booking-details" element={<BookingDetails />} />
+                    <Route path="/restaurants" element={<Restaurants />} />
                 </Routes>
             </div>
         </>

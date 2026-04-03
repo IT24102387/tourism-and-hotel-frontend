@@ -24,6 +24,8 @@ import GoogleMapComponent from "./GoogleMapComponent";
 import AdminVehiclePage from "./AdminVehiclepage";
 import AddVehiclePage from "./AddVehiclePage";
 import UpdateVehiclePage from "./UpdateVehiclePage";
+import Restaurants from "../home/Restaurants";
+import AdminRestaurantPage from "./AdminRestaurantPage";
 
 const navItems = [
   { label: "Dashboard",          icon: BsGraphUp,            to: "/admin/dashboard" },
@@ -315,6 +317,7 @@ export default function AdminPage() {
           <Route path="/transport"         element={<AdminVehiclePage />} />
           <Route path="/transport/add"     element={<AddVehiclePage />} />
           <Route path="/transport/edit"    element={<UpdateVehiclePage />} />
+          <Route path="/restaurant"        element={<AdminRestaurantPage />} />
 
 
         </Routes>}

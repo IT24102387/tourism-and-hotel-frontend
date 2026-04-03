@@ -277,7 +277,7 @@ export default function Home() {
           {[
             { icon: FaBed, title: "Room Booking", desc: "Comfortable lodges, hotels, and safari tents.", grad: "linear-gradient(135deg,#FBBF24,#D97706)", route: "/room-booking" },
             { icon: FaCampground, title: "Equipment Rental", desc: "Camping gear, sleeping bags, stoves, and more.", grad: "linear-gradient(135deg,#F97316,#EA580C)", route: "/services" },
-            { icon: FaUtensils, title: "Restaurant Food", desc: "Authentic Sri Lankan meals and fresh seafood.", grad: "linear-gradient(135deg,#EF4444,#B91C1C)", route: "/restaurant-food" },
+            { icon: FaUtensils, title: "Restaurant Food", desc: "Authentic Sri Lankan meals and fresh seafood.", grad: "linear-gradient(135deg,#EF4444,#B91C1C)", route: "/restaurants" },
             { icon: FaCar, title: "Vehicle Hire", desc: "Safari jeeps, cars, and bikes with or without driver.", grad: "linear-gradient(135deg,#D97706,#92400E)", route: "/safari-vehicles" },
           ].map((item, index) => (
             <div
@@ -429,7 +429,7 @@ export default function Home() {
       {/* ── Rent Safari Vehicles — live from API ───────────────────────── */}
       <div className="max-w-7xl mx-auto py-20 px-6 md:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: "#292524" }}>Rent Safari Vehicles</h2>
+          <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: "#292524" }}>Booking Safari Vehicles</h2>
           <p className="text-lg" style={{ color: "#78716C" }}>Explore Yala in style — jeeps and cars available</p>
         </div>
 

@@ -26,6 +26,12 @@ export default function UpdateItemPage() {
   const [productImages, setProductImages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // ── NEW: availability toggle ──────────────────────────────────────────────
+  const [isAvailable, setIsAvailable] = useState(
+    location.state.availability !== undefined ? location.state.availability : true
+  );
+  // ─────────────────────────────────────────────────────────────────────────
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -61,6 +67,7 @@ export default function UpdateItemPage() {
           category: EquipmentCategory,
           description: EquipmentDescription,
           image: updatingImages,
+          availability: isAvailable, // ← send to backend
         },
         { headers: { Authorization: "Bearer " + token } }
       );
@@ -145,8 +152,58 @@ export default function UpdateItemPage() {
                 </div>
               </div>
 
-              {/* Category */}
+              {/* ── Availability Toggle ───────────────────────────────────── */}
               <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Availability Status
+                </label>
+                <div
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg border transition-colors duration-200 cursor-pointer select-none
+                    ${isAvailable
+                      ? "border-green-300 bg-green-50"
+                      : "border-red-200 bg-red-50"
+                    }`}
+                  onClick={() => setIsAvailable((prev) => !prev)}
+                >
+                  {/* Toggle pill */}
+                  <div
+                    className={`relative w-11 h-6 rounded-full transition-colors duration-300 flex-shrink-0
+                      ${isAvailable ? "bg-green-500" : "bg-gray-300"}`}
+                  >
+                    <span
+                      className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-300
+                        ${isAvailable ? "translate-x-5" : "translate-x-0"}`}
+                    />
+                  </div>
+
+                  {/* Label + badge */}
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`text-sm font-semibold ${
+                        isAvailable ? "text-green-700" : "text-red-600"
+                      }`}
+                    >
+                      {isAvailable ? "Available for booking" : "Unavailable"}
+                    </span>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                        isAvailable
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-600"
+                      }`}
+                    >
+                      {isAvailable ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-400">
+                  Toggle to control whether customers can rent this item.
+                </p>
+              </div>
+              {/* ─────────────────────────────────────────────────────────── */}
+
+              {/* Category */}
+              <div className="space-y-2 md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700">
                   Category
                 </label>
@@ -283,6 +340,25 @@ export default function UpdateItemPage() {
                 <h3 className="text-sm font-medium text-gray-500">Category</h3>
                 <p className="text-lg font-semibold text-gray-800">{categoryLabel(EquipmentCategory)}</p>
               </div>
+              {/* ── Availability in preview ── */}
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Availability</h3>
+                <span
+                  className={`inline-flex items-center gap-1.5 text-sm font-semibold px-3 py-1 rounded-full mt-1 ${
+                    isAvailable
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-600"
+                  }`}
+                >
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      isAvailable ? "bg-green-500" : "bg-red-400"
+                    }`}
+                  />
+                  {isAvailable ? "Available for booking" : "Unavailable"}
+                </span>
+              </div>
+              {/* ─────────────────────────────── */}
               <div>
                 <h3 className="text-sm font-medium text-gray-500">Images</h3>
                 <p className="text-lg font-semibold text-gray-800">

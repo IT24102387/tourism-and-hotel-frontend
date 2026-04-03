@@ -14,7 +14,7 @@ const services = [
     desc: "Everything you need for camping and travel",
   },
   {
-    to: "/services/restaurant",
+    to: "/restaurants",
     label: "Restaurant",
     desc: "Local & international cuisine",
   },
@@ -455,9 +455,9 @@ export default function Header() {
             {/* ── Desktop CTA ── */}
             <div className="hidden md:flex items-center gap-3">
               {/* Cart icon — always visible */}
-              <Link to="/booking" className="hdr-cart-btn">
+              {/* <Link to="/booking" className="hdr-cart-btn">
                 <FaCartShopping />
-              </Link>
+              </Link> */}
 
               {/* Login OR Account Icon with dropdown */}
               {token == null ? (
