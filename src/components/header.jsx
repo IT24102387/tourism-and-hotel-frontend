@@ -4,7 +4,7 @@ import { FaCartShopping, FaCircleUser } from "react-icons/fa6";
 
 const services = [
   {
-    to: "/services/resort-rooms",
+    to: "/rooms",
     label: "Resort Room Manage",
     desc: "Luxury rooms & suites",
   },
@@ -35,7 +35,7 @@ const navLinks = [
   { to: "/", label: "Home" },
   { to: "/gallery", label: "Gallery" },
   { to: "/contact", label: "Contact" },
-  { to: "/reviews", label: "Reviews" },
+  { to: "/reviews", label: "Reviews & Feedback" },
   { to: "/packages", label: "Packages" },
  
 ];

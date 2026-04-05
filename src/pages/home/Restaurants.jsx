@@ -10,7 +10,6 @@ import {
   FaPhone,
   FaUtensils,
   FaChevronLeft,
-  FaChevronRight,
   FaTag,
   FaFilter,
   FaTimes,
@@ -28,52 +27,36 @@ export default function Restaurants() {
   const [foodItems, setFoodItems] = useState([]);
   const [filteredFoodItems, setFilteredFoodItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
   const [restaurantSearchTerm, setRestaurantSearchTerm] = useState("");
   const [menuSearchTerm, setMenuSearchTerm] = useState("");
   const [foodSearchTerm, setFoodSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [availabilityFilter, setAvailabilityFilter] = useState("all");
-  const [currentImage, setCurrentImage] = useState(0);
-  const [isAutoplay, setIsAutoplay] = useState(true);
   const [showAllRestaurants, setShowAllRestaurants] = useState(false);
   const [showAllMenus, setShowAllMenus] = useState(false);
   const [showAllFoodItems, setShowAllFoodItems] = useState(false);
 
-  // Hero images
-  const heroImages = [
-    "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4",
-    "https://images.unsplash.com/photo-1552566626-52f8b828add9",
-    "https://images.unsplash.com/photo-1414235077428-338989a2e8c0",
-  ];
-
   // Get unique categories from food items
   const getUniqueCategories = () => {
-    const categories = [...new Set(foodItems.map(item => item.category))];
-    return categories.filter(cat => cat);
+    const categories = [...new Set(foodItems.map((item) => item.category))];
+    return categories.filter((cat) => cat);
   };
 
   useEffect(() => {
     fetchRestaurants();
   }, []);
 
-  // Hero slideshow
-  useEffect(() => {
-    if (!isAutoplay) return;
-    const interval = setInterval(() => {
-      setCurrentImage((prev) => (prev + 1) % heroImages.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [isAutoplay]);
-
   // Filter restaurants
   useEffect(() => {
     let filtered = restaurants;
     if (restaurantSearchTerm) {
-      filtered = filtered.filter(r =>
-        r.name?.toLowerCase().includes(restaurantSearchTerm.toLowerCase()) ||
-        r.description?.toLowerCase().includes(restaurantSearchTerm.toLowerCase()) ||
-        r.address?.toLowerCase().includes(restaurantSearchTerm.toLowerCase())
+      filtered = filtered.filter(
+        (r) =>
+          r.name?.toLowerCase().includes(restaurantSearchTerm.toLowerCase()) ||
+          r.description
+            ?.toLowerCase()
+            .includes(restaurantSearchTerm.toLowerCase()) ||
+          r.address?.toLowerCase().includes(restaurantSearchTerm.toLowerCase())
       );
     }
     setFilteredRestaurants(filtered);
@@ -83,9 +66,10 @@ export default function Restaurants() {
   useEffect(() => {
     let filtered = menus;
     if (menuSearchTerm) {
-      filtered = filtered.filter(m =>
-        m.name?.toLowerCase().includes(menuSearchTerm.toLowerCase()) ||
-        m.description?.toLowerCase().includes(menuSearchTerm.toLowerCase())
+      filtered = filtered.filter(
+        (m) =>
+          m.name?.toLowerCase().includes(menuSearchTerm.toLowerCase()) ||
+          m.description?.toLowerCase().includes(menuSearchTerm.toLowerCase())
       );
     }
     setFilteredMenus(filtered);
@@ -95,17 +79,22 @@ export default function Restaurants() {
   useEffect(() => {
     let filtered = foodItems;
     if (foodSearchTerm) {
-      filtered = filtered.filter(item =>
-        item.name?.toLowerCase().includes(foodSearchTerm.toLowerCase()) ||
-        item.description?.toLowerCase().includes(foodSearchTerm.toLowerCase())
+      filtered = filtered.filter(
+        (item) =>
+          item.name?.toLowerCase().includes(foodSearchTerm.toLowerCase()) ||
+          item.description
+            ?.toLowerCase()
+            .includes(foodSearchTerm.toLowerCase())
       );
     }
     if (categoryFilter !== "all") {
-      filtered = filtered.filter(item => item.category === categoryFilter);
+      filtered = filtered.filter((item) => item.category === categoryFilter);
     }
     if (availabilityFilter !== "all") {
-      filtered = filtered.filter(item =>
-        availabilityFilter === "available" ? item.availability === true : item.availability === false
+      filtered = filtered.filter((item) =>
+        availabilityFilter === "available"
+          ? item.availability === true
+          : item.availability === false
       );
     }
     setFilteredFoodItems(filtered);
@@ -114,7 +103,9 @@ export default function Restaurants() {
   const fetchRestaurants = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/restaurants`);
+      const response = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/restaurants`
+      );
       setRestaurants(response.data);
       setFilteredRestaurants(response.data);
     } catch (error) {
@@ -187,21 +178,18 @@ export default function Restaurants() {
     setShowAllMenus(false);
   };
 
-  const nextImage = () => {
-    setIsAutoplay(false);
-    setCurrentImage((prev) => (prev + 1) % heroImages.length);
-  };
-
-  const prevImage = () => {
-    setIsAutoplay(false);
-    setCurrentImage((prev) => (prev - 1 + heroImages.length) % heroImages.length);
-  };
-
   const renderStars = (rating) => {
     return (
       <div className="flex items-center gap-1">
         {[...Array(5)].map((_, i) => (
-          <FaStar key={i} className={`text-sm ${i < Math.floor(rating || 4.5) ? "text-yellow-400" : "text-gray-300"}`} />
+          <FaStar
+            key={i}
+            className={`text-sm ${
+              i < Math.floor(rating || 4.5)
+                ? "text-yellow-400"
+                : "text-gray-300"
+            }`}
+          />
         ))}
       </div>
     );
@@ -220,78 +208,121 @@ export default function Restaurants() {
   };
 
   // Get displayed restaurants based on showAll
-  const displayedRestaurants = showAllRestaurants ? filteredRestaurants : filteredRestaurants.slice(0, 6);
+  const displayedRestaurants = showAllRestaurants
+    ? filteredRestaurants
+    : filteredRestaurants.slice(0, 6);
   const hasMoreRestaurants = filteredRestaurants.length > 6;
 
   // Get displayed menus based on showAll
-  const displayedMenus = showAllMenus ? filteredMenus : filteredMenus.slice(0, 6);
+  const displayedMenus = showAllMenus
+    ? filteredMenus
+    : filteredMenus.slice(0, 6);
   const hasMoreMenus = filteredMenus.length > 6;
 
   // Get displayed food items based on showAll
-  const displayedFoodItems = showAllFoodItems ? filteredFoodItems : filteredFoodItems.slice(0, 6);
+  const displayedFoodItems = showAllFoodItems
+    ? filteredFoodItems
+    : filteredFoodItems.slice(0, 6);
   const hasMoreFoodItems = filteredFoodItems.length > 6;
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen" style={{ background: "#F3F4F6" }}>
+      <div
+        className="flex justify-center items-center min-h-screen"
+        style={{ background: "#FAF7F2" }}
+      >
         <div className="text-center">
-          <div className="w-12 h-12 border-2 border-t-yellow-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <div
+            className="w-12 h-12 border-4 rounded-full animate-spin mx-auto mb-4"
+            style={{ borderColor: "#F5EACF", borderTopColor: "#F59E0B" }}
+          ></div>
           <p className="text-gray-500">Loading restaurants...</p>
         </div>
       </div>
     );
   }
 
-  // Restaurant Listing View
+  // ── Restaurant Listing View ──
   if (!selectedRestaurant) {
     return (
-      <div className="min-h-screen" style={{ background: "#F3F4F6" }}>
-        {/* Hero Section */}
-        <div className="relative h-[450px] overflow-hidden">
-          {heroImages.map((img, index) => (
-            <div
-              key={index}
-              className={`absolute inset-0 transition-opacity duration-1000 ${index === currentImage ? "opacity-100" : "opacity-0"}`}
-              style={{ backgroundImage: `url(${img})`, backgroundSize: "cover", backgroundPosition: "center" }}
+      <div className="min-h-screen" style={{ background: "#FAF7F2" }}>
+
+        {/* Hero Banner — matches services.jsx */}
+        <div className="relative w-full overflow-hidden" style={{ minHeight: 260 }}>
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{
+              backgroundImage:
+                "url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1600&q=80')",
+              filter: "brightness(0.45)",
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
+          <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 py-16">
+            <p
+              className="text-xs font-bold uppercase tracking-[0.3em] mb-3"
+              style={{ color: "#FBBF24" }}
             >
-              <div className="absolute inset-0 bg-black/40" />
-            </div>
-          ))}
-
-          <button onClick={prevImage} className="absolute left-4 top-1/2 -translate-y-1/2 z-20 text-white p-2 rounded-full bg-black/30 hover:bg-black/50 transition">
-            <FaChevronLeft className="text-xl" />
-          </button>
-          <button onClick={nextImage} className="absolute right-4 top-1/2 -translate-y-1/2 z-20 text-white p-2 rounded-full bg-black/30 hover:bg-black/50 transition">
-            <FaChevronRight className="text-xl" />
-          </button>
-
-          <div className="relative z-10 h-full flex flex-col justify-center items-center text-center text-white px-4">
-            <h1 className="text-5xl md:text-6xl font-light mb-4 tracking-wide">Restaurants</h1>
-            <p className="text-lg max-w-2xl font-light">Discover authentic Sri Lankan cuisine and international dishes in Kataragama</p>
+              Kataragama Dining
+            </p>
+            <h1
+              className="text-4xl sm:text-5xl font-extrabold leading-tight mb-4"
+              style={{ color: "#FFFFFF", fontFamily: "'Georgia', serif" }}
+            >
+              Explore Our{" "}
+              <span style={{ color: "#FBBF24" }}>Restaurants</span>
+            </h1>
+            <p
+              className="text-base sm:text-lg max-w-xl"
+              style={{ color: "rgba(255,255,255,0.75)" }}
+            >
+              Discover authentic Sri Lankan cuisine and international dishes in Kataragama.
+            </p>
           </div>
         </div>
 
         {/* Main Content */}
         <div className="max-w-7xl mx-auto px-6 py-12">
-          {/* Search and Filter Section */}
-          <div className="mb-10">
-            <div className="relative max-w-md mx-auto">
-              <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-yellow-600 text-sm" />
+          {/* Search */}
+          <div className="w-full flex justify-center px-0 pb-6">
+            <div className="relative w-full max-w-md">
+              <FaSearch
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-sm pointer-events-none"
+                style={{ color: "#A8A29E" }}
+              />
               <input
                 type="text"
                 placeholder="Search by name, cuisine or address..."
                 value={restaurantSearchTerm}
                 onChange={(e) => setRestaurantSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-yellow-300 rounded-full focus:outline-none focus:border-yellow-500 transition text-sm"
-                style={{ background: "white" }}
+                className="w-full pl-10 pr-5 py-3 rounded-full text-sm outline-none transition-shadow duration-200"
+                style={{
+                  background: "#FFFFFF",
+                  border: "1.5px solid #F5EACF",
+                  color: "#292524",
+                  boxShadow: "0 2px 12px rgba(217,119,6,0.08)",
+                }}
+                onFocus={(e) =>
+                  (e.target.style.boxShadow =
+                    "0 0 0 3px rgba(251,191,36,0.25)")
+                }
+                onBlur={(e) =>
+                  (e.target.style.boxShadow =
+                    "0 2px 12px rgba(217,119,6,0.08)")
+                }
               />
             </div>
-            {restaurantSearchTerm && (
-              <div className="text-center mt-2 text-sm text-gray-500">
-                Found {filteredRestaurants.length} restaurant(s)
-              </div>
-            )}
           </div>
+
+          {restaurantSearchTerm && (
+            <div className="text-center mb-4 text-sm" style={{ color: "#A8A29E" }}>
+              Showing{" "}
+              <strong style={{ color: "#292524" }}>
+                {filteredRestaurants.length}
+              </strong>{" "}
+              restaurant(s)
+            </div>
+          )}
 
           {/* Restaurant Grid */}
           {displayedRestaurants.length === 0 ? (
@@ -314,47 +345,77 @@ export default function Restaurants() {
                     key={restaurant._id}
                     onClick={() => handleRestaurantClick(restaurant)}
                     className="group rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer"
-                    style={{ 
-                      background: "white", 
+                    style={{
+                      background: "white",
                       boxShadow: "0 4px 24px rgba(217,119,6,0.08)",
-                      border: "1px solid #F5EACF"
+                      border: "1px solid #F5EACF",
                     }}
                   >
                     <div className="relative h-56 overflow-hidden">
                       <img
-                        src={restaurant.image?.[0] || "/placeholder-restaurant.jpg"}
+                        src={
+                          restaurant.image?.[0] ||
+                          "/placeholder-restaurant.jpg"
+                        }
                         alt={restaurant.name}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       />
                       {restaurant.isActive !== false && (
                         <div className="absolute top-3 right-3">
-                          <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">Open</span>
+                          <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                            Open
+                          </span>
                         </div>
                       )}
                     </div>
                     <div className="p-6">
                       <div className="flex justify-between items-start mb-2">
-                        <h3 className="text-2xl font-bold mb-1" style={{ color: "#292524" }}>{restaurant.name}</h3>
+                        <h3
+                          className="text-2xl font-bold mb-1"
+                          style={{ color: "#292524" }}
+                        >
+                          {restaurant.name}
+                        </h3>
                         {renderStars()}
                       </div>
-                      <div className="flex items-center gap-2 text-sm mb-2" style={{ color: "#78716C" }}>
+                      <div
+                        className="flex items-center gap-2 text-sm mb-2"
+                        style={{ color: "#78716C" }}
+                      >
                         <FaMapMarkerAlt className="text-amber-500" />
                         <span>{restaurant.address}</span>
                       </div>
-                      <div className="flex items-center gap-2 text-sm mb-3" style={{ color: "#78716C" }}>
+                      <div
+                        className="flex items-center gap-2 text-sm mb-3"
+                        style={{ color: "#78716C" }}
+                      >
                         <FaClock className="text-amber-500" />
-                        <span>{restaurant.openingHours || "7:00 AM - 10:00 PM"}</span>
+                        <span>
+                          {restaurant.openingHours || "7:00 AM - 10:00 PM"}
+                        </span>
                       </div>
-                      <p className="text-sm mb-4 line-clamp-2" style={{ color: "#A8A29E" }}>
+                      <p
+                        className="text-sm mb-4 line-clamp-2"
+                        style={{ color: "#A8A29E" }}
+                      >
                         {restaurant.description}
                       </p>
-                      <div className="flex justify-between items-center pt-2 border-t" style={{ borderColor: "#F5EACF" }}>
-                        <div className="flex items-center gap-1 text-sm" style={{ color: "#D97706" }}>
+                      <div
+                        className="flex justify-between items-center pt-2 border-t"
+                        style={{ borderColor: "#F5EACF" }}
+                      >
+                        <div
+                          className="flex items-center gap-1 text-sm"
+                          style={{ color: "#D97706" }}
+                        >
                           <FaUtensils />
                           <span>View Menu →</span>
                         </div>
                         {restaurant.phone && (
-                          <div className="flex items-center gap-1 text-sm" style={{ color: "#78716C" }}>
+                          <div
+                            className="flex items-center gap-1 text-sm"
+                            style={{ color: "#78716C" }}
+                          >
                             <FaPhone className="text-amber-500" />
                             <span>{restaurant.phone}</span>
                           </div>
@@ -365,14 +426,15 @@ export default function Restaurants() {
                 ))}
               </div>
 
-              {/* View All Button */}
               {hasMoreRestaurants && (
                 <div className="text-center mt-10">
                   <button
                     onClick={() => setShowAllRestaurants(!showAllRestaurants)}
                     className="px-8 py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-full transition shadow-md"
                   >
-                    {showAllRestaurants ? "Show Less" : `View All (${filteredRestaurants.length})`}
+                    {showAllRestaurants
+                      ? "Show Less"
+                      : `View All (${filteredRestaurants.length})`}
                   </button>
                 </div>
               )}
@@ -383,14 +445,16 @@ export default function Restaurants() {
     );
   }
 
-  // Menu Listing View
+  // ── Menu Listing View ──
   if (!selectedMenu) {
     return (
-      <div className="min-h-screen" style={{ background: "#F3F4F6" }}>
+      <div className="min-h-screen" style={{ background: "#FAF7F2" }}>
         {/* Restaurant Header */}
         <div className="relative h-80 overflow-hidden">
           <img
-            src={selectedRestaurant.image?.[0] || "/placeholder-restaurant.jpg"}
+            src={
+              selectedRestaurant.image?.[0] || "/placeholder-restaurant.jpg"
+            }
             alt={selectedRestaurant.name}
             className="w-full h-full object-cover"
           />
@@ -402,17 +466,32 @@ export default function Restaurants() {
             ← Back to Restaurants
           </button>
           <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
-            <h1 className="text-4xl md:text-5xl font-bold mb-2" style={{ color: "#FBBF24" }}>
+            <h1
+              className="text-4xl md:text-5xl font-bold mb-2"
+              style={{ color: "#FBBF24" }}
+            >
               {selectedRestaurant.name}
             </h1>
-            <div className="flex flex-wrap gap-4 text-sm" style={{ color: "#FDE68A" }}>
-              <span className="flex items-center gap-1"><FaMapMarkerAlt /> {selectedRestaurant.address}</span>
-              <span className="flex items-center gap-1"><FaClock /> {selectedRestaurant.openingHours || "7:00 AM - 10:00 PM"}</span>
+            <div
+              className="flex flex-wrap gap-4 text-sm"
+              style={{ color: "#FDE68A" }}
+            >
+              <span className="flex items-center gap-1">
+                <FaMapMarkerAlt /> {selectedRestaurant.address}
+              </span>
+              <span className="flex items-center gap-1">
+                <FaClock />{" "}
+                {selectedRestaurant.openingHours || "7:00 AM - 10:00 PM"}
+              </span>
               {selectedRestaurant.phone && (
-                <span className="flex items-center gap-1"><FaPhone /> {selectedRestaurant.phone}</span>
+                <span className="flex items-center gap-1">
+                  <FaPhone /> {selectedRestaurant.phone}
+                </span>
               )}
             </div>
-            <p className="mt-2 text-sm max-w-2xl text-yellow-100">{selectedRestaurant.description}</p>
+            <p className="mt-2 text-sm max-w-2xl text-yellow-100">
+              {selectedRestaurant.description}
+            </p>
           </div>
         </div>
 
@@ -427,8 +506,21 @@ export default function Restaurants() {
                 placeholder="Search menus..."
                 value={menuSearchTerm}
                 onChange={(e) => setMenuSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 border border-yellow-300 rounded-full focus:outline-none focus:border-yellow-500 transition text-sm"
-                style={{ background: "white" }}
+                className="w-full pl-10 pr-4 py-2.5 rounded-full text-sm outline-none transition-shadow duration-200"
+                style={{
+                  background: "#FFFFFF",
+                  border: "1.5px solid #F5EACF",
+                  color: "#292524",
+                  boxShadow: "0 2px 12px rgba(217,119,6,0.08)",
+                }}
+                onFocus={(e) =>
+                  (e.target.style.boxShadow =
+                    "0 0 0 3px rgba(251,191,36,0.25)")
+                }
+                onBlur={(e) =>
+                  (e.target.style.boxShadow =
+                    "0 2px 12px rgba(217,119,6,0.08)")
+                }
               />
             </div>
             {menuSearchTerm && (
@@ -453,38 +545,48 @@ export default function Restaurants() {
           ) : (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {displayedMenus.filter(menu => menu.isActive !== false).map((menu) => (
-                  <div
-                    key={menu._id}
-                    onClick={() => handleMenuClick(menu)}
-                    className="group rounded-2xl p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer"
-                    style={{ 
-                      background: "white", 
-                      boxShadow: "0 4px 24px rgba(217,119,6,0.08)",
-                      border: "1px solid #F5EACF"
-                    }}
-                  >
-                    <div className="text-5xl mb-4">
-                      {getMenuIcon(menu.name)}
+                {displayedMenus
+                  .filter((menu) => menu.isActive !== false)
+                  .map((menu) => (
+                    <div
+                      key={menu._id}
+                      onClick={() => handleMenuClick(menu)}
+                      className="group rounded-2xl p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer"
+                      style={{
+                        background: "white",
+                        boxShadow: "0 4px 24px rgba(217,119,6,0.08)",
+                        border: "1px solid #F5EACF",
+                      }}
+                    >
+                      <div className="text-5xl mb-4">
+                        {getMenuIcon(menu.name)}
+                      </div>
+                      <h3
+                        className="text-2xl font-bold mb-2"
+                        style={{ color: "#292524" }}
+                      >
+                        {menu.name}
+                      </h3>
+                      <p className="text-sm mb-4" style={{ color: "#A8A29E" }}>
+                        {menu.description || "Delicious options available"}
+                      </p>
+                      <div className="flex items-center gap-2 text-amber-600">
+                        <FaUtensils />
+                        <span>View Items →</span>
+                      </div>
                     </div>
-                    <h3 className="text-2xl font-bold mb-2" style={{ color: "#292524" }}>{menu.name}</h3>
-                    <p className="text-sm mb-4" style={{ color: "#A8A29E" }}>{menu.description || "Delicious options available"}</p>
-                    <div className="flex items-center gap-2 text-amber-600">
-                      <FaUtensils />
-                      <span>View Items →</span>
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
 
-              {/* View All Button for Menus */}
               {hasMoreMenus && (
                 <div className="text-center mt-10">
                   <button
                     onClick={() => setShowAllMenus(!showAllMenus)}
                     className="px-8 py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-full transition shadow-md"
                   >
-                    {showAllMenus ? "Show Less" : `View All (${filteredMenus.length})`}
+                    {showAllMenus
+                      ? "Show Less"
+                      : `View All (${filteredMenus.length})`}
                   </button>
                 </div>
               )}
@@ -495,9 +597,9 @@ export default function Restaurants() {
     );
   }
 
-  // Food Items View
+  // ── Food Items View ──
   return (
-    <div className="min-h-screen" style={{ background: "#F3F4F6" }}>
+    <div className="min-h-screen" style={{ background: "#FAF7F2" }}>
       {/* Header with Yellow Background */}
       <div className="bg-yellow-400 shadow-md">
         <div className="max-w-7xl mx-auto px-6 py-6">
@@ -508,21 +610,27 @@ export default function Restaurants() {
             <FaChevronLeft className="text-sm group-hover:-translate-x-1 transition" />
             <span className="font-medium">Back to Menus</span>
           </button>
-          
+
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
               <h1 className="text-4xl md:text-5xl font-bold text-black mb-2">
                 {selectedMenu.name}
               </h1>
-              <p className="text-gray-800 text-lg font-medium">{selectedRestaurant.name}</p>
+              <p className="text-gray-800 text-lg font-medium">
+                {selectedRestaurant.name}
+              </p>
               {selectedMenu.description && (
-                <p className="text-gray-700 text-sm mt-1">{selectedMenu.description}</p>
+                <p className="text-gray-700 text-sm mt-1">
+                  {selectedMenu.description}
+                </p>
               )}
             </div>
             {selectedRestaurant.openingHours && (
               <div className="flex items-center gap-2 text-gray-700 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-300 shadow-sm">
                 <FaClock className="text-gray-600" />
-                <span className="text-sm font-medium">{selectedRestaurant.openingHours}</span>
+                <span className="text-sm font-medium">
+                  {selectedRestaurant.openingHours}
+                </span>
               </div>
             )}
           </div>
@@ -555,8 +663,10 @@ export default function Restaurants() {
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:border-yellow-400 appearance-none bg-white"
               >
                 <option value="all">All Categories</option>
-                {getUniqueCategories().map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
+                {getUniqueCategories().map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
                 ))}
               </select>
             </div>
@@ -577,25 +687,39 @@ export default function Restaurants() {
           </div>
 
           {/* Active Filters Display */}
-          {(foodSearchTerm || categoryFilter !== "all" || availabilityFilter !== "all") && (
+          {(foodSearchTerm ||
+            categoryFilter !== "all" ||
+            availabilityFilter !== "all") && (
             <div className="flex flex-wrap items-center gap-2 mt-3">
               <span className="text-sm text-gray-500">Active filters:</span>
               {foodSearchTerm && (
                 <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
                   Search: {foodSearchTerm}
-                  <FaTimes className="cursor-pointer text-xs" onClick={() => setFoodSearchTerm("")} />
+                  <FaTimes
+                    className="cursor-pointer text-xs"
+                    onClick={() => setFoodSearchTerm("")}
+                  />
                 </span>
               )}
               {categoryFilter !== "all" && (
                 <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
                   Category: {categoryFilter}
-                  <FaTimes className="cursor-pointer text-xs" onClick={() => setCategoryFilter("all")} />
+                  <FaTimes
+                    className="cursor-pointer text-xs"
+                    onClick={() => setCategoryFilter("all")}
+                  />
                 </span>
               )}
               {availabilityFilter !== "all" && (
                 <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-                  Status: {availabilityFilter === "available" ? "Available" : "Unavailable"}
-                  <FaTimes className="cursor-pointer text-xs" onClick={() => setAvailabilityFilter("all")} />
+                  Status:{" "}
+                  {availabilityFilter === "available"
+                    ? "Available"
+                    : "Unavailable"}
+                  <FaTimes
+                    className="cursor-pointer text-xs"
+                    onClick={() => setAvailabilityFilter("all")}
+                  />
                 </span>
               )}
               <button
@@ -612,7 +736,9 @@ export default function Restaurants() {
           )}
 
           {/* Results Count */}
-          {(foodSearchTerm || categoryFilter !== "all" || availabilityFilter !== "all") && (
+          {(foodSearchTerm ||
+            categoryFilter !== "all" ||
+            availabilityFilter !== "all") && (
             <div className="text-center mt-3 text-sm text-gray-500">
               Found {filteredFoodItems.length} food item(s)
             </div>
@@ -637,29 +763,37 @@ export default function Restaurants() {
           </div>
         ) : (
           <>
-            {/* Group by Category */}
             {(() => {
-              const categories = [...new Set(displayedFoodItems.map(item => item.category))];
-              return categories.map(category => (
+              const categories = [
+                ...new Set(displayedFoodItems.map((item) => item.category)),
+              ];
+              return categories.map((category) => (
                 <div key={category} className="mb-12">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="w-1 h-8 bg-amber-500 rounded-full"></div>
-                    <h2 className="text-2xl font-bold text-gray-800">{category}</h2>
+                    <h2 className="text-2xl font-bold text-gray-800">
+                      {category}
+                    </h2>
                     <span className="text-sm text-gray-400">
-                      {displayedFoodItems.filter(item => item.category === category).length} items
+                      {
+                        displayedFoodItems.filter(
+                          (item) => item.category === category
+                        ).length
+                      }{" "}
+                      items
                     </span>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {displayedFoodItems
-                      .filter(item => item.category === category)
+                      .filter((item) => item.category === category)
                       .map((item) => (
                         <div
                           key={item._id}
                           className="group rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-white"
-                          style={{ 
+                          style={{
                             boxShadow: "0 4px 24px rgba(0,0,0,0.05)",
-                            border: "1px solid #F0F0F0"
+                            border: "1px solid #F0F0F0",
                           }}
                         >
                           {/* Image Section */}
@@ -677,7 +811,9 @@ export default function Restaurants() {
                             )}
                             {!item.availability && (
                               <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                <span className="bg-red-500 text-white text-xs px-3 py-1 rounded-full">Unavailable</span>
+                                <span className="bg-red-500 text-white text-xs px-3 py-1 rounded-full">
+                                  Unavailable
+                                </span>
                               </div>
                             )}
                           </div>
@@ -689,17 +825,19 @@ export default function Restaurants() {
                                 {item.name}
                               </h3>
                               <div className="flex items-baseline gap-0.5 bg-amber-50 px-3 py-1.5 rounded-lg">
-                                <span className="text-xs text-amber-600 font-medium">Rs.</span>
+                                <span className="text-xs text-amber-600 font-medium">
+                                  Rs.
+                                </span>
                                 <span className="text-xl font-bold text-amber-600">
                                   {item.price?.toLocaleString()}
                                 </span>
                               </div>
                             </div>
-                            
+
                             <p className="text-sm text-gray-500 mb-4 leading-relaxed line-clamp-2">
                               {item.description}
                             </p>
-                            
+
                             <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-100">
                               <span className="text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 flex items-center gap-1">
                                 <FaTag className="text-amber-500 text-[10px]" />
@@ -719,14 +857,15 @@ export default function Restaurants() {
               ));
             })()}
 
-            {/* View All Button for Food Items */}
             {hasMoreFoodItems && (
               <div className="text-center mt-10">
                 <button
                   onClick={() => setShowAllFoodItems(!showAllFoodItems)}
                   className="px-8 py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-full transition shadow-md"
                 >
-                  {showAllFoodItems ? "Show Less" : `View All (${filteredFoodItems.length})`}
+                  {showAllFoodItems
+                    ? "Show Less"
+                    : `View All (${filteredFoodItems.length})`}
                 </button>
               </div>
             )}

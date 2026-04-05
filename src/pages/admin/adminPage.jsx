@@ -26,19 +26,32 @@ import AddVehiclePage from "./AddVehiclePage";
 import UpdateVehiclePage from "./UpdateVehiclePage";
 import Restaurants from "../home/Restaurants";
 import AdminRestaurantPage from "./AdminRestaurantPage";
+import HotelRoomManagement from "./HotelRoomManagement";
+import MyRoomBookingsPage from "./MyRoomBookingsPage";
+import AddRestaurantPage from "./AddRestaurantPage";
+import UpdateRestaurantPage from "./UpdateRestaurantPage";
+import { GiJeep } from "react-icons/gi";
+import AdminPackageVehiclesPage from "./adminPackageVehiclesPage";
+import AdminPackageBookingsPage from "./adminPackageBookingsPage";
+
+
+
 
 const navItems = [
   { label: "Dashboard",          icon: BsGraphUp,            to: "/admin/dashboard" },
-  { label: "Orders",             icon: IoCartOutline,        to: "/admin/orders" },
-  { label: "Rooms",              icon: MdOutlineBed,         to: "/admin/rooms" },
-  { label: "Storage/Equipment",  icon: MdOutlineInventory2,   to: "/admin/items" },
-  { label: "Packages",           icon: MdFamilyRestroom,      to: "/admin/packages" },
+  { label: "Equipment Orders",   icon: IoCartOutline,        to: "/admin/orders" },
+  { label: "Hotel & Rooms",     icon: MdOutlineBed,          to: "/admin/rooms" },
+  { label: "Room Bookings",     icon: FaRegBookmark,         to: "/admin/room-bookings" },
+  { label: "Storage/Equipment",  icon: MdOutlineInventory2,  to: "/admin/items" },
+  { label: "Packages",           icon: MdFamilyRestroom,     to: "/admin/packages" },
   { label: "Transportation",     icon: FaCar,                to: "/admin/transport" },
   { label: "Payments",           icon: MdOutlinePayments,    to: "/admin/payments" },
   { label: "Restaurant",         icon: IoFastFoodOutline,    to: "/admin/restaurant" },
   { label: "Reviews",            icon: MdOutlineReviews,     to: "/admin/reviews" },
   { label: "Event Calendar",     icon: BsCalendar2Event ,    to: "/admin/Eventcalendar" },
   { label: "Google Maps",        icon: FiMapPin ,            to: "/admin/googlemap" },
+  { label: "Package Vehicles",   icon: GiJeep,          to: "/admin/packageVehicles" },
+  { label: "Package Bookings",  icon: FaRegBookmark,       to: "/admin/package-bookings" },
   
   { label: "Users",              icon: FaRegUser,            to: "/admin/users" },
   
@@ -302,7 +315,8 @@ export default function AdminPage() {
       <div style={{ flex: 1, overflow: "auto", background: "#f4f6fb" }}>
         {userValidated&&<Routes >
           <Route path="/orders"  element={<AdminOrdersPage/>} />
-          <Route path="/rooms"     element={<h1>Rooms</h1>} />
+          <Route path="/rooms"     element={<HotelRoomManagement/>} />
+          <Route path="/room-bookings" element={<MyRoomBookingsPage />} />
           <Route path="/items"     element={<AdminItemPage />} />
           <Route path="/items/add" element={<AddItemPage />} />
           <Route path="/items/edit"element={<UpdateItemPage/>}/>
@@ -313,11 +327,23 @@ export default function AdminPage() {
           <Route path="/Eventcalendar" element={<EventManagement />} />
           <Route path="/googlemap " element={<GoogleMapComponent/>} />
 
+          <Route path="/packageVehicles" element={<AdminPackageVehiclesPage />} />
+          <Route path="/package-bookings" element={<AdminPackageBookingsPage/>} />
+          
+          
+
+          
+
           {/* ── Transportation routes ── */}
           <Route path="/transport"         element={<AdminVehiclePage />} />
           <Route path="/transport/add"     element={<AddVehiclePage />} />
           <Route path="/transport/edit"    element={<UpdateVehiclePage />} />
           <Route path="/restaurant"        element={<AdminRestaurantPage />} />
+          <Route path="/restaurant/add"        element={<AddRestaurantPage />} />
+          <Route path="/restaurant/edit"        element={<UpdateRestaurantPage />} />
+
+          
+
 
 
         </Routes>}
