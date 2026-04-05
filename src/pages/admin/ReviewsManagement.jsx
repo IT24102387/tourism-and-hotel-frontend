@@ -19,7 +19,7 @@ function ReviewsManagement() {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/reviews', {
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/reviews`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setReviews(response.data);
@@ -30,11 +30,12 @@ function ReviewsManagement() {
       setLoading(false);
     }
   };
+  
 
   const handleApprove = async (id) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`http://localhost:5000/api/reviews/${id}/approve`, {}, {
+      await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/reviews/${id}/approve`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Review approved');
@@ -49,7 +50,7 @@ function ReviewsManagement() {
     if (!window.confirm('Delete this review?')) return;
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/reviews/${id}`, {
+      await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/reviews/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Review deleted');
