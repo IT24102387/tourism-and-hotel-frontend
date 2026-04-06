@@ -5,10 +5,10 @@
     background-position: center;
     background-repeat: no-repeat;
     min-height: 100vh;
+    min-height: 100dvh; /* Dynamic viewport height for mobile */
     position: relative;
 }
 
-/* Remove dark overlay completely */
 .bg-picture::before {
     display: none;
 }
@@ -18,9 +18,9 @@
     z-index: 1;
 }
 
-/* Glass Morphism Container - Dark Smoke Glass */
+/* Glass Morphism Container */
 .glass-container {
-    background: rgba(10, 10, 10, 0.45); /* slightly lighter */
+    background: rgba(10, 10, 10, 0.45);
     backdrop-filter: blur(40px) saturate(180%) brightness(1);
     -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1);
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -50,6 +50,8 @@
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
+    /* Prevent zoom on iOS when font-size < 16px */
+    font-size: 16px;
 }
 
 .input-field:focus {
@@ -111,6 +113,9 @@ input[type="checkbox"] {
     appearance: none;
     cursor: pointer;
     transition: all 0.3s ease;
+    /* Minimum touch target */
+    min-width: 18px;
+    min-height: 18px;
 }
 
 input[type="checkbox"]:checked {
@@ -156,15 +161,112 @@ html {
     scroll-behavior: smooth;
 }
 
-/* Responsive */
-@media (max-width: 640px) {
-    .glass-container {
-        padding: 2rem 1.5rem;
-        margin: 1rem;
+/* ========================================
+   MOBILE RESPONSIVE STYLES
+   ======================================== */
+
+/* Base mobile-first adjustments */
+@media (max-width: 480px) {
+    .bg-picture {
+        padding: 1rem;
+        align-items: center;
     }
 
-    .input-field {
-        font-size: 16px;
+    form {
+        max-width: 100% !important;
+    }
+
+    .glass-container {
+        padding: 2rem 1.25rem !important;
+        border-radius: 1.5rem !important;
+    }
+
+    /* Smaller logo on tiny screens */
+    .logo-wrapper img {
+        width: 4.5rem !important;
+        height: 4.5rem !important;
+    }
+
+    .logo-wrapper {
+        margin-bottom: 1.25rem !important;
+    }
+
+    /* Tighten welcome text */
+    .text-center.mb-8 {
+        margin-bottom: 1.5rem !important;
+    }
+
+    /* Input groups closer together */
+    .input-group.mb-6 {
+        margin-bottom: 1rem !important;
+    }
+
+    /* Keep buttons side-by-side on all screen sizes */
+    .w-full.flex.gap-3 {
+        flex-direction: row;
+    }
+
+    /* Taller touch targets */
+    .input-field,
+    button[type="submit"],
+    button[type="button"] {
+        min-height: 52px !important;
+        height: 52px !important;
+    }
+
+    /* Forgot password larger tap area */
+    a[href="#"] {
+        padding: 0.25rem 0;
+        display: inline-block;
+    }
+
+    /* Sign up link spacing */
+    .mt-8 {
+        margin-top: 1.5rem !important;
+    }
+}
+
+/* Small phones (360px–480px) — keep buttons side-by-side if possible */
+@media (min-width: 360px) and (max-width: 480px) {
+    .w-full.flex.gap-3 {
+        flex-direction: row !important;
+    }
+}
+
+/* Tablets and small laptops */
+@media (min-width: 481px) and (max-width: 768px) {
+    .glass-container {
+        padding: 2.5rem 2rem !important;
+        border-radius: 1.5rem !important;
+    }
+}
+
+/* Landscape phones */
+@media (max-height: 600px) and (orientation: landscape) {
+    .bg-picture {
+        align-items: flex-start;
+        padding: 0.5rem;
+    }
+
+    .logo-wrapper {
+        display: none; /* Hide logo to save vertical space */
+    }
+
+    .text-center.mb-8 {
+        margin-bottom: 0.75rem !important;
+    }
+
+    .glass-container {
+        padding: 1rem 1.5rem !important;
+        border-radius: 1rem !important;
+    }
+
+    .input-group.mb-6 {
+        margin-bottom: 0.6rem !important;
+    }
+
+    .w-full.flex.justify-between.mb-8 {
+        margin-bottom: 0.75rem !important;
     }
 }
 
