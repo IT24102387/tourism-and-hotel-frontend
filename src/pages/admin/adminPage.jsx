@@ -33,6 +33,7 @@ import UpdateRestaurantPage from "./UpdateRestaurantPage";
 import { GiJeep } from "react-icons/gi";
 import AdminPackageVehiclesPage from "./adminPackageVehiclesPage";
 import AdminPackageBookingsPage from "./adminPackageBookingsPage";
+import { AddMenuPage } from "./AddMenuPages";
 
 
 
@@ -341,6 +342,8 @@ export default function AdminPage() {
           <Route path="/restaurant"        element={<AdminRestaurantPage />} />
           <Route path="/restaurant/add"        element={<AddRestaurantPage />} />
           <Route path="/restaurant/edit"        element={<UpdateRestaurantPage />} />
+          
+          <Route path="/restaurant/:restaurantId/menus"        element={<AddMenuPage />} />
 
           
 

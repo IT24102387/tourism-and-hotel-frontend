@@ -15,7 +15,7 @@ import { FaRupeeSign } from "react-icons/fa6";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, BarElement, Title, Tooltip, Legend, Filler);
 
-const BASE        = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const BASE        = import.meta.env.VITE_BACKEND_URL;
 const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 /* ── helpers ── */

@@ -3,7 +3,7 @@ import { useParams, useLocation, useNavigate, useSearchParams } from "react-rout
 import axios from "axios";
 import toast from "react-hot-toast";
 
-const BASE = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const BASE = import.meta.env.VITE_BACKEND_URL ;
 const getToken = () => localStorage.getItem("token");
 const authH    = () => ({ Authorization: `Bearer ${getToken()}` });
 const today    = () => new Date().toISOString().split("T")[0];

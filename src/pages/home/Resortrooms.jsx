@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Header from "../../components/header";
 
-const BASE = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const BASE = import.meta.env.VITE_BACKEND_URL;
 
 /* ── Room Card — same style as ProductCard ──────────────────── */
 function RoomCard({ room, checkIn, checkOut }) {
