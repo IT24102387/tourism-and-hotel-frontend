@@ -241,7 +241,7 @@ export default function Home() {
   }
 
   useEffect(() => {
-    axios.get('${import.meta.env.VITE_BACKEND_URL}/api/reviews')
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/reviews`)
       .then(res => setApprovedReviews(res.data))
       .catch(err => console.error('Failed to fetch reviews', err))
       .finally(() => setLoadingReviews(false));
@@ -250,7 +250,7 @@ export default function Home() {
   useEffect(() => { setCurrentReviewIndex(0); }, [approvedReviews]);
 
   useEffect(() => {
-    axios.get('${import.meta.env.VITE_BACKEND_URL}/api/events')
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/events`)
       .then(res => {
         const allEvents = res.data.events || res.data;
         const todayDate = new Date(); todayDate.setHours(0, 0, 0, 0);

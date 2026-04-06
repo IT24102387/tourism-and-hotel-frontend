@@ -60,7 +60,7 @@ export default function Reviews() {
     setFetching(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('${import.meta.env.VITE_BACKEND_URL}/api/reviews/my-reviews', {
+      const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/reviews/my-reviews`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUserReviews(res.data);
@@ -86,7 +86,7 @@ export default function Reviews() {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        '${import.meta.env.VITE_BACKEND_URL}/api/reviews',
+        `${import.meta.env.VITE_BACKEND_URL}/api/reviews`,
         { rating, comment, section },
         { headers: { Authorization: `Bearer ${token}` } }
       );
