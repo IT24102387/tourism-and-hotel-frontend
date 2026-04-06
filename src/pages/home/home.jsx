@@ -18,7 +18,7 @@ import {
 import axios from "axios";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, addMonths, subMonths } from 'date-fns';
 
-const BASE = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const BASE = import.meta.env.VITE_BACKEND_URL ;
 
 const heroImages = [
   "https://www.andbeyond.com/wp-content/uploads/sites/5/yala-national-park-sri-lanka-scenery.jpg",
