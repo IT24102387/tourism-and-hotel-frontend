@@ -31,7 +31,7 @@ function EventManagement() {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/events', {
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/events`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setEvents(response.data.events || response.data); // handle both {events: [...]} and direct array
@@ -124,8 +124,8 @@ function EventManagement() {
     try {
       const token = localStorage.getItem('token');
       const url = editMode
-        ? `http://localhost:5000/api/events/${currentEvent._id}`
-        : 'http://localhost:5000/api/events';
+        ? `${import.meta.env.VITE_BACKEND_URL}/api/events/${currentEvent._id}`
+        : `${import.meta.env.VITE_BACKEND_URL}/api/events`;
       const method = editMode ? 'put' : 'post';
 
       // Prepare data – convert empty strings to null if needed
@@ -153,7 +153,7 @@ function EventManagement() {
     if (!window.confirm('Are you sure you want to delete this event?')) return;
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/events/${id}`, {
+      await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/events/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Event deleted');
