@@ -231,57 +231,31 @@ export default function Services() {
       </div>
 
       {/* ── Floating Cart Button ── */}
-      <Link
-        to="/booking"
-        title={`${cartCount} item${cartCount !== 1 ? "s" : ""} (${totalQty} total qty)`}
-        style={{
-          position: "fixed",
-          bottom: "2rem",
-          right: "2rem",
-          background: "#F59E0B",
-          color: "#292524",
-          borderRadius: "999px",
-          padding: "0.85rem 1.4rem",
-          display: "flex",
-          alignItems: "center",
-          gap: "0.5rem",
-          fontWeight: 700,
-          fontSize: "0.95rem",
-          boxShadow: "0 6px 24px rgba(245,158,11,0.45)",
-          textDecoration: "none",
-          zIndex: 50,
-          transition: "transform 0.15s ease, box-shadow 0.15s ease",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = "scale(1.06)"
-          e.currentTarget.style.boxShadow = "0 8px 30px rgba(245,158,11,0.55)"
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "scale(1)"
-          e.currentTarget.style.boxShadow = "0 6px 24px rgba(245,158,11,0.45)"
-        }}
-      >
-        <FaCartShopping size={18} />
-        <span>Cart</span>
+      <div className="fixed bottom-8 right-8 z-50">
+        <Link
+          to="/booking"
+          title={`${cartCount} item${cartCount !== 1 ? "s" : ""} (${totalQty} total qty)`}
+          className="relative flex items-center gap-2 px-5 py-3.5 rounded-full font-bold text-[0.95rem] no-underline
+                     transition-transform duration-150 hover:scale-105 active:scale-95"
+          style={{
+            background: "#F59E0B",
+            color: "#292524",
+            boxShadow: "0 6px 24px rgba(245,158,11,0.45)",
+          }}
+        >
+          <FaCartShopping size={18} />
+          <span>Cart</span>
 
-        {/* Badge: number of distinct product types in cart */}
-        {cartCount > 0 && (
-          <span
-            style={{
-              background: "#292524",
-              color: "#FBBF24",
-              borderRadius: "999px",
-              padding: "2px 8px",
-              fontSize: "0.78rem",
-              fontWeight: 800,
-              minWidth: "22px",
-              textAlign: "center",
-            }}
-          >
-            {cartCount}
-          </span>
-        )}
-      </Link>
+          {/* Facebook-style badge — top-right corner of the button */}
+          {cartCount > 0 && (
+            <span className="absolute -top-2 -right-2 flex items-center justify-center
+                             w-6 h-6 rounded-full bg-stone-900 text-amber-400
+                             text-xs font-extrabold">
+              {cartCount > 99 ? "99+" : cartCount}
+            </span>
+          )}
+        </Link>
+      </div>
     </div>
   )
 }
