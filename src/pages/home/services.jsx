@@ -1,22 +1,19 @@
 import { useEffect, useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link } from "react-router-dom"
 import { FaCartShopping } from "react-icons/fa6"
 import ProductCard from "../../components/productCard"
 import { getProducts } from "../../utils/api"
+import { addToCart, loadCart } from "../../utils/cart"
 
 export default function Services() {
   const [state, setState] = useState("loading") // loading, success, error
   const [items, setItems] = useState([])
   const [searchQuery, setSearchQuery] = useState("")
-  const [cart, setCart] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("wildhaven_cart") || "[]")
-    } catch {
-      return []
-    }
-  })
+
+  // ── Single source of truth: read orderedItems from the shared "cart" key ──
+  const [cart, setCart] = useState(() => loadCart().orderedItems)
+
   const [toastMsg, setToastMsg] = useState("")
-  const navigate = useNavigate()
 
   useEffect(() => {
     if (state === "loading") {
@@ -32,28 +29,26 @@ export default function Services() {
     }
   }, [])
 
-  // Persist cart to localStorage whenever it changes
+  // ── Re-sync cart state whenever the component gains focus (e.g. back from booking) ──
   useEffect(() => {
-    localStorage.setItem("wildhaven_cart", JSON.stringify(cart))
-  }, [cart])
+    const syncCart = () => setCart(loadCart().orderedItems)
+    window.addEventListener("focus", syncCart)
+    return () => window.removeEventListener("focus", syncCart)
+  }, [])
 
   const handleAddToCart = (item) => {
-    setCart((prev) => {
-      const existing = prev.find((c) => c.key === item.key)
-      if (existing) {
-        return prev.map((c) =>
-          c.key === item.key ? { ...c, quantity: c.quantity + 1 } : c
-        )
-      }
-      return [...prev, { ...item, quantity: 1 }]
-    })
+    addToCart(item.key, 1)              // write via shared utility → "cart" key
+    setCart(loadCart().orderedItems)    // sync local state from source of truth
 
-    // Show toast
     setToastMsg(`"${item.name}" added to cart!`)
     setTimeout(() => setToastMsg(""), 2500)
   }
 
-  const cartCount = cart.reduce((sum, c) => sum + c.quantity, 0)
+  // ── Number of distinct products in cart ──
+  const cartCount = cart.length
+
+  // ── Total quantity across all items (for tooltip / accessibility) ──
+  const totalQty = cart.reduce((sum, c) => sum + (c.qty || 0), 0)
 
   const filtered = items.filter((item) =>
     item.name?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -157,6 +152,22 @@ export default function Services() {
         </div>
       )}
 
+      {/* ── Error State ── */}
+      {state === "error" && (
+        <div className="w-full flex flex-col items-center justify-center py-24 gap-3">
+          <p className="text-base font-semibold" style={{ color: "#A8A29E" }}>
+            Failed to load products. Please try again.
+          </p>
+          <button
+            onClick={() => setState("loading")}
+            className="px-5 py-2 rounded-full text-sm font-semibold"
+            style={{ background: "#F59E0B", color: "#292524" }}
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
       {/* ── Product Grid ── */}
       {state === "success" && (
         <div className="px-12 py-4 pb-32">
@@ -222,7 +233,7 @@ export default function Services() {
       {/* ── Floating Cart Button ── */}
       <Link
         to="/booking"
-        state={{ cart }}
+        title={`${cartCount} item${cartCount !== 1 ? "s" : ""} (${totalQty} total qty)`}
         style={{
           position: "fixed",
           bottom: "2rem",
@@ -252,6 +263,8 @@ export default function Services() {
       >
         <FaCartShopping size={18} />
         <span>Cart</span>
+
+        {/* Badge: number of distinct product types in cart */}
         {cartCount > 0 && (
           <span
             style={{

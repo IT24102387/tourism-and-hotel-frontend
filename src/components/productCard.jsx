@@ -47,7 +47,7 @@ export default function ProductCard({ item }) {
                 className="w-2 h-2 rounded-full"
                 style={{ background: item.availability ? "#F59E0B" : "#EF4444" }}
               />
-              {item.availability ? "In Stock" : "Out"}
+              {item.availability ? "IN STOCK1" : "OUT"}
             </span>
           </div>
         )}
