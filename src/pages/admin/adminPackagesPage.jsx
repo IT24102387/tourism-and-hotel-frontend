@@ -737,7 +737,8 @@ export default function AdminPackagesPage() {
                 </div>
               </FormField>
 
-              {/* Toggles */}
+              {/* Available & customization */}
+              
               <div className="flex flex-wrap gap-6">
                 <label className="flex items-center gap-3 cursor-pointer select-none">
                   <Toggle
