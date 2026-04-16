@@ -379,7 +379,7 @@ export default function AdminPackageBookingsPage() {
       value: `Rs. ${totalRevenue.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       bg: "bg-emerald-50/70",
       color: "text-emerald-600",
-      icon: <BsCurrencyDollar className="w-6 h-6" />,
+      icon: <span className="w-6 h-6 flex items-center justify-center text-xs font-bold">LKR</span>,
     },
   ];
 

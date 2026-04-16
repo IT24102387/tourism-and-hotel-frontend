@@ -672,30 +672,12 @@ export default function AdminPackageVehiclesPage() {
 
               {/* Image */}
               <FormField label="Vehicle Image">
-                <div className="space-y-2">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setImageFile(e.target.files[0] || null)}
-                    className="w-full text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-                  />
-                  <p className="text-xs text-gray-400">Or paste image URL(s) below — one per line:</p>
-                  <textarea
-                    value={form.images}
-                    onChange={(e) => setForm((f) => ({ ...f, images: e.target.value }))}
-                    rows={2}
-                    placeholder="https://example.com/vehicle.jpg"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 resize-none text-sm font-mono"
-                  />
-                  {form.images.trim() && !imageFile && (
-                    <img
-                      src={form.images.split("\n")[0].trim()}
-                      alt="preview"
-                      className="h-24 w-auto rounded-lg border border-gray-200 object-cover"
-                      onError={(e) => (e.currentTarget.style.display = "none")}
-                    />
-                  )}
-                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setImageFile(e.target.files[0] || null)}
+                  className="w-full text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                />
               </FormField>
 
               {/* Availability toggle */}
