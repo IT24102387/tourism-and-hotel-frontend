@@ -1,7 +1,7 @@
 import axios from "axios";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { IoMdCloseCircleOutline } from "react-icons/io";
-import { FiCheckCircle, FiXCircle, FiCalendar, FiDownload } from "react-icons/fi";
+import { FiCheckCircle, FiXCircle, FiCalendar, FiDownload, FiBell } from "react-icons/fi";
 import { MdOutlineBookmarks } from "react-icons/md";
 import { MdOutlineBookmarkAdded, MdPendingActions, MdOutlineCancel } from "react-icons/md";
 import { BsCurrencyDollar } from "react-icons/bs";
@@ -24,10 +24,54 @@ export default function AdminPackageBookingsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("All");
   const [search, setSearch] = useState("");
+  const [cancelNotifications, setCancelNotifications] = useState([]);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notifRef = useRef(null);
 
   useEffect(() => {
     fetchBookings();
+    fetchNotifications();
+    // Poll for new cancellation notifications every 30 seconds
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
   }, []);
+
+  // Close notification panel when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setNotifOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  function fetchNotifications() {
+    const token = localStorage.getItem("token");
+    axios
+      .get(`${import.meta.env.VITE_BACKEND_URL}/api/package-bookings/cancelled-notifications`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => setCancelNotifications(res.data))
+      .catch(() => {});
+  }
+
+  function markAsRead(bookingId) {
+    const token = localStorage.getItem("token");
+    axios
+      .patch(`${import.meta.env.VITE_BACKEND_URL}/api/package-bookings/${bookingId}/mark-notified`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(() => {
+        setCancelNotifications((prev) => prev.filter((n) => n.bookingId !== bookingId));
+      })
+      .catch(() => {});
+  }
+
+  function markAllRead() {
+    cancelNotifications.forEach((n) => markAsRead(n.bookingId));
+  }
 
   function fetchBookings() {
     setLoading(true);
@@ -389,6 +433,99 @@ export default function AdminPackageBookingsPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <h1 className="text-3xl font-bold text-gray-800">Package Booking Management</h1>
         <div className="flex items-center gap-3">
+          {/* ── Cancellation Notification Bell ── */}
+          <div className="relative" ref={notifRef}>
+            <button
+              onClick={() => setNotifOpen((o) => !o)}
+              className="relative flex items-center justify-center w-10 h-10 rounded-full bg-white border border-gray-200 shadow hover:shadow-md transition"
+              title="Cancellation notifications"
+            >
+              <FiBell size={18} className="text-gray-600" />
+              {cancelNotifications.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {cancelNotifications.length > 9 ? "9+" : cancelNotifications.length}
+                </span>
+              )}
+            </button>
+
+            {/* Notification dropdown panel */}
+            {notifOpen && (
+              <div className="absolute right-0 top-12 w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
+                <div className="flex items-center justify-between px-5 py-3 bg-linear-to-r from-red-50 to-orange-50 border-b border-gray-100">
+                  <div className="flex items-center gap-2">
+                    <span className="text-red-500 text-sm font-bold">🚫 Booking Cancellations</span>
+                    {cancelNotifications.length > 0 && (
+                      <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                        {cancelNotifications.length} new
+                      </span>
+                    )}
+                  </div>
+                  {cancelNotifications.length > 0 && (
+                    <button
+                      onClick={markAllRead}
+                      className="text-xs text-blue-600 hover:text-blue-800 font-semibold"
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                </div>
+
+                <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
+                  {cancelNotifications.length === 0 ? (
+                    <div className="py-10 text-center">
+                      <div className="text-3xl mb-2">✅</div>
+                      <p className="text-gray-400 text-sm">No new cancellations</p>
+                    </div>
+                  ) : (
+                    cancelNotifications.map((n) => (
+                      <div key={n.bookingId} className="px-5 py-4 hover:bg-red-50 transition group">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-gray-800 truncate">{n.packageName}</p>
+                            <p className="text-xs text-gray-500 mt-0.5 truncate">{n.userName} · {n.userEmail}</p>
+                            <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+                              <span className="text-xs text-gray-500">
+                                📅 Tour: <strong>{new Date(n.tourDate).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}</strong>
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                👥 {n.guests} guests
+                              </span>
+                              <span className="text-xs font-semibold text-red-600">
+                                LKR {n.totalPrice?.toLocaleString()}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-gray-400 mt-1">
+                              Cancelled: {new Date(n.cancelledAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}
+                            </p>
+                            <p className="text-[11px] font-mono text-gray-400">{n.bookingId}</p>
+                          </div>
+                          <button
+                            onClick={() => markAsRead(n.bookingId)}
+                            className="shrink-0 text-xs text-gray-400 hover:text-red-500 font-semibold opacity-0 group-hover:opacity-100 transition mt-0.5"
+                            title="Dismiss"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {cancelNotifications.length > 0 && (
+                  <div className="px-5 py-3 bg-gray-50 border-t border-gray-100">
+                    <button
+                      onClick={() => { setStatusFilter("Cancelled"); setNotifOpen(false); markAllRead(); }}
+                      className="w-full text-center text-xs font-semibold text-blue-600 hover:text-blue-800"
+                    >
+                      View all cancelled bookings →
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           <span className="bg-blue-100 text-blue-700 text-sm font-semibold px-4 py-2 rounded-full">
             {bookings.length} Total Bookings
           </span>

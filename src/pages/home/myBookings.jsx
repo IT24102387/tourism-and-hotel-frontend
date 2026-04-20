@@ -68,15 +68,24 @@ export default function MyBookings() {
       .finally(() => setLoadingOrders(false));
   }
 
-  function handleCancel(bookingId) {
+  function handleCancel(bookingId, status, createdAt) {
+    if (status === "Confirmed") {
+      toast.error("This booking has been confirmed and cannot be cancelled.");
+      return;
+    }
+    const hoursSinceBooking = (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60);
+    if (hoursSinceBooking > 24) {
+      toast.error("The cancellation window has expired. Bookings can only be cancelled within 24 hours of placing them.");
+      return;
+    }
     if (!window.confirm("Cancel this booking? This cannot be undone.")) return;
     setCancelling(bookingId);
     cancelMyPackageBooking(bookingId)
       .then(() => {
-        toast.success("Booking cancelled");
+        toast.success("Booking cancelled successfully.");
         fetchPackageBookings();
       })
-      .catch(() => toast.error("Failed to cancel booking"))
+      .catch((err) => toast.error(err?.response?.data?.message || "Failed to cancel booking"))
       .finally(() => setCancelling(null));
   }
 
@@ -399,10 +408,11 @@ export default function MyBookings() {
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
                   {packageBookings.map((b) => {
-                    const addOns = Object.entries(b.addOns || {})
-                      .filter(([, v]) => v)
-                      .map(([k]) => k.replace(/([A-Z])/g, " $1").replace(/^./, s => s.toUpperCase()));
-                    const canCancel = b.status === "Pending" || b.status === "Confirmed";
+                    const addOns = Array.isArray(b.addOns) ? b.addOns : [];
+                    const hoursSinceBooking = (Date.now() - new Date(b.createdAt).getTime()) / (1000 * 60 * 60);
+                    const canCancel = b.status === "Pending" && hoursSinceBooking <= 24;
+                    const isConfirmed = b.status === "Confirmed";
+                    const isPendingExpired = b.status === "Pending" && hoursSinceBooking > 24;
 
                     return (
                       <div key={b.bookingId} className="mb-card">
@@ -452,7 +462,11 @@ export default function MyBookings() {
                           <div style={{ marginBottom: "12px" }}>
                             <p className="mb-detail-label" style={{ marginBottom: "6px" }}>Add-ons</p>
                             <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-                              {addOns.map((a) => <span key={a} className="mb-addon-tag">{a}</span>)}
+                              {addOns.map((a) => (
+                                <span key={a.addonId || a.name} className="mb-addon-tag">
+                                  {a.name}{a.price ? ` — LKR ${Number(a.price).toLocaleString()}` : ""}
+                                </span>
+                              ))}
                             </div>
                           </div>
                         )}
@@ -463,7 +477,7 @@ export default function MyBookings() {
                           <div>
                             <p className="mb-detail-label">Total</p>
                             <p style={{ fontSize: "20px", fontWeight: 700, color: "#d4a843" }}>
-                              ${b.totalPrice.toLocaleString()}
+                              LKR {b.totalPrice.toLocaleString()}
                             </p>
                           </div>
                           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
@@ -472,10 +486,28 @@ export default function MyBookings() {
                               <button
                                 className="mb-cancel-btn"
                                 disabled={cancelling === b.bookingId}
-                                onClick={() => handleCancel(b.bookingId)}
+                                onClick={() => handleCancel(b.bookingId, b.status, b.createdAt)}
                               >
-                                {cancelling === b.bookingId ? "Cancelling…" : "Cancel"}
+                                {cancelling === b.bookingId ? "Cancelling…" : "Cancel Booking"}
                               </button>
+                            )}
+                            {isConfirmed && (
+                              <span style={{
+                                fontSize: "12px", fontWeight: 600, color: "#92400e",
+                                background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.4)",
+                                borderRadius: "100px", padding: "6px 14px",
+                              }}>
+                                ✓ Confirmed — cannot cancel
+                              </span>
+                            )}
+                            {isPendingExpired && (
+                              <span style={{
+                                fontSize: "12px", fontWeight: 600, color: "#dc2626",
+                                background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)",
+                                borderRadius: "100px", padding: "6px 14px",
+                              }}>
+                                ⏰ Cancellation window expired
+                              </span>
                             )}
                           </div>
                         </div>
