@@ -6,7 +6,7 @@ import { GiJeep } from "react-icons/gi";
 import imageUpload from "../../utils/imageUpload";
 
 const VEHICLE_TYPES = ["Mahindra Jeep", "Toyota Hilux","Nissan Patrol", "Land Rover Defender", ];
-const STATUS_OPTIONS = ["Available", "On Trip", "Maintenance"];
+const STATUS_OPTIONS = ["Available", "Maintenance"];
 const BLOCKED_KEYS = ["-", "+", "e", "E"];
 
 function blockNegativeKeys(e) {
@@ -132,7 +132,6 @@ function FeatureCheckbox({ label, checked, onChange }) {
 
 const STATUS_COLORS = {
   Available: "bg-green-100 text-green-700",
-  "On Trip": "bg-yellow-100 text-yellow-700",
   Maintenance: "bg-red-100 text-red-700",
 };
 
@@ -145,7 +144,7 @@ export default function AdminPackageVehiclesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
-  const [deleteModal, setDeleteModal] = useState({ isOpen: false, vehicleId: null, name: "" });
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, id: null, name: "" });
   const [showModal, setShowModal] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState(null);
   const [form, setForm] = useState(emptyForm);
@@ -183,7 +182,6 @@ export default function AdminPackageVehiclesPage() {
       f = f.filter(
         (v) =>
           v.name.toLowerCase().includes(s) ||
-          v.vehicleId?.toLowerCase().includes(s) ||
           v.registrationNumber?.toLowerCase().includes(s)
       );
     }
@@ -275,7 +273,7 @@ export default function AdminPackageVehiclesPage() {
 
       if (editingVehicle) {
         await axios.put(
-          `${API_BASE}/${editingVehicle.vehicleId}`,
+          `${API_BASE}/${editingVehicle._id}`,
           payload,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -297,15 +295,15 @@ export default function AdminPackageVehiclesPage() {
   };
 
   const handleDelete = async () => {
-    const { vehicleId } = deleteModal;
-    if (!vehicleId) return;
+    const { id } = deleteModal;
+    if (!id) return;
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`${API_BASE}/${vehicleId}`, {
+      await axios.delete(`${API_BASE}/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setVehicles((prev) => prev.filter((v) => v.vehicleId !== vehicleId));
-      setDeleteModal({ isOpen: false, vehicleId: null, name: "" });
+      setVehicles((prev) => prev.filter((v) => v._id !== id));
+      setDeleteModal({ isOpen: false, id: null, name: "" });
       toast.success("Package vehicle deleted successfully");
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to delete package vehicle");
@@ -346,7 +344,6 @@ export default function AdminPackageVehiclesPage() {
         {[
           { label: "Total", value: vehicles.length, color: "text-[#2F2D8F]" },
           { label: "Available", value: vehicles.filter((v) => v.status === "Available").length, color: "text-green-600" },
-          { label: "On Trip", value: vehicles.filter((v) => v.status === "On Trip").length, color: "text-yellow-500" },
           { label: "Maintenance", value: vehicles.filter((v) => v.status === "Maintenance").length, color: "text-red-500" },
         ].map((s) => (
           <div key={s.label} className="bg-white rounded-xl shadow px-6 py-3 flex flex-col items-center min-w-[90px]">
@@ -404,7 +401,7 @@ export default function AdminPackageVehiclesPage() {
                   style={{ background: "linear-gradient(90deg, #2F2D8F 0%, #1E2269 100%)" }}
                 >
                   <tr>
-                    {["Image", "Vehicle ID", "Name", "Type", "Reg. No.", "Capacity", "Price/Day", "Status", "Actions"].map((h) => (
+                    {["Image", "Name", "Type", "Reg. No.", "Capacity", "Price/Day", "Status", "Actions"].map((h) => (
                       <th
                         key={h}
                         className={`px-4 py-4 text-xs font-semibold uppercase tracking-wider ${h === "Actions" ? "text-center" : "text-left"}`}
@@ -416,7 +413,7 @@ export default function AdminPackageVehiclesPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {paginated.map((v) => (
-                    <tr key={v.vehicleId} className="hover:bg-gray-50 transition">
+                    <tr key={v._id} className="hover:bg-gray-50 transition">
                       <td className="px-4 py-3">
                         <img
                           src={v.images?.[0] || "https://www.shutterstock.com/image-vector/missing-picture-page-website-design-600nw-1552421075.jpg"}
@@ -424,7 +421,6 @@ export default function AdminPackageVehiclesPage() {
                           className="w-14 h-14 object-cover rounded-lg border border-gray-200"
                         />
                       </td>
-                      <td className="px-4 py-3 text-gray-500 text-sm font-mono whitespace-nowrap">{v.vehicleId}</td>
                       <td className="px-4 py-3 font-semibold text-gray-800 max-w-[160px]">
                         <div className="line-clamp-2">{v.name}</div>
                         {v.driverName && (
@@ -456,7 +452,7 @@ export default function AdminPackageVehiclesPage() {
                             <FiEdit size={17} />
                           </button>
                           <button
-                            onClick={() => setDeleteModal({ isOpen: true, vehicleId: v.vehicleId, name: v.name })}
+                            onClick={() => setDeleteModal({ isOpen: true, id: v._id, name: v.name })}
                             className="text-red-600 hover:text-red-800 transition p-1"
                             title="Delete"
                           >
@@ -519,18 +515,6 @@ export default function AdminPackageVehiclesPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
-              {/* Vehicle ID (edit only, read-only) */}
-              {editingVehicle && (
-                <FormField label="Vehicle ID" note="auto-generated, cannot change">
-                  <input
-                    type="text"
-                    value={editingVehicle.vehicleId}
-                    readOnly
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 font-mono cursor-not-allowed"
-                  />
-                </FormField>
-              )}
-
               {/* Row 1: Name + Type */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField label="Vehicle Name *" error={fieldErrors.name}>
@@ -544,7 +528,15 @@ export default function AdminPackageVehiclesPage() {
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 ${fieldErrors.name ? "border-red-400" : "border-gray-300"}`}
                   />
                 </FormField>
-                <FormField label="Vehicle Type *">
+                <FormField label="Vehicle Type *" note={editingVehicle ? "cannot be changed" : undefined}>
+                  {editingVehicle ? (
+                    <input
+                      type="text"
+                      value={form.type}
+                      readOnly
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                    />
+                  ) : (
                   <select
                     value={form.type}
                     onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
@@ -552,20 +544,26 @@ export default function AdminPackageVehiclesPage() {
                   >
                     {VEHICLE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                   </select>
+                  )}
                 </FormField>
               </div>
 
               {/* Row 2: Reg No + Capacity */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField label="Registration Number *" error={fieldErrors.registrationNumber}>
+                <FormField label="Registration Number *" note={editingVehicle ? "cannot be changed" : undefined} error={!editingVehicle ? fieldErrors.registrationNumber : undefined}>
                   <input
                     type="text"
                     value={form.registrationNumber}
-                    onChange={(e) => { setForm((f) => ({ ...f, registrationNumber: e.target.value })); touchField("registrationNumber", e.target.value); }}
-                    onBlur={(e) => touchField("registrationNumber", e.target.value)}
-                    required
+                    onChange={editingVehicle ? undefined : (e) => { setForm((f) => ({ ...f, registrationNumber: e.target.value })); touchField("registrationNumber", e.target.value); }}
+                    onBlur={editingVehicle ? undefined : (e) => touchField("registrationNumber", e.target.value)}
+                    readOnly={!!editingVehicle}
+                    required={!editingVehicle}
                     placeholder="e.g. CAB-1234"
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 ${fieldErrors.registrationNumber ? "border-red-400" : "border-gray-300"}`}
+                    className={`w-full px-3 py-2 border rounded-lg ${
+                      editingVehicle
+                        ? "border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed"
+                        : `focus:ring-2 focus:ring-indigo-500 ${fieldErrors.registrationNumber ? "border-red-400" : "border-gray-300"}`
+                    }`}
                   />
                 </FormField>
                 <FormField label="Capacity (passengers) *" note="max 8" error={fieldErrors.capacity}>
@@ -734,7 +732,7 @@ export default function AdminPackageVehiclesPage() {
             </p>
             <div className="flex justify-end gap-3">
               <button
-                onClick={() => setDeleteModal({ isOpen: false, vehicleId: null, name: "" })}
+                onClick={() => setDeleteModal({ isOpen: false, id: null, name: "" })}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
               >
                 Cancel

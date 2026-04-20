@@ -109,7 +109,7 @@ export default function PackageOverview() {
       selectedActivities: [],
       selectedVehicle: form.vehicle
         ? {
-            vehicleId: form.vehicle.vehicleId,
+            vehicleId: form.vehicle._id,
             vehicleName: form.vehicle.name,
             vehicleType: form.vehicle.type,
             vehiclePricePerDay: form.vehicle.pricePerDay,
