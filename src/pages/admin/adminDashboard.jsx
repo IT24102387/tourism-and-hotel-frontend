@@ -8,7 +8,7 @@ import {
 import { Line, Doughnut, Bar } from "react-chartjs-2";
 import { MdOutlineInventory2, MdOutlineBed } from "react-icons/md";
 import {
-  FiDollarSign, FiUsers, FiShoppingBag, FiTrendingUp,
+  FiUsers, FiShoppingBag, FiTrendingUp,
   FiArrowUpRight, FiArrowDownRight, FiFilter,
 } from "react-icons/fi";
 import { FaRupeeSign } from "react-icons/fa6";
@@ -289,7 +289,9 @@ export default function AdminDashBoard() {
   const revPct  = pctChange(eqStats.revenueThisMonth, eqStats.prevMonthRevenue);
 
   const eqCards = [
-    {title:"Total Revenue", value:`Rs. ${eqStats.totalRevenue.toLocaleString("en-LK")}`, sub:revPct?`${revPct>0?"+":""}${revPct}% vs last month`:"vs last month", trend:revPct>0?"up":"down", bg:"bg-green-50",   iconBg:"bg-green-100",   icon:<FaRupeeSign  className="text-green-600"   size={20}/>},
+    {title:"Total Revenue", value:`Rs. ${eqStats.totalRevenue.toLocaleString("en-LK")}`, sub:revPct?`${revPct>0?"+":""}${revPct}% vs last month`:"vs last month", trend:revPct>0?"up":"down", bg:"bg-green-50",   iconBg:"bg-green-100",   icon: <span className="w-6 h-6 flex items-center justify-center text-xs font-bold">LKR</span>},
+    
+
     {title:"Total Users",   value:eqStats.totalUsers.toLocaleString(),                    sub:"registered accounts", trend:"up",      bg:"bg-blue-50",    iconBg:"bg-blue-100",    icon:<FiUsers       className="text-blue-600"    size={20}/>},
     {title:"Total Orders",  value:eqStats.totalOrders.toLocaleString(),                   sub:"all time",            trend:"neutral", bg:"bg-purple-50",  iconBg:"bg-purple-100",  icon:<FiShoppingBag className="text-purple-600"  size={20}/>},
     {title:"This Month",    value:`Rs. ${eqStats.revenueThisMonth.toLocaleString("en-LK")}`, sub:`Peak: ${eqStats.peakMonth}`, trend:"up", bg:"bg-emerald-50", iconBg:"bg-emerald-100", icon:<FiTrendingUp  className="text-emerald-600" size={20}/>},
@@ -345,7 +347,8 @@ export default function AdminDashBoard() {
               </div>
               <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs font-medium">
                 {[3,6,12].map(r=>(
-                  <button key={r} onClick={()=>handleRangeChange(r)} className={`px-3 py-1.5 transition ${range===r?"bg-[#2F2D8F] text-white":"bg-white text-gray-500 hover:bg-gray-50"}`}>{r}m</button>
+                  <button key={r} onClick={()=>handleRangeChange(r)} className={`px-3 py-1.5 transition ${range===r?"bg-[#2F2D8F] text-white":"bg-white text-gray-500 hover:bg-gray-50"}`}>
+                    {r} Mo</button>
                 ))}
               </div>
             </div>
@@ -417,7 +420,7 @@ export default function AdminDashBoard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
           {title:"TOTAL BOOKINGS", value:rmTotal,                                         sub:"filtered results",      bg:"bg-blue-50",    iconBg:"bg-blue-100",    icon:<MdOutlineBed   className="text-blue-600"    size={20}/>},
-          {title:"ROOM REVENUE",   value:`Rs. ${rmRevenue.toLocaleString("en-LK")}`,      sub:"confirmed bookings",    bg:"bg-green-50",   iconBg:"bg-green-100",   icon:<FiDollarSign   className="text-green-600"   size={20}/>},
+          {title:"ROOM REVENUE",   value:`Rs. ${rmRevenue.toLocaleString("en-LK")}`,      sub:"confirmed bookings",    bg:"bg-green-50",   iconBg:"bg-green-100",   icon: <span className="w-6 h-6 flex items-center justify-center text-xs font-bold">LKR</span>},
           {title:"PENDING",        value:rmPending,                                        sub:"awaiting confirmation", bg:"bg-yellow-50",  iconBg:"bg-yellow-100",  icon:<FiTrendingUp   className="text-yellow-600"  size={20}/>},
           {title:"CONFIRMED",      value:rmConfirmed,                                      sub:"approved bookings",     bg:"bg-emerald-50", iconBg:"bg-emerald-100", icon:<FiArrowUpRight className="text-emerald-600" size={20}/>},
         ].map((c,i)=>(

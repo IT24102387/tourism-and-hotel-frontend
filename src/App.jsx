@@ -8,10 +8,11 @@ import RegisterPage from './pages/register/register';
 import Testing from './components/testing';
 import BookingPage from './pages/home/equipmentBookingPage';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import PlaceDetails from './pages/home/placeDetails';
+
 import BookingDetails from './pages/home/VehicleBookingDetails';
 import SafariVehicles from './pages/home/SafariVehicles';
 import Restaurants from './pages/home/Restaurants';
+import PlaceDetails from './pages/home/placeDetails';
 
 
 

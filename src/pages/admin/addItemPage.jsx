@@ -12,17 +12,16 @@ const categories = [
 ];
 
 export default function AddItemPage() {
-  // State declarations
   const [EquipmentKey, setEquipmentKey] = useState("");
   const [EquipmentName, setEquipmentName] = useState("");
   const [PricePerDay, setPricePerDay] = useState("");
   const [EquipmentCategory, setEquipmentCategory] = useState("camp");
   const [EquipmentDescription, setEquipmentDescription] = useState("");
   const [productImages, setProductImages] = useState([]);
+  const [stockCount, setStockCount] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Form submission handler
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -36,6 +35,10 @@ export default function AddItemPage() {
       toast.error("Please enter a valid price per day.");
       return;
     }
+    if (stockCount === "" || parseInt(stockCount) < 0) {
+      toast.error("Please enter a valid stock count (0 or more).");
+      return;
+    }
 
     const token = localStorage.getItem("token");
     if (!token) {
@@ -46,6 +49,7 @@ export default function AddItemPage() {
     setIsLoading(true);
     try {
       const imageUrls = await Promise.all(promises);
+      const parsedStock = parseInt(stockCount);
 
       const result = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/products`,
@@ -56,6 +60,7 @@ export default function AddItemPage() {
           category: EquipmentCategory,
           description: EquipmentDescription,
           image: imageUrls,
+          stockCount: parsedStock,
         },
         { headers: { Authorization: "Bearer " + token } }
       );
@@ -70,7 +75,6 @@ export default function AddItemPage() {
     }
   };
 
-  // Form reset handler
   const handleReset = () => {
     setEquipmentKey("");
     setEquipmentName("");
@@ -78,6 +82,7 @@ export default function AddItemPage() {
     setEquipmentCategory("camp");
     setEquipmentDescription("");
     setProductImages([]);
+    setStockCount("");
   };
 
   return (
@@ -98,7 +103,6 @@ export default function AddItemPage() {
         <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
 
-            {/* Grid for responsive layout */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
               {/* Equipment Key */}
@@ -151,12 +155,35 @@ export default function AddItemPage() {
                 </div>
               </div>
 
-              {/* Equipment Category */}
+              {/* Stock Count */}
               <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Initial Stock Count <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-3 text-gray-500 text-sm">📦</span>
+                  <input
+                    type="number"
+                    value={stockCount}
+                    onChange={(e) => setStockCount(e.target.value)}
+                    required
+                    min="0"
+                    step="1"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 outline-none"
+                    placeholder="e.g. 10"
+                  />
+                </div>
+                <p className="text-xs text-gray-500">
+                  Number of units available to rent. Setting 0 marks it as Out of Stock.
+                </p>
+              </div>
+
+              {/* Equipment Category */}
+              <div className="space-y-2 md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700">
                   Equipment Category <span className="text-red-500">*</span>
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                   {categories.map((cat) => (
                     <button
                       key={cat.value}
@@ -247,7 +274,6 @@ export default function AddItemPage() {
               </button>
             </div>
 
-            {/* Form Submission Info */}
             <div className="mt-4 p-4 bg-blue-50 rounded-lg">
               <div className="flex items-start">
                 <svg className="w-5 h-5 text-blue-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -255,7 +281,7 @@ export default function AddItemPage() {
                 </svg>
                 <p className="text-sm text-blue-700">
                   All fields marked with <span className="text-red-500">*</span> are required.
-                  The equipment will be added to your inventory immediately upon submission.
+                  Availability is automatically set based on stock count.
                 </p>
               </div>
             </div>
@@ -291,14 +317,16 @@ export default function AddItemPage() {
                 </p>
               </div>
               <div>
+                <h3 className="text-sm font-medium text-gray-500">Stock Count</h3>
+                <p className="text-lg font-semibold text-gray-800">
+                  {stockCount !== "" ? `${parseInt(stockCount)} unit(s)` : "Not set"}
+                </p>
+              </div>
+              <div>
                 <h3 className="text-sm font-medium text-gray-500">Images Selected</h3>
                 <p className="text-lg font-semibold text-gray-800">
                   {productImages.length > 0 ? `${productImages.length} file(s)` : "None"}
                 </p>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Description Preview</h3>
-                <p className="text-gray-700 line-clamp-3">{EquipmentDescription || "No description provided"}</p>
               </div>
             </div>
           </div>

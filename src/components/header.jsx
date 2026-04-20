@@ -25,7 +25,7 @@ const services = [
   },
 
   {
-    to: "/services/googlemap",
+    to: "/google-maps",
     label: "Google Maps",
     desc: "Plan your own route to explore Katharagama",
   }

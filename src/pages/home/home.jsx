@@ -50,6 +50,8 @@ const popularPlaces = [
   },
 ];
 
+
+
 /* ── Reviewer Avatar: real photo → coloured initials → icon ── */
 function ReviewerAvatar({ src, name }) {
   const [imgError, setImgError] = useState(false);
@@ -69,7 +71,6 @@ function ReviewerAvatar({ src, name }) {
   const colorPick = name ? name.charCodeAt(0) % avatarColors.length : 0;
   const { bg, text } = avatarColors[colorPick];
 
-  // Real photo
   if (src && !imgError) {
     return (
       <img
@@ -82,7 +83,6 @@ function ReviewerAvatar({ src, name }) {
     );
   }
 
-  // Coloured initials fallback
   if (initials) {
     return (
       <div
@@ -94,7 +94,6 @@ function ReviewerAvatar({ src, name }) {
     );
   }
 
-  // Generic icon fallback
   return (
     <div
       className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0"
@@ -241,11 +240,28 @@ export default function Home() {
     setGuestCount(""); setRoomTypeFilter("");
   }
 
+  // ✅ NEW FUNCTION (Explore)
+  async function handleExplorePlace(place) {
+    navigate(`/place/${encodeURIComponent(place.name)}`, {
+      state: {
+        placeName: place.name,
+        placeImage: place.image,
+      },
+    });
+  }
+
   useEffect(() => {
-    axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/reviews`)
-      .then(res => setApprovedReviews(res.data))
-      .catch(err => console.error('Failed to fetch reviews', err))
-      .finally(() => setLoadingReviews(false));
+    const fetchApprovedReviews = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/reviews?sort=rating`);
+        setApprovedReviews(response.data);
+      } catch (error) {
+        console.error('Failed to fetch reviews', error);
+      } finally {
+        setLoadingReviews(false);
+      }
+    };
+    fetchApprovedReviews();
   }, []);
 
   useEffect(() => { setCurrentReviewIndex(0); }, [approvedReviews]);
@@ -426,7 +442,8 @@ export default function Home() {
                 <div className="p-6">
                   <p className="text-xs font-medium uppercase tracking-wider mb-1" style={{ color: "#D97706" }}>{place.location}</p>
                   <h3 className="text-xl font-bold mb-5" style={{ color: "#292524" }}>{place.name}</h3>
-                  <button onClick={() => navigate(`/place/${place.name}`, { state: { image: place.image } })}
+                  {/* ✅ UPDATED: uses handleExplorePlace with encodeURIComponent */}
+                  <button onClick={() => handleExplorePlace(place)}
                     className="w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 hover:scale-[1.03] hover:shadow-lg active:scale-95"
                     style={{ background: "linear-gradient(135deg,#FBBF24,#F59E0B)", color: "#78350F", boxShadow: "0 4px 14px rgba(251,191,36,0.45)", letterSpacing: "0.04em" }}>
                     <FaMapMarkerAlt className="text-xs" />Explore This Place
@@ -831,14 +848,11 @@ export default function Home() {
           <div className="text-center py-8 text-gray-500">No reviews yet. Be the first to share your experience!</div>
         ) : (
           <div>
-            {/* 3-column grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
               {approvedReviews.slice(currentReviewIndex, currentReviewIndex + 3).map((review, index) => (
                 <div key={index}
                   className="rounded-2xl p-6 border flex flex-col gap-4 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
                   style={{ background: "#FFFBF5", borderColor: "#F5EACF", boxShadow: "0 4px 24px rgba(217,119,6,0.08)" }}>
-
-                  {/* Stars */}
                   <div className="flex gap-1">
                     {[...Array(5)].map((_, i) => (
                       <FaStar key={i} style={{
@@ -848,16 +862,10 @@ export default function Home() {
                       }} />
                     ))}
                   </div>
-
-                  {/* Comment */}
                   <p className="italic leading-relaxed flex-1 text-sm" style={{ color: "#57534E" }}>
                     "{review.comment}"
                   </p>
-
-                  {/* Divider */}
                   <div className="h-px w-full" style={{ background: "#F5EACF" }} />
-
-                  {/* Reviewer — real photo with fallback */}
                   <div className="flex items-center gap-3">
                     <ReviewerAvatar src={review.profilePicture} name={review.name} />
                     <div>
@@ -871,7 +879,6 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Prev · dots · Next */}
             {approvedReviews.length > 3 && (
               <div className="flex items-center justify-center gap-5 mb-8">
                 <button
@@ -898,7 +905,6 @@ export default function Home() {
               </div>
             )}
 
-            {/* View All Reviews */}
             <div className="text-center">
               <button onClick={() => navigate("/reviews")}
                 className="inline-flex items-center gap-2 px-8 py-3 rounded-full font-semibold border-2 transition-all duration-200 hover:scale-105 hover:bg-amber-50"

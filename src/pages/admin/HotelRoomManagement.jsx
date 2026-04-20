@@ -38,19 +38,44 @@ function Label({ children }) {
 /* ══════════════════════════════════════════════════
    HOTEL FORM MODAL
 ══════════════════════════════════════════════════ */
+
+const errStyle = { color:'#dc2626', fontSize:'11px', marginTop:'4px', display:'flex', alignItems:'center', gap:'4px' };
+function ErrMsg({ msg }) { return msg ? <p style={errStyle}>\u26a0\ufe0f {msg}</p> : null; }
+
 function HotelFormModal({ hotel, onClose, onSaved }) {
     const isEdit = !!hotel;
     const [form, setForm] = useState(hotel
         ? { ...hotel, images: hotel.images?.length ? hotel.images : [""] }
         : { hotelId: genHotelId(), name:"", location:"", description:"", starRating:3, contactEmail:"", contactPhone:"", amenities:{ pool:false, spa:false, gym:false, restaurant:false, bar:false, beachAccess:false }, images:[""], isActive:true });
     const [saving, setSaving] = useState(false);
+    const [errors, setErrors] = useState({});
 
-    const set  = (k,v) => setForm(f => ({ ...f, [k]:v }));
+    const set  = (k,v) => { setForm(f => ({ ...f, [k]:v })); setErrors(e => ({ ...e, [k]:'' })); };
     const setA = (k,v) => setForm(f => ({ ...f, amenities:{ ...f.amenities, [k]:v } }));
     const setImg = (i,v) => { const imgs=[...form.images]; imgs[i]=v; setForm(f=>({...f,images:imgs})); };
 
+    function validate() {
+        const e = {};
+        if (!form.name.trim())        e.name        = 'Hotel name is required';
+        if (!form.location.trim())    e.location    = 'Location is required';
+        if (!form.description.trim()) e.description = 'Description is required';
+        if (form.contactEmail) {
+            if (!form.contactEmail.includes('@'))
+                e.contactEmail = 'Email must include @ symbol';
+            else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.contactEmail))
+                e.contactEmail = 'Enter a valid email address (e.g. info@hotel.com)';
+        }
+        if (form.contactPhone) {
+            const digits = form.contactPhone.replace(/[\s\-()]/g, '');
+            if (!/^\d{10}$/.test(digits))
+                e.contactPhone = 'Phone number must be exactly 10 digits';
+        }
+        setErrors(e);
+        return Object.keys(e).length === 0;
+    }
+
     async function save() {
-        if (!form.name || !form.location || !form.description) { toast.error("Fill all required fields"); return; }
+        if (!validate()) { toast.error('Please fix the errors before saving'); return; }
         setSaving(true);
         try {
             const payload = { ...form, starRating:Number(form.starRating), images:form.images.filter(Boolean) };
@@ -84,11 +109,13 @@ function HotelFormModal({ hotel, onClose, onSaved }) {
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"16px" }}>
                     <div>
                         <Label>Hotel Name *</Label>
-                        <input value={form.name} onChange={e=>set("name",e.target.value)} placeholder="e.g. Amaya Hills" style={inp}/>
+                        <input value={form.name} onChange={e=>set("name",e.target.value)} placeholder="e.g. Amaya Hills" style={{...inp, borderColor: errors.name ? '#dc2626' : ''}} />
+                        <ErrMsg msg={errors.name}/>
                     </div>
                     <div>
                         <Label>Location *</Label>
-                        <input value={form.location} onChange={e=>set("location",e.target.value)} placeholder="e.g. Kandy, Sri Lanka" style={inp}/>
+                        <input value={form.location} onChange={e=>set("location",e.target.value)} placeholder="e.g. Kandy, Sri Lanka" style={{...inp, borderColor: errors.location ? '#dc2626' : ''}} />
+                        <ErrMsg msg={errors.location}/>
                     </div>
                     <div>
                         <Label>Star Rating</Label>
@@ -98,11 +125,13 @@ function HotelFormModal({ hotel, onClose, onSaved }) {
                     </div>
                     <div>
                         <Label>Contact Email</Label>
-                        <input type="email" value={form.contactEmail} onChange={e=>set("contactEmail",e.target.value)} placeholder="info@hotel.com" style={inp}/>
+                        <input type="text" value={form.contactEmail} onChange={e=>set("contactEmail",e.target.value)} placeholder="info@hotel.com" style={{...inp, borderColor: errors.contactEmail ? '#dc2626' : ''}} />
+                        <ErrMsg msg={errors.contactEmail}/>
                     </div>
                     <div>
                         <Label>Contact Phone</Label>
-                        <input value={form.contactPhone} onChange={e=>set("contactPhone",e.target.value)} placeholder="+94 11 234 5678" style={inp}/>
+                        <input value={form.contactPhone} onChange={e=>{ const v=e.target.value; if(/^[\d\s\-()]*$/.test(v)) set("contactPhone",v); }} placeholder="+94 11 234 5678" maxLength={15} style={{...inp, borderColor: errors.contactPhone ? '#dc2626' : ''}} />
+                        <ErrMsg msg={errors.contactPhone}/>
                     </div>
                     <div style={{ display:"flex", alignItems:"center", gap:"10px", paddingTop:"22px" }}>
                         <input type="checkbox" id="hotelActive" checked={form.isActive} onChange={e=>set("isActive",e.target.checked)} style={{ width:"18px", height:"18px", accentColor:AMBER, cursor:"pointer" }}/>
@@ -112,7 +141,8 @@ function HotelFormModal({ hotel, onClose, onSaved }) {
 
                 <div style={{ marginTop:"16px" }}>
                     <Label>Description *</Label>
-                    <textarea value={form.description} rows={3} onChange={e=>set("description",e.target.value)} placeholder="Describe the hotel…" style={{ ...inp, resize:"vertical", lineHeight:"1.6" }}/>
+                    <textarea value={form.description} rows={3} onChange={e=>set("description",e.target.value)} placeholder="Describe the hotel…" style={{ ...inp, resize:"vertical", lineHeight:"1.6", borderColor: errors.description ? '#dc2626' : '' }}/>
+                    <ErrMsg msg={errors.description}/>
                 </div>
 
                 {/* Amenities */}

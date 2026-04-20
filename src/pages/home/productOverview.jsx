@@ -2,7 +2,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import ImageSlider from "../../components/imageSlider";
-import { addToCart, loadCart } from "../../utils/cart";
+import { addToCart } from "../../utils/cart";
 import toast from "react-hot-toast";
 
 export default function ProductOverview() {
@@ -10,14 +10,27 @@ export default function ProductOverview() {
   const key = params.key;
   const [loadingStatus, setLoadingStatus] = useState("loading");
   const [product, setProduct] = useState();
+  const [totalStock, setTotalStock] = useState(0);
+
+  // How many of this item are already in cart (read localStorage directly)
+  const getCartQty = () => {
+    try {
+      const cart = JSON.parse(localStorage.getItem("cart") || "{}");
+      const found = (cart.orderedItems || []).find(i => i.key === key);
+      return found ? found.qty : 0;
+    } catch { return 0; }
+  };
+
+  const [inCartQty, setInCartQty] = useState(getCartQty());
 
   useEffect(() => {
     axios
       .get(`${import.meta.env.VITE_BACKEND_URL}/api/products/${key}`)
       .then((res) => {
         setProduct(res.data);
+        setTotalStock(res.data.stockCount ?? 0);
+        setInCartQty(getCartQty());
         setLoadingStatus("loaded");
-        console.log(res.data);
       })
       .catch((err) => {
         console.error(err);
@@ -25,11 +38,24 @@ export default function ProductOverview() {
       });
   }, []);
 
-  // ── Loading ────────────────────────────────────────────────────────────────
+  // remaining = total stock minus what's already in cart
+  const remaining = totalStock - inCartQty;
+  const outOfStock = remaining <= 0;
+
+  const handleAddToCart = () => {
+    if (outOfStock) {
+      toast("You have selected all available items!", { icon: "⚠️" });
+      return;
+    }
+    addToCart(product.key, 1);  // local only
+    setInCartQty((prev) => prev + 1);
+    toast.success("Added to Cart");
+  };
+
+  // ── Loading ──────────────────────────────────────────────────────────────
   if (loadingStatus === "loading") {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: "#FAF7F2" }}>
-        {/* Animated amber spinner */}
         <div
           className="w-20 h-20 rounded-full animate-spin mb-6"
           style={{ border: "4px solid #F5EACF", borderTopColor: "#FBBF24" }}
@@ -93,7 +119,6 @@ export default function ProductOverview() {
             className="w-full lg:w-1/2 rounded-3xl overflow-hidden"
             style={{ boxShadow: "0 8px 40px rgba(146,64,14,0.14)" }}
           >
-            {/* Amber top accent bar */}
             <div className="h-1.5" style={{ background: "linear-gradient(to right,#FBBF24,#F59E0B,#D97706)" }} />
             <ImageSlider images={product.image} />
           </div>
@@ -127,21 +152,32 @@ export default function ProductOverview() {
               {product.description}
             </p>
 
-            {/* Availability */}
-            {product.availability !== undefined && (
-              <div className="flex items-center gap-2 mb-6">
-                <span
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{ background: product.availability ? "#F59E0B" : "#EF4444" }}
-                />
+            {/* Stock count display */}
+            <div
+              className="flex items-center gap-3 mb-4 px-4 py-3 rounded-xl"
+              style={{ background: "#FFFBF5", border: "1px solid #F5EACF" }}
+            >
+              <span
+                className="w-3 h-3 rounded-full flex-shrink-0"
+                style={{ background: outOfStock ? "#EF4444" : "#F59E0B" }}
+              />
+              <div className="flex items-center gap-2 flex-wrap">
                 <span
                   className="text-sm font-bold uppercase tracking-wider"
-                  style={{ color: product.availability ? "#D97706" : "#DC2626" }}
+                  style={{ color: outOfStock ? "#DC2626" : "#D97706" }}
                 >
-                  {product.availability ? "In Stock" : "Out of Stock"}
+                  {outOfStock ? "Out of Stock" : "In Stock"}
                 </span>
+                {!outOfStock && (
+                  <span
+                    className="text-sm font-semibold px-2 py-0.5 rounded-full"
+                    style={{ background: "#FEF3C7", color: "#92400E" }}
+                  >
+                    {remaining} unit{remaining !== 1 ? "s" : ""} available
+                  </span>
+                )}
               </div>
-            )}
+            </div>
 
             {/* Price card */}
             <div
@@ -165,7 +201,6 @@ export default function ProductOverview() {
                   </span>
                 </div>
               </div>
-              {/* Mini diamond decoration */}
               <div className="w-10 h-10 rotate-45 border-2 opacity-20" style={{ borderColor: "#D97706" }} />
             </div>
 
@@ -197,30 +232,30 @@ export default function ProductOverview() {
             <button
               className="w-full py-4 rounded-2xl font-bold text-lg shadow-xl transition-all duration-200 hover:scale-[1.02] hover:opacity-90 flex items-center justify-center gap-3"
               style={{
-                background: product.availability
-                  ? "linear-gradient(135deg,#FBBF24,#F59E0B)"
-                  : "#F5EDD8",
-                color: product.availability ? "#1C1917" : "#A8A29E",
-                boxShadow: product.availability
-                  ? "0 8px 24px rgba(251,191,36,0.35)"
-                  : "none",
-                cursor: product.availability ? "pointer" : "not-allowed",
+                background: outOfStock ? "#F5EDD8" : "linear-gradient(135deg,#FBBF24,#F59E0B)",
+                color: outOfStock ? "#A8A29E" : "#1C1917",
+                boxShadow: outOfStock ? "none" : "0 8px 24px rgba(251,191,36,0.35)",
+                cursor: outOfStock ? "not-allowed" : "pointer",
               }}
-              disabled={!product.availability}
-              onClick={() => {
-                if (!product.availability) return;
-                addToCart(product.key, 1);
-                toast.success("Added to Cart");
-                console.log(loadCart());
-              }}
+              onClick={handleAddToCart}
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              {product.availability ? "Add to Cart" : "Unavailable"}
+              {outOfStock ? (
+                <>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                  </svg>
+                  Out of Stock
+                </>
+              ) : (
+                <>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  Add to Cart
+                </>
+              )}
             </button>
-            
 
             {/* Trust badges */}
             <div className="flex gap-4 mt-6 flex-wrap">
