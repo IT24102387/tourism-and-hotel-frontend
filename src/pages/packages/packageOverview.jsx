@@ -170,7 +170,7 @@ export default function PackageOverview() {
   useEffect(() => {
     if (!canvasOpen || step !== 2 || vehiclesState !== "idle") return;
     setVehiclesState("loading");
-    getPackageVehicles()
+    getPackageVehicles(form.tourDate)
       .then((res) => {
         setVehicles(res.data);
         setVehiclesState("success");

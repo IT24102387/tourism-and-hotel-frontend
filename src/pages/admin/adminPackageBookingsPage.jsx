@@ -112,18 +112,21 @@ export default function AdminPackageBookingsPage() {
     const fmtRs   = (n) => `Rs. ${Number(n || 0).toLocaleString("en-LK", { minimumFractionDigits: 2 })}`;
 
     // ── derived stats ──────────────────────────────────────────
-    const total        = bookings.length;
-    const pending      = bookings.filter((b) => b.status === "Pending").length;
-    const confirmed    = bookings.filter((b) => b.status === "Confirmed").length;
-    const cancelled    = bookings.filter((b) => b.status === "Cancelled").length;
-    const completed    = bookings.filter((b) => b.status === "Completed").length;
-    const totalRev     = bookings.reduce((s, b) => s + (b.totalPrice || 0), 0);
-    const confirmedRev = bookings.filter((b) => b.status === "Confirmed" || b.status === "Completed")
-                                 .reduce((s, b) => s + (b.totalPrice || 0), 0);
-    const pendingRev   = bookings.filter((b) => b.status === "Pending")
-                                 .reduce((s, b) => s + (b.totalPrice || 0), 0);
-    const totalGuests  = bookings.reduce((s, b) => s + (b.guests || 0), 0);
-    const avgGuests    = total ? (totalGuests / total).toFixed(1) : 0;
+    const total           = bookings.length;
+    const pending         = bookings.filter((b) => b.status === "Pending").length;
+    const confirmed       = bookings.filter((b) => b.status === "Confirmed").length;
+    const cancelled       = bookings.filter((b) => b.status === "Cancelled").length;
+    const completed       = bookings.filter((b) => b.status === "Completed").length;
+    const confirmedOnlyRev = bookings.filter((b) => b.status === "Confirmed")
+                                      .reduce((s, b) => s + (b.totalPrice || 0), 0);
+    const completedRev    = bookings.filter((b) => b.status === "Completed")
+                                     .reduce((s, b) => s + (b.totalPrice || 0), 0);
+    // Total Revenue = Confirmed + Completed only (matches dashboard stat card)
+    const totalRev        = confirmedOnlyRev + completedRev;
+    const pendingRev      = bookings.filter((b) => b.status === "Pending")
+                                     .reduce((s, b) => s + (b.totalPrice || 0), 0);
+    const cancelledRev    = bookings.filter((b) => b.status === "Cancelled")
+                                     .reduce((s, b) => s + (b.totalPrice || 0), 0);
 
     // bookings per package
     const pkgMap = {};
@@ -137,33 +140,34 @@ export default function AdminPackageBookingsPage() {
       .sort((a, b) => b[1].revenue - a[1].revenue)
       .map(([name, d]) => [name, d.count, d.guests, fmtRs(d.revenue)]);
 
-    // add-on popularity
-    const addonCountMap = {};
+    // add-on popularity — fixed add-ons: Meal Package & Travel Guider
+    const TARGET_ADDONS = ["Meal Package", "Travel Guider"];
+    const addonCountMap = { "Meal Package": 0, "Travel Guider": 0 };
     bookings.forEach((b) => {
       (b.addOns || []).forEach((a) => {
         const name = typeof a === "string" ? a : a.name;
-        if (name) addonCountMap[name] = (addonCountMap[name] || 0) + 1;
+        if (name) {
+          const matched = TARGET_ADDONS.find(
+            (t) => t.toLowerCase() === name.trim().toLowerCase()
+          );
+          if (matched) addonCountMap[matched] += 1;
+        }
       });
     });
-    const addonRows = Object.entries(addonCountMap)
-      .sort((a, b) => b[1] - a[1])
-      .map(([name, count]) => [
-        name,
-        count,
-        total ? `${((count / total) * 100).toFixed(1)}%` : "0%",
-      ]);
+    const addonRows = TARGET_ADDONS.map((name) => {
+      const count = addonCountMap[name];
+      return [name, count, total ? `${((count / total) * 100).toFixed(1)}%` : "0%"];
+    });
 
-    // vehicle usage
-    const withVehicle    = bookings.filter((b) => b.selectedVehicle?.vehicleName).length;
-    const withoutVehicle = total - withVehicle;
-
-    // monthly revenue (current year)
+    // monthly revenue (current year) — Confirmed + Completed only, matching dashboard definition
     const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
     const monthlyRev = Array(12).fill(0);
-    bookings.forEach((b) => {
-      const m = new Date(b.createdAt).getMonth();
-      monthlyRev[m] += b.totalPrice || 0;
-    });
+    bookings
+      .filter((b) => b.status === "Confirmed" || b.status === "Completed")
+      .forEach((b) => {
+        const m = new Date(b.createdAt).getMonth();
+        monthlyRev[m] += b.totalPrice || 0;
+      });
     const monthlyRows = monthNames.map((m, i) => [m, fmtRs(monthlyRev[i])]);
 
     // ── PDF layout ────────────────────────────────────────────
@@ -210,16 +214,15 @@ export default function AdminPackageBookingsPage() {
       doc.text(String(value), x + 4, y + 13);
     }
 
-    // ── 1. Summary stats ─────────────────────────────────────
+    // ── 1. Summary stats — matches dashboard stat cards exactly ────
     sectionTitle("Summary Overview");
-    const boxW = (W - 28 - 10) / 6;
+    const boxW = (W - 28 - 8) / 5;
     const boxes = [
-      ["Total",     total,            [47,45,143]],
-      ["Pending",   pending,          [202,138,4]],
-      ["Confirmed", confirmed,        [22,163,74]],
-      ["Cancelled", cancelled,        [220,38,38]],
-      ["Completed", completed,        [37,99,235]],
-      ["Revenue",   fmtRs(totalRev),  [5,150,105]],
+      ["Total Bookings", total,           [47,45,143]],
+      ["Pending",        pending,         [202,138,4]],
+      ["Confirmed",      confirmed,       [22,163,74]],
+      ["Cancelled",      cancelled,       [220,38,38]],
+      ["Total Revenue",  fmtRs(totalRev), [5,150,105]],
     ];
     boxes.forEach(([lbl, val, col], i) => summaryBox(lbl, val, 14 + i * (boxW + 2), boxW, col));
     y += 22;
@@ -228,16 +231,29 @@ export default function AdminPackageBookingsPage() {
     sectionTitle("Revenue Breakdown");
     autoTable(doc, {
       startY: y,
-      head: [["Category", "Amount", "% of Total"]],
+      head: [["Category", "Bookings", "Amount", "Counted in Revenue?"]],
       body: [
-        ["Confirmed + Completed Revenue", fmtRs(confirmedRev), total ? `${((confirmedRev / totalRev) * 100).toFixed(1)}%` : "0%"],
-        ["Pending Revenue",               fmtRs(pendingRev),   total ? `${((pendingRev   / totalRev) * 100).toFixed(1)}%` : "0%"],
-        ["Total Revenue",                 fmtRs(totalRev),     "100%"],
+        ["Confirmed",  confirmed, fmtRs(confirmedOnlyRev), "Yes"],
+        ["Completed",  completed, fmtRs(completedRev),     "Yes"],
+        ["Pending",    pending,   fmtRs(pendingRev),       "No"],
+        ["Cancelled",  cancelled, fmtRs(cancelledRev),     "No"],
+        ["Total Revenue (Confirmed + Completed)", confirmed + completed, fmtRs(totalRev), "—"],
       ],
       styles: { fontSize: 9, cellPadding: 3 },
       headStyles: { fillColor: PRIMARY, textColor: 255, fontStyle: "bold" },
       alternateRowStyles: { fillColor: LIGHT_BG },
       margin: { left: 14, right: 14 },
+      didParseCell(data) {
+        if (data.section === "body" && data.column.index === 3) {
+          const v = data.cell.raw;
+          if (v === "Yes") { data.cell.styles.textColor = [22, 163, 74]; data.cell.styles.fontStyle = "bold"; }
+          else if (v === "No") { data.cell.styles.textColor = [220, 38, 38]; data.cell.styles.fontStyle = "bold"; }
+        }
+        if (data.section === "body" && data.row.index === 4) {
+          data.cell.styles.fontStyle = "bold";
+          data.cell.styles.textColor = [5, 150, 105];
+        }
+      },
     });
     y = doc.lastAutoTable.finalY + 10;
 
@@ -254,26 +270,7 @@ export default function AdminPackageBookingsPage() {
     });
     y = doc.lastAutoTable.finalY + 10;
 
-    // ── 4. Guest statistics ───────────────────────────────────
-    sectionTitle("Guest Statistics");
-    autoTable(doc, {
-      startY: y,
-      head: [["Metric", "Value"]],
-      body: [
-        ["Total Guests Across All Bookings", totalGuests],
-        ["Average Guests per Booking",       avgGuests],
-        ["Bookings with Vehicle",            withVehicle],
-        ["Bookings without Vehicle",         withoutVehicle],
-      ],
-      styles: { fontSize: 9, cellPadding: 3 },
-      headStyles: { fillColor: PRIMARY, textColor: 255, fontStyle: "bold" },
-      alternateRowStyles: { fillColor: LIGHT_BG },
-      margin: { left: 14, right: 14 },
-      columnStyles: { 0: { cellWidth: 120 } },
-    });
-    y = doc.lastAutoTable.finalY + 10;
-
-    // ── 5. Add-on popularity ─────────────────────────────────
+    // ── 4. Add-on popularity ─────────────────────────────────
     sectionTitle("Add-on Popularity");
     autoTable(doc, {
       startY: y,
@@ -287,7 +284,7 @@ export default function AdminPackageBookingsPage() {
     y = doc.lastAutoTable.finalY + 10;
 
     // ── 6. Monthly revenue ───────────────────────────────────
-    sectionTitle(`Monthly Revenue – ${now.getFullYear()}`);
+    sectionTitle(`Monthly Revenue – ${now.getFullYear()} (Confirmed & Completed Only)`);
     autoTable(doc, {
       startY: y,
       head: [["Month", "Revenue"]],
@@ -384,7 +381,9 @@ export default function AdminPackageBookingsPage() {
     );
   }
 
-  const totalRevenue = bookings.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
+  const totalRevenue = bookings
+    .filter((b) => b.status === "Confirmed" || b.status === "Completed")
+    .reduce((sum, b) => sum + (b.totalPrice || 0), 0);
   const pendingCount   = bookings.filter((b) => b.status === "Pending").length;
   const confirmedCount = bookings.filter((b) => b.status === "Confirmed").length;
   const cancelledCount = bookings.filter((b) => b.status === "Cancelled").length;
@@ -773,31 +772,27 @@ export default function AdminPackageBookingsPage() {
               {/* Status Actions */}
               <div>
                 <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Update Status</h4>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
+                  {/* Confirm — disabled if already Confirmed, Cancelled, or Completed */}
                   <button
                     onClick={() => handleStatusChange(activeBooking.bookingId, "Confirmed")}
-                    disabled={activeBooking.status === "Confirmed"}
+                    disabled={["Confirmed", "Cancelled", "Completed"].includes(activeBooking.status)}
                     className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 disabled:opacity-40 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-lg font-semibold transition shadow-sm text-sm"
                   >
                     <FiCheckCircle size={15} /> Confirm
                   </button>
+                  {/* Complete — only enabled when Confirmed */}
                   <button
                     onClick={() => handleStatusChange(activeBooking.bookingId, "Completed")}
-                    disabled={activeBooking.status === "Completed"}
+                    disabled={activeBooking.status !== "Confirmed"}
                     className="flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-lg font-semibold transition shadow-sm text-sm"
                   >
                     <FiCalendar size={15} /> Complete
                   </button>
-                  <button
-                    onClick={() => handleStatusChange(activeBooking.bookingId, "Pending")}
-                    disabled={activeBooking.status === "Pending"}
-                    className="flex items-center justify-center gap-2 bg-yellow-500 hover:bg-yellow-600 disabled:opacity-40 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-lg font-semibold transition shadow-sm text-sm"
-                  >
-                    Pending
-                  </button>
+                  {/* Cancel — disabled if Confirmed, Cancelled, or Completed */}
                   <button
                     onClick={() => handleStatusChange(activeBooking.bookingId, "Cancelled")}
-                    disabled={activeBooking.status === "Cancelled"}
+                    disabled={["Confirmed", "Cancelled", "Completed"].includes(activeBooking.status)}
                     className="flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-lg font-semibold transition shadow-sm text-sm"
                   >
                     <FiXCircle size={15} /> Cancel

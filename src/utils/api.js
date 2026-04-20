@@ -14,8 +14,9 @@ export function getPackageById(packageId) {
   return axios.get(`${BASE_URL}/api/packages/${packageId}`);
 }
 
-export function getPackageVehicles() {
-  return axios.get(`${BASE_URL}/api/package-vehicles`);
+export function getPackageVehicles(tourDate) {
+  const params = tourDate ? `?tourDate=${tourDate}` : "";
+  return axios.get(`${BASE_URL}/api/package-vehicles${params}`);
 }
 
 export function getAddons() {
