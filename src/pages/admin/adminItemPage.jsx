@@ -12,8 +12,8 @@ export default function AdminItemPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [categories, setCategories] = useState([]);
-  const [deleteModal, setDeleteModal] = useState({ isOpen: false, key: null }); 
-  const navigate=useNavigate()
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, key: null });
+  const navigate = useNavigate();
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -42,7 +42,6 @@ export default function AdminItemPage() {
     }
   };
 
-  // Filter items based on search and category
   useEffect(() => {
     let filtered = items;
     if (searchTerm) {
@@ -59,19 +58,15 @@ export default function AdminItemPage() {
     setCurrentPage(1);
   }, [searchTerm, categoryFilter, items]);
 
-  
   const handleDelete = async () => {
-    const itemKey = deleteModal.key; 
+    const itemKey = deleteModal.key;
     if (!itemKey) return;
 
     try {
       const token = localStorage.getItem("token");
-     
       await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/products/${itemKey}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      // Remove from local state – filter by key (since we stored key)
       setItems((prev) => prev.filter((item) => item.key !== itemKey));
       setDeleteModal({ isOpen: false, key: null });
       toast.success("Item deleted successfully");
@@ -82,7 +77,6 @@ export default function AdminItemPage() {
     }
   };
 
-  // Pagination logic
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
   const paginatedItems = filteredItems.slice(
     (currentPage - 1) * itemsPerPage,
@@ -130,9 +124,7 @@ export default function AdminItemPage() {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
+              <option key={cat} value={cat}>{cat}</option>
             ))}
           </select>
         </div>
@@ -155,6 +147,7 @@ export default function AdminItemPage() {
                   <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Name</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Price (Daily)</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Category</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Stock</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Status</th>
                   <th className="px-6 py-4 text-center text-sm font-semibold uppercase tracking-wider">Actions</th>
                 </tr>
@@ -167,6 +160,15 @@ export default function AdminItemPage() {
                     <td className="px-6 py-4">Rs {product.dailyRentalprice}</td>
                     <td className="px-6 py-4">{product.category}</td>
                     <td className="px-6 py-4">
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                        (product.stockCount ?? 0) > 0
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-orange-100 text-orange-700"
+                      }`}>
+                        {product.stockCount ?? 0} units
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-bold ${
                           product.availability ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
@@ -178,14 +180,13 @@ export default function AdminItemPage() {
                     <td className="px-6 py-4">
                       <div className="flex justify-center gap-4">
                         <button
-                        onClick={()=>{
-                          navigate(`/admin/items/edit`,{state:product})
-                        }} className="text-blue-600 hover:text-blue-800 transition"
+                          onClick={() => navigate(`/admin/items/edit`, { state: product })}
+                          className="text-blue-600 hover:text-blue-800 transition"
                         >
-                            <FiEdit size={18} />
+                          <FiEdit size={18} />
                         </button>
                         <button
-                          onClick={() => setDeleteModal({ isOpen: true, key: product.key })} // store key, not _id
+                          onClick={() => setDeleteModal({ isOpen: true, key: product.key })}
                           className="text-red-600 hover:text-red-800 transition"
                         >
                           <FiTrash2 size={18} />
@@ -218,16 +219,22 @@ export default function AdminItemPage() {
                 <div className="text-sm text-gray-600 mb-3">
                   <p>Price: Rs {product.dailyRentalprice}</p>
                   <p>Category: {product.category}</p>
+                  <p>
+                    Stock:{" "}
+                    <span className={`font-semibold ${(product.stockCount ?? 0) > 0 ? "text-blue-600" : "text-orange-600"}`}>
+                      {product.stockCount ?? 0} units
+                    </span>
+                  </p>
                 </div>
                 <div className="flex justify-end gap-4 pt-2 border-t border-gray-100">
-                  <Link
-                    to={`/admin/items/edit/${product.key}`}
-                    className="text-blue-600 hover:text-blue-800 transition p-2"
+                  <button
+                    onClick={() => navigate(`/admin/items/edit`, { state: product })}
+                    className="text-blue-600 hover:text-blueue-800 transition p-2"
                   >
                     <FiEdit size={20} />
-                  </Link>
+                  </button>
                   <button
-                    onClick={() => setDeleteModal({ isOpen: true, key: product.key })} // store key
+                    onClick={() => setDeleteModal({ isOpen: true, key: product.key })}
                     className="text-red-600 hover:text-red-800 transition p-2"
                   >
                     <FiTrash2 size={20} />
@@ -278,7 +285,7 @@ export default function AdminItemPage() {
                 Cancel
               </button>
               <button
-                onClick={handleDelete} // ✅ no arguments – reads from state
+                onClick={handleDelete}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
               >
                 Delete

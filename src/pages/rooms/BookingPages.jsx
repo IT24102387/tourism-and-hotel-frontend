@@ -545,7 +545,20 @@ export function RoomDetailsPage({ embedded = false }) {
               <div style={{ padding:"0 22px 22px" }}>
                 <button
                   disabled={!checkIn || !checkOut || n <= 0}
-                  onClick={() => nav(`/rooms/${room.key}/book`, { state: { checkIn, checkOut, guests: st.guests || "" } })}
+                  onClick={() => {
+                    if (!getToken()) {
+                      nav("/login", {
+                        state: {
+                          from: `/rooms/${room.key}/book`,
+                          checkIn,
+                          checkOut,
+                          guests: st.guests || "",
+                        },
+                      });
+                      return;
+                    }
+                    nav(`/rooms/${room.key}/book`, { state: { checkIn, checkOut, guests: st.guests || "" } });
+                  }}
                   style={{ ...goldBtn2, width:"100%", height:"50px", fontSize:"15px", display:"flex", alignItems:"center", justifyContent:"center", gap:"8px",
                     opacity:(checkIn && checkOut && n > 0) ? 1 : 0.4,
                     background:(checkIn && checkOut && n > 0) ? `linear-gradient(135deg,${AMBER_LT},${AMBER})` : BORDER,
@@ -688,7 +701,7 @@ export function RoomBookingFormPage({ embedded = false }) {
         )}
 
         <div style={{ display:"flex", gap:"12px", justifyContent:"center" }}>
-          <button onClick={() => nav("/user/bookings")} style={{ ...goldBtn2, padding:"12px 24px", fontSize:"14px" }}>View My Bookings</button>
+          <button onClick={() => nav("/my-bookings")} style={{ ...goldBtn2, padding:"12px 24px", fontSize:"14px" }}>View My Bookings</button>
           <button onClick={() => nav("/")} style={{ padding:"12px 24px", borderRadius:"12px", background:CARD_BG, color:MUTED, border:`1px solid ${BORDER}`, cursor:"pointer", fontSize:"14px", fontWeight:600 }}>Back to Home</button>
         </div>
       </div>

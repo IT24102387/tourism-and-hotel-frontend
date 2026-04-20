@@ -16,6 +16,7 @@ import BookingDetails from "./VehicleBookingDetails";
 import Restaurants from "./Restaurants";
 import ResortRooms from "./Resortrooms";
 import { RoomBookingFormPage, RoomDetailsPage } from "../rooms/BookingPages";
+import GoogleMapsPage from "./GoogleMapsPage";
 
 
 export default function HomePage(){
@@ -45,6 +46,11 @@ export default function HomePage(){
                     <Route path="/rooms"                element={<ResortRooms />} />
                     <Route path="/rooms/:key/book"      element={<RoomBookingFormPage />} />
                     <Route path="/rooms/:key"           element={<RoomDetailsPage />} />
+
+                    {/* googlemap */}
+                    <Route path="/google-maps" element={<GoogleMapsPage />} /> {/* 👈 new route */}
+
+
 
                 </Routes>
             </div>

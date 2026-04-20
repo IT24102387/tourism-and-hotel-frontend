@@ -33,7 +33,9 @@ import UpdateRestaurantPage from "./UpdateRestaurantPage";
 import { GiJeep } from "react-icons/gi";
 import AdminPackageVehiclesPage from "./adminPackageVehiclesPage";
 import AdminPackageBookingsPage from "./adminPackageBookingsPage";
-import { AddMenuPage } from "./AddMenuPages";
+import { AddMenuPage, UpdateMenuPage } from "./AddMenuPages";
+import AdminMenuPage from "./AdminMenuPage";
+import { AddFoodItemPage, AdminFoodItemPage, UpdateFoodItemPage } from "./AddFooditemPage";
 
 
 
@@ -50,7 +52,6 @@ const navItems = [
   { label: "Restaurant",         icon: IoFastFoodOutline,    to: "/admin/restaurant" },
   { label: "Reviews",            icon: MdOutlineReviews,     to: "/admin/reviews" },
   { label: "Event Calendar",     icon: BsCalendar2Event ,    to: "/admin/Eventcalendar" },
-  { label: "Google Maps",        icon: FiMapPin ,            to: "/admin/googlemap" },
   { label: "Package Vehicles",   icon: GiJeep,          to: "/admin/packageVehicles" },
   { label: "Package Bookings",  icon: FaRegBookmark,       to: "/admin/package-bookings" },
   
@@ -343,7 +344,15 @@ export default function AdminPage() {
           <Route path="/restaurant/add"        element={<AddRestaurantPage />} />
           <Route path="/restaurant/edit"        element={<UpdateRestaurantPage />} />
           
-          <Route path="/restaurant/:restaurantId/menus"        element={<AddMenuPage />} />
+          <Route path="/restaurant/:restaurantId/menus/add"        element={<AddMenuPage />} />
+          <Route path="/restaurant/:restaurantId/menus"        element={<AdminMenuPage/>} />
+          <Route path="/restaurant/:restaurantId/menus/edit"   element={<UpdateMenuPage/>} />
+          <Route path="/restaurant/:restaurantId/menus/:menuId/fooditems"    element={<AdminFoodItemPage/>} />
+          <Route path="/restaurant/:restaurantId/menus/:menuId/fooditems/add"                element={<AddFoodItemPage />} />
+          <Route path="/restaurant/:restaurantId/menus/:menuId/fooditems/edit"               element={<UpdateFoodItemPage />} />
+          
+          
+          
 
           
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { formatDate, loadCart } from "../../utils/cart";
+import { formatDate, loadCart, commitStockToBackend } from "../../utils/cart";
 import BookingItem from "../../components/bookingItem";
 import toast from "react-hot-toast";
 import axios from "axios";
@@ -45,7 +45,7 @@ export default function BookingPage() {
     calculateTotal();
   }, [startDate, endDate]);
 
-  function handleBookingCreation() {
+  async function handleBookingCreation() {
     const cartData = loadCart();
     cartData.startingDate = startDate;
     cartData.endingDate = endDate;
@@ -53,21 +53,24 @@ export default function BookingPage() {
 
     const token = localStorage.getItem("token");
     setBookingLoading(true);
-    axios
-      .post(`${import.meta.env.VITE_BACKEND_URL}/api/orders`, cartData, {
+    try {
+      // 1. Commit stock decrements to backend
+      await commitStockToBackend();
+
+      // 2. Create the order
+      await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/orders`, cartData, {
         headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
-        console.log(res.data);
-        localStorage.removeItem("cart");
-        toast.success("Booking created successfully!");
-        setCart(loadCart());
-      })
-      .catch((err) => {
-        console.error(err);
-        toast.error(err?.response?.data?.message || "Failed to create booking.");
-      })
-      .finally(() => setBookingLoading(false));
+      });
+
+      localStorage.removeItem("cart");
+      toast.success("Booking created successfully!");
+      setCart(loadCart());
+    } catch (err) {
+      console.error(err);
+      toast.error(err?.response?.data?.message || "Failed to create booking.");
+    } finally {
+      setBookingLoading(false);
+    }
   }
 
   const isEmpty = cart.orderedItems.length === 0;

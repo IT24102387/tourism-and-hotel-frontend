@@ -8,18 +8,19 @@ function ReviewsManagement() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [ratingFilter, setRatingFilter] = useState(null); // null = all, 1-5 = min rating
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 7;
-
-  useEffect(() => {
-    fetchReviews();
-  }, []);
 
   const fetchReviews = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/reviews`, {
+      let url = 'http://localhost:5000/api/reviews';
+      if (ratingFilter) {
+        url += `?minRating=${ratingFilter}`;
+      }
+      const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setReviews(response.data);
@@ -30,12 +31,15 @@ function ReviewsManagement() {
       setLoading(false);
     }
   };
-  
+
+  useEffect(() => {
+    fetchReviews();
+  }, [ratingFilter]); // refetch when rating filter changes
 
   const handleApprove = async (id) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/reviews/${id}/approve`, {}, {
+      await axios.put(`http://localhost:5000/api/reviews/${id}/approve`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Review approved');
@@ -50,7 +54,7 @@ function ReviewsManagement() {
     if (!window.confirm('Delete this review?')) return;
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/reviews/${id}`, {
+      await axios.delete(`http://localhost:5000/api/reviews/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Review deleted');
@@ -61,6 +65,7 @@ function ReviewsManagement() {
     }
   };
 
+  // Apply status filter (client-side because rating filter is already server-side)
   const filteredReviews = reviews.filter(review => {
     if (filter === 'approved') return review.isApproved === true;
     if (filter === 'pending') return review.isApproved === false;
@@ -73,7 +78,7 @@ function ReviewsManagement() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filter]);
+  }, [filter, ratingFilter]);
 
   const renderStars = (rating) => {
     return [...Array(5)].map((_, i) => (
@@ -88,7 +93,8 @@ function ReviewsManagement() {
         <p className="text-gray-600">Manage and moderate customer reviews</p>
       </div>
 
-      <div className="mb-6 flex gap-2">
+      {/* Status and Rating Filters */}
+      <div className="mb-6 flex flex-wrap gap-2 items-center">
         <button onClick={() => setFilter('all')} className={`px-4 py-2 rounded-lg ${filter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
           All Reviews ({reviews.length})
         </button>
@@ -98,6 +104,24 @@ function ReviewsManagement() {
         <button onClick={() => setFilter('approved')} className={`px-4 py-2 rounded-lg ${filter === 'approved' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
           Approved ({reviews.filter(r => r.isApproved).length})
         </button>
+
+        <div className="w-px h-8 bg-gray-300 mx-2"></div>
+
+        <button
+          onClick={() => setRatingFilter(null)}
+          className={`px-4 py-2 rounded-lg ${ratingFilter === null ? 'bg-amber-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+        >
+          All Stars
+        </button>
+        {[5,4,3,2,1].map(stars => (
+          <button
+            key={stars}
+            onClick={() => setRatingFilter(stars)}
+            className={`px-4 py-2 rounded-lg flex items-center gap-1 ${ratingFilter === stars ? 'bg-amber-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+          >
+            {stars} <FaStar size={14} /> & up
+          </button>
+        ))}
       </div>
 
       {loading ? (
@@ -114,7 +138,7 @@ function ReviewsManagement() {
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Date</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Actions</th>
-               </tr>
+              </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {currentReviews.map(review => (

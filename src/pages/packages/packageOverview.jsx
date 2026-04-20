@@ -47,12 +47,22 @@ export default function PackageOverview() {
   const [addons, setAddons] = useState([]);
   const [addonsState, setAddonsState] = useState("idle");
   const [selectedAddons, setSelectedAddons] = useState([]);
+  const [mealOptions, setMealOptions] = useState({ breakfast: false, lunch: false });
   const [bookingStatus, setBookingStatus] = useState("idle"); // idle | loading | success | error
   const [bookingError, setBookingError] = useState("");
   const [bookingResult, setBookingResult] = useState(null);
 
   const vehicleCost = form.vehicle ? form.vehicle.pricePerDay * (pkg?.duration?.days || 1) : 0;
-  const addonsCost = selectedAddons.reduce((sum, a) => sum + a.price, 0);
+  function getMealPrice() {
+    if (mealOptions.breakfast && mealOptions.lunch) return 1000;
+    if (mealOptions.breakfast) return 450;
+    if (mealOptions.lunch) return 550;
+    return 0;
+  }
+  const addonsCost = selectedAddons.reduce((sum, a) => {
+    if (a.category === "Meal") return sum + getMealPrice();
+    return sum + a.price;
+  }, 0);
   const totalPrice = pkg ? pkg.price * form.guests + vehicleCost + addonsCost : 0;
 
   function openCanvas() {
@@ -63,6 +73,7 @@ export default function PackageOverview() {
     setAddonsState("idle");
     setAddons([]);
     setSelectedAddons([]);
+    setMealOptions({ breakfast: false, lunch: false });
     setBookingStatus("idle");
     setBookingError("");
     setBookingResult(null);
@@ -104,7 +115,13 @@ export default function PackageOverview() {
             vehiclePricePerDay: form.vehicle.pricePerDay,
           }
         : { vehicleId: null, vehicleName: null, vehicleType: null, vehiclePricePerDay: 0 },
-      addOns: pkg.customizationEnabled ? selectedAddons : (pkg.includes || []),
+      addOns: pkg.customizationEnabled
+        ? selectedAddons.map((a) =>
+            a.category === "Meal"
+              ? { ...a, mealSelections: Object.entries(mealOptions).filter(([, v]) => v).map(([k]) => k) }
+              : a
+          )
+        : (pkg.includes || []),
       specialRequests: "",
       basePricePerPerson: pkg.price,
       vehicleTotal: vehicleCost,
@@ -578,40 +595,7 @@ export default function PackageOverview() {
                 </p>
 
                 {/* Standard Vehicle Card */}
-                <button
-                  onClick={() => handleFormChange("vehicle", null)}
-                  className="w-full text-left rounded-xl border-2 p-4 transition"
-                  style={{
-                    borderColor: form.vehicle === null ? "#D97706" : "#E7D9B8",
-                    background: form.vehicle === null ? "#FFFBF5" : "#FAFAFA",
-                  }}
-                >
-                  <div className="flex items-center gap-4">
-                    <div
-                      className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
-                      style={{ background: "#FEF3C7" }}
-                    >
-                      <FaCar className="text-xl" style={{ color: "#D97706" }} />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <p className="font-bold text-sm" style={{ color: "#292524" }}>Standard Vehicle</p>
-                        {form.vehicle === null && (
-                          <FaCheckCircle style={{ color: "#10B981", fontSize: "1.1rem" }} />
-                        )}
-                      </div>
-                      <p className="text-xs mt-0.5" style={{ color: "#78716C" }}>
-                        A comfortable vehicle arranged by the tour operator
-                      </p>
-                    </div>
-                    <span
-                      className="text-xs font-bold px-2 py-1 rounded-full flex-shrink-0"
-                      style={{ background: "#D1FAE5", color: "#065F46" }}
-                    >
-                      Included
-                    </span>
-                  </div>
-                </button>
+                
 
                 {/* Loading state */}
                 {vehiclesState === "loading" && (
@@ -788,13 +772,47 @@ export default function PackageOverview() {
 
                           {addon.description && (
                             <p className="text-xs leading-relaxed" style={{ color: "#78716C" }}>
-                              {addon.description}
+                              {addon.category === "Meal" ? "Breakfast & lunch." : addon.description}
                             </p>
                           )}
 
-                          <p className="text-sm font-bold mt-auto pt-1" style={{ color: "#D97706" }}>
-                            Rs. {addon.price.toLocaleString()}
-                          </p>
+                          {/* Meal sub-options — always visible for Meal cards */}
+                          {addon.category === "Meal" ? (
+                            <div
+                              className="flex flex-col gap-2 mt-1"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {[
+                                { key: "breakfast", label: "Breakfast", price: 450 },
+                                { key: "lunch", label: "Lunch", price: 550 },
+                              ].map(({ key, label, price }) => (
+                                <label key={key} className="flex items-center justify-between gap-2 cursor-pointer select-none">
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      type="checkbox"
+                                      checked={mealOptions[key]}
+                                      onChange={(e) =>
+                                        setMealOptions((prev) => ({ ...prev, [key]: e.target.checked }))
+                                      }
+                                      className="w-4 h-4 rounded accent-amber-500 cursor-pointer"
+                                    />
+                                    <span className="text-xs" style={{ color: "#57534E" }}>{label}</span>
+                                  </div>
+                                  <span className="text-xs font-semibold" style={{ color: "#D97706" }}>Rs. {price.toLocaleString()}</span>
+                                </label>
+                              ))}
+                              {mealOptions.breakfast && mealOptions.lunch && (
+                                <p className="text-xs mt-1" style={{ color: "#92400E" }}>Both selected — combo price: <strong>Rs. 1,000</strong></p>
+                              )}
+                              <p className="text-sm font-bold mt-1 pt-1" style={{ color: "#D97706" }}>
+                                Rs. {getMealPrice().toLocaleString()}
+                              </p>
+                            </div>
+                          ) : (
+                            <p className="text-sm font-bold mt-auto pt-1" style={{ color: "#D97706" }}>
+                              Rs. {addon.price.toLocaleString()}
+                            </p>
+                          )}
                         </button>
                       );
                     })}
@@ -825,7 +843,7 @@ export default function PackageOverview() {
                   {selectedAddons.map((a) => (
                     <div key={a.addonId} className="flex justify-between text-sm mb-2" style={{ color: "#57534E" }}>
                       <span>{a.name}</span>
-                      <span>Rs. {a.price.toLocaleString()}</span>
+                      <span>Rs. {(a.category === "Meal" ? getMealPrice() : a.price).toLocaleString()}</span>
                     </div>
                   ))}
                   <div
@@ -924,7 +942,7 @@ export default function PackageOverview() {
                               </div>
                             </div>
                             <span className="text-sm font-semibold flex-shrink-0" style={{ color: "#D97706" }}>
-                              Rs. {a.price.toLocaleString()}
+                              Rs. {(a.category === "Meal" ? getMealPrice() : a.price).toLocaleString()}
                             </span>
                           </div>
                         ))}
@@ -964,7 +982,7 @@ export default function PackageOverview() {
                   {selectedAddons.map((a) => (
                     <div key={a.addonId} className="flex justify-between text-sm mb-2" style={{ color: "#57534E" }}>
                       <span>{a.name}</span>
-                      <span>Rs. {a.price.toLocaleString()}</span>
+                      <span>Rs. {(a.category === "Meal" ? getMealPrice() : a.price).toLocaleString()}</span>
                     </div>
                   ))}
                   <div className="flex justify-between font-bold text-base border-t pt-2" style={{ color: "#292524", borderColor: "#FDE68A" }}>

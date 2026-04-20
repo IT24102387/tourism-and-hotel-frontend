@@ -18,7 +18,6 @@ function EventManagement() {
     endTime: '',
     location: { venue: '', address: '', coordinates: { lat: '', lng: '' } },
     category: 'festival',
-    image: '',
     organizer: '',
     contactInfo: { email: '', phone: '' },
     ticketPrice: 0,
@@ -31,10 +30,10 @@ function EventManagement() {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/events`, {
+      const response = await axios.get('http://localhost:5000/api/events', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setEvents(response.data.events || response.data); // handle both {events: [...]} and direct array
+      setEvents(response.data.events || response.data);
     } catch (error) {
       toast.error('Failed to fetch events');
       console.error(error);
@@ -58,7 +57,6 @@ function EventManagement() {
       endTime: '',
       location: { venue: '', address: '', coordinates: { lat: '', lng: '' } },
       category: 'festival',
-      image: '',
       organizer: '',
       contactInfo: { email: '', phone: '' },
       ticketPrice: 0,
@@ -72,7 +70,6 @@ function EventManagement() {
   const handleEditClick = (event) => {
     setEditMode(true);
     setCurrentEvent(event);
-    // Convert date to YYYY-MM-DD for input
     const eventDate = new Date(event.date).toISOString().split('T')[0];
     setFormData({
       ...event,
@@ -88,7 +85,6 @@ function EventManagement() {
   // Handle form input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // Handle nested fields (location.venue, location.address, contactInfo.email, etc.)
     if (name.includes('.')) {
       const [parent, child] = name.split('.');
       setFormData(prev => ({
@@ -118,17 +114,60 @@ function EventManagement() {
     }));
   };
 
+  // Validation helper
+  const validateForm = () => {
+    // 1. Date validation: must be today or future
+    if (!formData.date) {
+      toast.error('Please select a date');
+      return false;
+    }
+    const selectedDate = new Date(formData.date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (selectedDate < today) {
+      toast.error('Event date cannot be in the past');
+      return false;
+    }
+
+    // 2. Time validation: end time must be after start time
+    if (formData.startTime && formData.endTime) {
+      const start = formData.startTime;
+      const end = formData.endTime;
+      if (start >= end) {
+        toast.error('End time must be greater than start time');
+        return false;
+      }
+    } else if (formData.startTime || formData.endTime) {
+      toast.error('Both start time and end time are required');
+      return false;
+    }
+
+    // 3. Phone validation: exactly 10 digits if provided
+    const phone = formData.contactInfo.phone;
+    if (phone && phone.trim() !== '') {
+      const digitsOnly = phone.replace(/\D/g, '');
+      if (digitsOnly.length !== 10) {
+        toast.error('Contact phone must contain exactly 10 digits');
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   // Submit form (add or update)
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!validateForm()) return;
+
     try {
       const token = localStorage.getItem('token');
       const url = editMode
-        ? `${import.meta.env.VITE_BACKEND_URL}/api/events/${currentEvent._id}`
-        : `${import.meta.env.VITE_BACKEND_URL}/api/events`;
+        ? `http://localhost:5000/api/events/${currentEvent._id}`
+        : 'http://localhost:5000/api/events';
       const method = editMode ? 'put' : 'post';
 
-      // Prepare data – convert empty strings to null if needed
       const payload = {
         ...formData,
         ticketPrice: Number(formData.ticketPrice) || 0,
@@ -153,7 +192,7 @@ function EventManagement() {
     if (!window.confirm('Are you sure you want to delete this event?')) return;
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/events/${id}`, {
+      await axios.delete(`http://localhost:5000/api/events/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Event deleted');
@@ -164,11 +203,13 @@ function EventManagement() {
     }
   };
 
-  // Helper to format time range
   const formatTimeRange = (start, end) => {
     if (!start && !end) return '—';
     return `${start || '?'} - ${end || '?'}`;
   };
+
+  // Get today's date in YYYY-MM-DD for the min attribute
+  const todayDate = new Date().toISOString().split('T')[0];
 
   return (
     <div className="p-6">
@@ -307,6 +348,7 @@ function EventManagement() {
                     name="date"
                     value={formData.date}
                     onChange={handleChange}
+                    min={todayDate}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                   />
@@ -389,17 +431,6 @@ function EventManagement() {
                     <option value="cancelled">Cancelled</option>
                   </select>
                 </div>
-                {/* Image URL */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-                  <input
-                    type="url"
-                    name="image"
-                    value={formData.image}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
                 {/* Organizer */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Organizer</label>
@@ -426,10 +457,11 @@ function EventManagement() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Contact Phone</label>
                   <input
-                    type="text"
+                    type="tel"
                     name="contactInfo.phone"
                     value={formData.contactInfo.phone}
                     onChange={handleChange}
+                    placeholder="10 digits only"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
