@@ -220,6 +220,7 @@ export default function ProductOverview() {
               </svg>
               {product.availability ? "Add to Cart" : "Unavailable"}
             </button>
+            
 
             {/* Trust badges */}
             <div className="flex gap-4 mt-6 flex-wrap">

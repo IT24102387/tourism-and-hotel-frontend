@@ -11,6 +11,11 @@ import Reviews from "./reviews";
 import PackageOverview from "../packages/packageOverview";
 import PackagesPage from "../packages/packagesPage";
 import MyBookings from "./myBookings";
+import SafariVehicles from "./SafariVehicles";
+import BookingDetails from "./VehicleBookingDetails";
+import Restaurants from "./Restaurants";
+import ResortRooms from "./Resortrooms";
+import { RoomBookingFormPage, RoomDetailsPage } from "../rooms/BookingPages";
 
 
 export default function HomePage(){
@@ -30,6 +35,17 @@ export default function HomePage(){
                     <Route path="/*" element={<ErrorNotFound/>}/>
                     <Route path="/reviews" element={<Reviews/>} /> 
                     <Route path="/my-bookings" element={<MyBookings/>} />
+
+                    <Route path="/safari-vehicles" element={<SafariVehicles />} />
+                    <Route path="/booking-details" element={<BookingDetails />} />
+                    <Route path="/restaurants"     element={<Restaurants />} />
+                    
+
+                    {/* rooms */}
+                    <Route path="/rooms"                element={<ResortRooms />} />
+                    <Route path="/rooms/:key/book"      element={<RoomBookingFormPage />} />
+                    <Route path="/rooms/:key"           element={<RoomDetailsPage />} />
+
                 </Routes>
             </div>
         </>

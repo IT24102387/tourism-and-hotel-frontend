@@ -2,13 +2,12 @@ import { BsGraphUp } from "react-icons/bs";
 import { FaRegBookmark, FaRegUser, FaCar, FaUmbrellaBeach } from "react-icons/fa";
 import { PiBagSimpleBold } from "react-icons/pi";
 import { LuPackageSearch } from "react-icons/lu";
-import { MdOutlinePayments, MdOutlineReviews } from "react-icons/md";
+import { MdFamilyRestroom, MdOutlineInventory2, MdOutlinePayments, MdOutlineReviews } from "react-icons/md";
 import { IoCartOutline, IoFastFoodOutline } from "react-icons/io5";
 import { IoMdLogOut } from "react-icons/io";
 import { MdOutlineBed } from "react-icons/md";
 import { FiMapPin } from "react-icons/fi";
 import { BsCalendar2Event } from "react-icons/bs";
-import { GiJeep } from "react-icons/gi";
 import { Link, Route, Routes, useLocation } from "react-router-dom";
 import AdminItemPage from "./adminItemPage";
 import AddItemPage from "./addItemPage";
@@ -19,29 +18,45 @@ import ReviewsManagement from "./ReviewsManagement";
 import AdminOrdersPage from "./adminBookingPage";
 import AdminDashBoard from "./adminDashboard";
 import AdminPackagesPage from "./adminPackagesPage";
-import AdminVehiclesPage from "./adminVehiclesPage";
+import axios from "axios";
+import EventManagement from "./EventManagement";
+import GoogleMapComponent from "./GoogleMapComponent";
+import AdminVehiclePage from "./AdminVehiclepage";
+import AddVehiclePage from "./AddVehiclePage";
+import UpdateVehiclePage from "./UpdateVehiclePage";
+import Restaurants from "../home/Restaurants";
+import AdminRestaurantPage from "./AdminRestaurantPage";
+import HotelRoomManagement from "./HotelRoomManagement";
+import MyRoomBookingsPage from "./MyRoomBookingsPage";
+import AddRestaurantPage from "./AddRestaurantPage";
+import UpdateRestaurantPage from "./UpdateRestaurantPage";
+import { GiJeep } from "react-icons/gi";
 import AdminPackageVehiclesPage from "./adminPackageVehiclesPage";
 import AdminPackageBookingsPage from "./adminPackageBookingsPage";
-import axios from "axios";
+import { AddMenuPage } from "./AddMenuPages";
 
 
 
 
 const navItems = [
   { label: "Dashboard",          icon: BsGraphUp,            to: "/admin/dashboard" },
-  { label: "Orders",             icon: IoCartOutline,        to: "/admin/orders" },
-  { label: "Rooms",              icon: MdOutlineBed,         to: "/admin/rooms" },
-  { label: "Storage/Equipment",  icon: PiBagSimpleBold,      to: "/admin/items" },
-  { label: "Tour Packages",      icon: LuPackageSearch,      to: "/admin/packages" },
+  { label: "Equipment Orders",   icon: IoCartOutline,        to: "/admin/orders" },
+  { label: "Hotel & Rooms",     icon: MdOutlineBed,          to: "/admin/rooms" },
+  { label: "Room Bookings",     icon: FaRegBookmark,         to: "/admin/room-bookings" },
+  { label: "Storage/Equipment",  icon: MdOutlineInventory2,  to: "/admin/items" },
+  { label: "Packages",           icon: MdFamilyRestroom,     to: "/admin/packages" },
   { label: "Transportation",     icon: FaCar,                to: "/admin/transport" },
   { label: "Payments",           icon: MdOutlinePayments,    to: "/admin/payments" },
   { label: "Restaurant",         icon: IoFastFoodOutline,    to: "/admin/restaurant" },
   { label: "Reviews",            icon: MdOutlineReviews,     to: "/admin/reviews" },
   { label: "Event Calendar",     icon: BsCalendar2Event ,    to: "/admin/Eventcalendar" },
   { label: "Google Maps",        icon: FiMapPin ,            to: "/admin/googlemap" },
-  { label: "Package Vehicles",   icon: GiJeep,            to: "/admin/packageVehicles" },
-  { label: "Package Bookings",   icon: FaRegBookmark,       to: "/admin/package-bookings" },
+  { label: "Package Vehicles",   icon: GiJeep,          to: "/admin/packageVehicles" },
+  { label: "Package Bookings",  icon: FaRegBookmark,       to: "/admin/package-bookings" },
+  
   { label: "Users",              icon: FaRegUser,            to: "/admin/users" },
+  
+
 ];
 
 function NavItem({ item }) {
@@ -301,17 +316,39 @@ export default function AdminPage() {
       <div style={{ flex: 1, overflow: "auto", background: "#f4f6fb" }}>
         {userValidated&&<Routes >
           <Route path="/orders"  element={<AdminOrdersPage/>} />
-          <Route path="/rooms"     element={<h1>Rooms</h1>} />
+          <Route path="/rooms"     element={<HotelRoomManagement/>} />
+          <Route path="/room-bookings" element={<MyRoomBookingsPage />} />
           <Route path="/items"     element={<AdminItemPage />} />
           <Route path="/items/add" element={<AddItemPage />} />
           <Route path="/items/edit"element={<UpdateItemPage/>}/>
           <Route path="/packages"  element={<AdminPackagesPage />} />
-          <Route path="/transport" element={<AdminVehiclesPage />} />
-          <Route path="/packageVehicles" element={<AdminPackageVehiclesPage />} />
-          <Route path="/package-bookings" element={<AdminPackageBookingsPage />} />
           <Route path="/users"     element={<AdminUsersPage/>} />
           <Route path="/reviews" element={<ReviewsManagement />} />
           <Route path="/dashboard" element={<AdminDashBoard />} />
+          <Route path="/Eventcalendar" element={<EventManagement />} />
+          <Route path="/googlemap " element={<GoogleMapComponent/>} />
+
+          <Route path="/packageVehicles" element={<AdminPackageVehiclesPage />} />
+          <Route path="/package-bookings" element={<AdminPackageBookingsPage/>} />
+          
+          
+
+          
+
+          {/* ── Transportation routes ── */}
+          <Route path="/transport"         element={<AdminVehiclePage />} />
+          <Route path="/transport/add"     element={<AddVehiclePage />} />
+          <Route path="/transport/edit"    element={<UpdateVehiclePage />} />
+          <Route path="/restaurant"        element={<AdminRestaurantPage />} />
+          <Route path="/restaurant/add"        element={<AddRestaurantPage />} />
+          <Route path="/restaurant/edit"        element={<UpdateRestaurantPage />} />
+          
+          <Route path="/restaurant/:restaurantId/menus"        element={<AddMenuPage />} />
+
+          
+
+
+
         </Routes>}
       </div>
     </div>
