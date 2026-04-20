@@ -10,8 +10,7 @@ import {
   FaChevronRight,
 } from "react-icons/fa";
 
-const CATEGORIES = ["All", "Safari", "Wildlife", "Pilgrimage", "Adventure", "Cultural", "Nature", "Combined"];
-
+const CATEGORIES = ["All", "Safari", "Wildlife"]
 export default function PackagesPage() {
   const navigate = useNavigate();
   const [packages, setPackages] = useState([]);
