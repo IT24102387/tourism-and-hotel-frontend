@@ -66,7 +66,7 @@ export default function AdminOrdersPage() {
     <div className="min-h-screen bg-gray-100 p-4 md:p-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <h1 className="text-3xl font-bold text-gray-800">Booking Management</h1>
+        <h1 className="text-3xl font-bold text-gray-800">Equipment Booking Management</h1>
         <span className="bg-blue-100 text-blue-700 text-sm font-semibold px-4 py-2 rounded-full">
           {orders.length} Total Orders
         </span>

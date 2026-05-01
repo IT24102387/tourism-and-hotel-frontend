@@ -635,7 +635,7 @@ export default function MyBookings() {
           {/* ── Tab bar ── */}
           <div className="mb-tab-bar">
             <button
-              className={`mb-tab ${activeTab === "packages" ? "active" : ""}`}
+              className={`mb-tab RS.{activeTab === "packages" ? "active" : ""}`}
               onClick={() => setActiveTab("packages")}
             >
               🏕️ Package Bookings
@@ -765,7 +765,7 @@ export default function MyBookings() {
                           <div>
                             <p className="mb-detail-label">Total</p>
                             <p style={{ fontSize: "20px", fontWeight: 700, color: "#d4a843" }}>
-                              ${b.totalPrice.toLocaleString()}
+                              LKR {b.totalPrice.toLocaleString()}
                             </p>
                           </div>
                           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>

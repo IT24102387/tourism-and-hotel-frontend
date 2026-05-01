@@ -494,16 +494,8 @@ export default function BookingDetails() {
                       </button>
                     )}
 
-                    {/* Permanently Delete Button - Hard delete (only for cancelled or pending bookings) */}
-                    {canDeletePermanently() && (
-                      <button
-                        onClick={() => setShowDeleteModal(true)}
-                        className="w-full py-4 border-2 border-red-500 text-red-700 font-bold rounded-full hover:bg-red-50 transition flex items-center justify-center gap-3 text-lg"
-                      >
-                        <FaTrashAlt className="text-xl" />
-                        Permanently Delete Booking
-                      </button>
-                    )}
+                    
+                   
 
                     <button
                       onClick={() => navigate("/safari-vehicles")}

@@ -384,22 +384,42 @@ export default function ResortRooms() {
 
         {/* ── Filters ── */}
         {state === "success" && (
-          <div className="px-6 py-5 flex flex-wrap items-center gap-3 justify-center border-b"
+          <div className="px-6 py-5 flex flex-wrap items-center gap-4 justify-center border-b"
             style={{ borderColor: "#F5EACF", background: "#FFFBF5" }}>
-            <div className="flex flex-wrap gap-2 items-center">
-              <span className="text-xs font-bold uppercase tracking-widest mr-1" style={{ color: "#92400E" }}>Hotel:</span>
-              {["all", ...hotels.map(h => h.name)].map(h => (
-                <button key={h} onClick={() => setActiveHotel(h)}
-                  className="px-4 py-1.5 rounded-full text-xs font-bold transition-all"
+
+            {/* Hotel list dropdown */}
+            <div className="flex items-center gap-2">
+              <label className="text-xs font-bold uppercase tracking-widest whitespace-nowrap" style={{ color: "#92400E" }}>
+                🏨 Hotel:
+              </label>
+              <div className="relative">
+                <select
+                  value={activeHotel}
+                  onChange={e => setActiveHotel(e.target.value)}
+                  className="appearance-none pl-4 pr-9 py-2 rounded-xl text-xs font-bold outline-none transition-all cursor-pointer"
                   style={{
-                    background: activeHotel === h ? "linear-gradient(135deg,#FBBF24,#F59E0B)" : "#F5EDD8",
-                    color: activeHotel === h ? "#1C1917" : "#92400E",
-                  }}>
-                  {h === "all" ? "All Hotels" : h}
-                </button>
-              ))}
+                    background: activeHotel !== "all"
+                      ? "linear-gradient(135deg,#FBBF24,#F59E0B)"
+                      : "#F5EDD8",
+                    color: activeHotel !== "all" ? "#1C1917" : "#92400E",
+                    border: "1.5px solid #FCD34D",
+                    boxShadow: "0 2px 8px rgba(217,119,6,0.10)",
+                    minWidth: 180,
+                  }}
+                >
+                  <option value="all">All Hotels</option>
+                  {hotels.map(h => (
+                    <option key={h.name} value={h.name}>{h.name}</option>
+                  ))}
+                </select>
+                {/* chevron icon */}
+                <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-amber-700" style={{ fontSize: 11 }}>▼</span>
+              </div>
             </div>
-            <div className="w-px h-6 mx-1" style={{ background: "#F5EACF" }} />
+
+            <div className="w-px h-6" style={{ background: "#F5EACF" }} />
+
+            {/* Room type pills (unchanged) */}
             <div className="flex flex-wrap gap-2 items-center">
               <span className="text-xs font-bold uppercase tracking-widest mr-1" style={{ color: "#92400E" }}>Type:</span>
               {["all", ...roomTypes].map(t => (

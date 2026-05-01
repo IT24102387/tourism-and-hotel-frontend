@@ -5,7 +5,7 @@ import { FiEdit, FiTrash2, FiSearch, FiX, FiPlus } from "react-icons/fi";
 import { LuPackageSearch } from "react-icons/lu";
 import imageUpload from "../../utils/imageUpload";
 
-const CATEGORIES = ["Safari", "Wildlife", "Pilgrimage", "Adventure", "Cultural", "Nature", "Combined"];
+const CATEGORIES = ["Safari", "Wildlife"];
 
 const emptyForm = {
   packageId: "",
@@ -274,7 +274,7 @@ export default function AdminPackagesPage() {
       </div>
     );
   }
-
+     {/*package pagee*/}
   return (
     <div className="min-h-screen bg-gray-100 p-4 md:p-8">
       {/* ── Header ─────────────────────────────────────────── */}

@@ -60,7 +60,7 @@ export default function Reviews() {
     setFetching(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/reviews/my-reviews`, {
+      const res = await axios.get('http://localhost:5000/api/reviews/my-reviews', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUserReviews(res.data);
@@ -74,10 +74,8 @@ export default function Reviews() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (rating === 0) {
-      toast.error('Please select a rating');
-      return;
-    }
+    // REMOVED: rating validation
+    // Only validate comment
     if (!comment.trim()) {
       toast.error('Please enter your review');
       return;
@@ -86,7 +84,7 @@ export default function Reviews() {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/reviews`,
+        'http://localhost:5000/api/reviews',
         { rating, comment, section },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -122,7 +120,7 @@ export default function Reviews() {
     try {
       const token = localStorage.getItem('token');
       await axios.put(
-        `${import.meta.env.VITE_BACKEND_URL}/api/reviews/${editModal._id}`,
+        `http://localhost:5000/api/reviews/${editModal._id}`,
         {
           rating: editModal.editRating,
           comment: editModal.editComment,
@@ -143,7 +141,7 @@ export default function Reviews() {
     if (!window.confirm('Delete this review?')) return;
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/reviews/${id}`, {
+      await axios.delete(`http://localhost:5000/api/reviews/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Review deleted');
@@ -208,10 +206,10 @@ export default function Reviews() {
             <form onSubmit={handleSubmit}>
 
               <div className="flex flex-col md:flex-row gap-8 mb-8">
-                {/* Rating */}
+                {/* Rating - Optional now */}
                 <div className="flex-1">
                   <label className="block font-bold text-lg mb-4" style={{ color: "#292524" }}>
-                    Your Rating <span style={{ color: "#F59E0B" }}>*</span>
+                    Your Rating <span style={{ color: "#A8A29E", fontSize: "0.875rem" }}>(Optional)</span>
                   </label>
                   <div className="flex gap-2 mb-3">
                     {[1, 2, 3, 4, 5].map((star) => (
@@ -235,6 +233,12 @@ export default function Reviews() {
                     <span className="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-bold"
                       style={{ background: "linear-gradient(135deg,#FEF3C7,#FDE68A)", color: "#92400E" }}>
                       {ratingLabels[hover || rating]} — {hover || rating}/5 stars
+                    </span>
+                  )}
+                  {rating === 0 && !hover && (
+                    <span className="inline-flex items-center px-4 py-1.5 rounded-full text-sm"
+                      style={{ background: "#F5F5F4", color: "#78716C" }}>
+                      💡 Rating optional - you can submit without rating
                     </span>
                   )}
                 </div>
@@ -331,7 +335,7 @@ export default function Reviews() {
           </div>
         </div>
 
-        {/* ── Your Reviews Section (NEW) ── */}
+        {/* ── Your Reviews Section ── */}
         <div className="mt-8">
           <h2 className="text-2xl font-bold mb-4" style={{ color: "#292524" }}>Your Reviews</h2>
           {fetching ? (
@@ -427,7 +431,9 @@ export default function Reviews() {
             <form onSubmit={handleUpdate} className="p-6 space-y-6">
               {/* Rating */}
               <div>
-                <label className="block font-semibold mb-2" style={{ color: "#292524" }}>Rating</label>
+                <label className="block font-semibold mb-2" style={{ color: "#292524" }}>
+                  Rating <span style={{ color: "#A8A29E", fontSize: "0.875rem" }}>(Optional)</span>
+                </label>
                 <div className="flex gap-2">
                   {[1, 2, 3, 4, 5].map(star => (
                     <button

@@ -1,7 +1,7 @@
 import axios from "axios";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { IoMdCloseCircleOutline } from "react-icons/io";
-import { FiCheckCircle, FiXCircle, FiCalendar, FiDownload } from "react-icons/fi";
+import { FiCheckCircle, FiXCircle, FiCalendar, FiDownload, FiBell } from "react-icons/fi";
 import { MdOutlineBookmarks } from "react-icons/md";
 import { MdOutlineBookmarkAdded, MdPendingActions, MdOutlineCancel } from "react-icons/md";
 import { BsCurrencyDollar } from "react-icons/bs";
@@ -24,10 +24,54 @@ export default function AdminPackageBookingsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("All");
   const [search, setSearch] = useState("");
+  const [cancelNotifications, setCancelNotifications] = useState([]);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notifRef = useRef(null);
 
   useEffect(() => {
     fetchBookings();
+    fetchNotifications();
+    // Poll for new cancellation notifications every 30 seconds
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
   }, []);
+
+  // Close notification panel when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setNotifOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  function fetchNotifications() {
+    const token = localStorage.getItem("token");
+    axios
+      .get(`${import.meta.env.VITE_BACKEND_URL}/api/package-bookings/cancelled-notifications`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => setCancelNotifications(res.data))
+      .catch(() => {});
+  }
+
+  function markAsRead(bookingId) {
+    const token = localStorage.getItem("token");
+    axios
+      .patch(`${import.meta.env.VITE_BACKEND_URL}/api/package-bookings/${bookingId}/mark-notified`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(() => {
+        setCancelNotifications((prev) => prev.filter((n) => n.bookingId !== bookingId));
+      })
+      .catch(() => {});
+  }
+
+  function markAllRead() {
+    cancelNotifications.forEach((n) => markAsRead(n.bookingId));
+  }
 
   function fetchBookings() {
     setLoading(true);
@@ -68,18 +112,21 @@ export default function AdminPackageBookingsPage() {
     const fmtRs   = (n) => `Rs. ${Number(n || 0).toLocaleString("en-LK", { minimumFractionDigits: 2 })}`;
 
     // ── derived stats ──────────────────────────────────────────
-    const total        = bookings.length;
-    const pending      = bookings.filter((b) => b.status === "Pending").length;
-    const confirmed    = bookings.filter((b) => b.status === "Confirmed").length;
-    const cancelled    = bookings.filter((b) => b.status === "Cancelled").length;
-    const completed    = bookings.filter((b) => b.status === "Completed").length;
-    const totalRev     = bookings.reduce((s, b) => s + (b.totalPrice || 0), 0);
-    const confirmedRev = bookings.filter((b) => b.status === "Confirmed" || b.status === "Completed")
-                                 .reduce((s, b) => s + (b.totalPrice || 0), 0);
-    const pendingRev   = bookings.filter((b) => b.status === "Pending")
-                                 .reduce((s, b) => s + (b.totalPrice || 0), 0);
-    const totalGuests  = bookings.reduce((s, b) => s + (b.guests || 0), 0);
-    const avgGuests    = total ? (totalGuests / total).toFixed(1) : 0;
+    const total           = bookings.length;
+    const pending         = bookings.filter((b) => b.status === "Pending").length;
+    const confirmed       = bookings.filter((b) => b.status === "Confirmed").length;
+    const cancelled       = bookings.filter((b) => b.status === "Cancelled").length;
+    const completed       = bookings.filter((b) => b.status === "Completed").length;
+    const confirmedOnlyRev = bookings.filter((b) => b.status === "Confirmed")
+                                      .reduce((s, b) => s + (b.totalPrice || 0), 0);
+    const completedRev    = bookings.filter((b) => b.status === "Completed")
+                                     .reduce((s, b) => s + (b.totalPrice || 0), 0);
+    // Total Revenue = Confirmed + Completed only (matches dashboard stat card)
+    const totalRev        = confirmedOnlyRev + completedRev;
+    const pendingRev      = bookings.filter((b) => b.status === "Pending")
+                                     .reduce((s, b) => s + (b.totalPrice || 0), 0);
+    const cancelledRev    = bookings.filter((b) => b.status === "Cancelled")
+                                     .reduce((s, b) => s + (b.totalPrice || 0), 0);
 
     // bookings per package
     const pkgMap = {};
@@ -93,33 +140,34 @@ export default function AdminPackageBookingsPage() {
       .sort((a, b) => b[1].revenue - a[1].revenue)
       .map(([name, d]) => [name, d.count, d.guests, fmtRs(d.revenue)]);
 
-    // add-on popularity
-    const addonCountMap = {};
+    // add-on popularity — fixed add-ons: Meal Package & Travel Guider
+    const TARGET_ADDONS = ["Meal Package", "Travel Guider"];
+    const addonCountMap = { "Meal Package": 0, "Travel Guider": 0 };
     bookings.forEach((b) => {
       (b.addOns || []).forEach((a) => {
         const name = typeof a === "string" ? a : a.name;
-        if (name) addonCountMap[name] = (addonCountMap[name] || 0) + 1;
+        if (name) {
+          const matched = TARGET_ADDONS.find(
+            (t) => t.toLowerCase() === name.trim().toLowerCase()
+          );
+          if (matched) addonCountMap[matched] += 1;
+        }
       });
     });
-    const addonRows = Object.entries(addonCountMap)
-      .sort((a, b) => b[1] - a[1])
-      .map(([name, count]) => [
-        name,
-        count,
-        total ? `${((count / total) * 100).toFixed(1)}%` : "0%",
-      ]);
+    const addonRows = TARGET_ADDONS.map((name) => {
+      const count = addonCountMap[name];
+      return [name, count, total ? `${((count / total) * 100).toFixed(1)}%` : "0%"];
+    });
 
-    // vehicle usage
-    const withVehicle    = bookings.filter((b) => b.selectedVehicle?.vehicleName).length;
-    const withoutVehicle = total - withVehicle;
-
-    // monthly revenue (current year)
+    // monthly revenue (current year) — Confirmed + Completed only, matching dashboard definition
     const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
     const monthlyRev = Array(12).fill(0);
-    bookings.forEach((b) => {
-      const m = new Date(b.createdAt).getMonth();
-      monthlyRev[m] += b.totalPrice || 0;
-    });
+    bookings
+      .filter((b) => b.status === "Confirmed" || b.status === "Completed")
+      .forEach((b) => {
+        const m = new Date(b.createdAt).getMonth();
+        monthlyRev[m] += b.totalPrice || 0;
+      });
     const monthlyRows = monthNames.map((m, i) => [m, fmtRs(monthlyRev[i])]);
 
     // ── PDF layout ────────────────────────────────────────────
@@ -166,16 +214,15 @@ export default function AdminPackageBookingsPage() {
       doc.text(String(value), x + 4, y + 13);
     }
 
-    // ── 1. Summary stats ─────────────────────────────────────
+    // ── 1. Summary stats — matches dashboard stat cards exactly ────
     sectionTitle("Summary Overview");
-    const boxW = (W - 28 - 10) / 6;
+    const boxW = (W - 28 - 8) / 5;
     const boxes = [
-      ["Total",     total,            [47,45,143]],
-      ["Pending",   pending,          [202,138,4]],
-      ["Confirmed", confirmed,        [22,163,74]],
-      ["Cancelled", cancelled,        [220,38,38]],
-      ["Completed", completed,        [37,99,235]],
-      ["Revenue",   fmtRs(totalRev),  [5,150,105]],
+      ["Total Bookings", total,           [47,45,143]],
+      ["Pending",        pending,         [202,138,4]],
+      ["Confirmed",      confirmed,       [22,163,74]],
+      ["Cancelled",      cancelled,       [220,38,38]],
+      ["Total Revenue",  fmtRs(totalRev), [5,150,105]],
     ];
     boxes.forEach(([lbl, val, col], i) => summaryBox(lbl, val, 14 + i * (boxW + 2), boxW, col));
     y += 22;
@@ -184,16 +231,29 @@ export default function AdminPackageBookingsPage() {
     sectionTitle("Revenue Breakdown");
     autoTable(doc, {
       startY: y,
-      head: [["Category", "Amount", "% of Total"]],
+      head: [["Category", "Bookings", "Amount", "Counted in Revenue?"]],
       body: [
-        ["Confirmed + Completed Revenue", fmtRs(confirmedRev), total ? `${((confirmedRev / totalRev) * 100).toFixed(1)}%` : "0%"],
-        ["Pending Revenue",               fmtRs(pendingRev),   total ? `${((pendingRev   / totalRev) * 100).toFixed(1)}%` : "0%"],
-        ["Total Revenue",                 fmtRs(totalRev),     "100%"],
+        ["Confirmed",  confirmed, fmtRs(confirmedOnlyRev), "Yes"],
+        ["Completed",  completed, fmtRs(completedRev),     "Yes"],
+        ["Pending",    pending,   fmtRs(pendingRev),       "No"],
+        ["Cancelled",  cancelled, fmtRs(cancelledRev),     "No"],
+        ["Total Revenue (Confirmed + Completed)", confirmed + completed, fmtRs(totalRev), "—"],
       ],
       styles: { fontSize: 9, cellPadding: 3 },
       headStyles: { fillColor: PRIMARY, textColor: 255, fontStyle: "bold" },
       alternateRowStyles: { fillColor: LIGHT_BG },
       margin: { left: 14, right: 14 },
+      didParseCell(data) {
+        if (data.section === "body" && data.column.index === 3) {
+          const v = data.cell.raw;
+          if (v === "Yes") { data.cell.styles.textColor = [22, 163, 74]; data.cell.styles.fontStyle = "bold"; }
+          else if (v === "No") { data.cell.styles.textColor = [220, 38, 38]; data.cell.styles.fontStyle = "bold"; }
+        }
+        if (data.section === "body" && data.row.index === 4) {
+          data.cell.styles.fontStyle = "bold";
+          data.cell.styles.textColor = [5, 150, 105];
+        }
+      },
     });
     y = doc.lastAutoTable.finalY + 10;
 
@@ -210,26 +270,7 @@ export default function AdminPackageBookingsPage() {
     });
     y = doc.lastAutoTable.finalY + 10;
 
-    // ── 4. Guest statistics ───────────────────────────────────
-    sectionTitle("Guest Statistics");
-    autoTable(doc, {
-      startY: y,
-      head: [["Metric", "Value"]],
-      body: [
-        ["Total Guests Across All Bookings", totalGuests],
-        ["Average Guests per Booking",       avgGuests],
-        ["Bookings with Vehicle",            withVehicle],
-        ["Bookings without Vehicle",         withoutVehicle],
-      ],
-      styles: { fontSize: 9, cellPadding: 3 },
-      headStyles: { fillColor: PRIMARY, textColor: 255, fontStyle: "bold" },
-      alternateRowStyles: { fillColor: LIGHT_BG },
-      margin: { left: 14, right: 14 },
-      columnStyles: { 0: { cellWidth: 120 } },
-    });
-    y = doc.lastAutoTable.finalY + 10;
-
-    // ── 5. Add-on popularity ─────────────────────────────────
+    // ── 4. Add-on popularity ─────────────────────────────────
     sectionTitle("Add-on Popularity");
     autoTable(doc, {
       startY: y,
@@ -243,7 +284,7 @@ export default function AdminPackageBookingsPage() {
     y = doc.lastAutoTable.finalY + 10;
 
     // ── 6. Monthly revenue ───────────────────────────────────
-    sectionTitle(`Monthly Revenue – ${now.getFullYear()}`);
+    sectionTitle(`Monthly Revenue – ${now.getFullYear()} (Confirmed & Completed Only)`);
     autoTable(doc, {
       startY: y,
       head: [["Month", "Revenue"]],
@@ -340,11 +381,14 @@ export default function AdminPackageBookingsPage() {
     );
   }
 
-  const totalRevenue = bookings.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
+  const totalRevenue = bookings
+    .filter((b) => b.status === "Confirmed" || b.status === "Completed")
+    .reduce((sum, b) => sum + (b.totalPrice || 0), 0);
   const pendingCount   = bookings.filter((b) => b.status === "Pending").length;
   const confirmedCount = bookings.filter((b) => b.status === "Confirmed").length;
   const cancelledCount = bookings.filter((b) => b.status === "Cancelled").length;
 
+  //package booking managment page, admin can view all bookings
   const statCards = [
     {
       title: "Total Bookings",
@@ -389,6 +433,99 @@ export default function AdminPackageBookingsPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <h1 className="text-3xl font-bold text-gray-800">Package Booking Management</h1>
         <div className="flex items-center gap-3">
+          {/* ── Cancellation Notification Bell ── */}
+          <div className="relative" ref={notifRef}>
+            <button
+              onClick={() => setNotifOpen((o) => !o)}
+              className="relative flex items-center justify-center w-10 h-10 rounded-full bg-white border border-gray-200 shadow hover:shadow-md transition"
+              title="Cancellation notifications"
+            >
+              <FiBell size={18} className="text-gray-600" />
+              {cancelNotifications.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {cancelNotifications.length > 9 ? "9+" : cancelNotifications.length}
+                </span>
+              )}
+            </button>
+
+            {/* Notification dropdown panel */}
+            {notifOpen && (
+              <div className="absolute right-0 top-12 w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
+                <div className="flex items-center justify-between px-5 py-3 bg-linear-to-r from-red-50 to-orange-50 border-b border-gray-100">
+                  <div className="flex items-center gap-2">
+                    <span className="text-red-500 text-sm font-bold">🚫 Booking Cancellations</span>
+                    {cancelNotifications.length > 0 && (
+                      <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                        {cancelNotifications.length} new
+                      </span>
+                    )}
+                  </div>
+                  {cancelNotifications.length > 0 && (
+                    <button
+                      onClick={markAllRead}
+                      className="text-xs text-blue-600 hover:text-blue-800 font-semibold"
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                </div>
+
+                <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
+                  {cancelNotifications.length === 0 ? (
+                    <div className="py-10 text-center">
+                      <div className="text-3xl mb-2">✅</div>
+                      <p className="text-gray-400 text-sm">No new cancellations</p>
+                    </div>
+                  ) : (
+                    cancelNotifications.map((n) => (
+                      <div key={n.bookingId} className="px-5 py-4 hover:bg-red-50 transition group">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-gray-800 truncate">{n.packageName}</p>
+                            <p className="text-xs text-gray-500 mt-0.5 truncate">{n.userName} · {n.userEmail}</p>
+                            <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+                              <span className="text-xs text-gray-500">
+                                📅 Tour: <strong>{new Date(n.tourDate).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}</strong>
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                👥 {n.guests} guests
+                              </span>
+                              <span className="text-xs font-semibold text-red-600">
+                                LKR {n.totalPrice?.toLocaleString()}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-gray-400 mt-1">
+                              Cancelled: {new Date(n.cancelledAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}
+                            </p>
+                            <p className="text-[11px] font-mono text-gray-400">{n.bookingId}</p>
+                          </div>
+                          <button
+                            onClick={() => markAsRead(n.bookingId)}
+                            className="shrink-0 text-xs text-gray-400 hover:text-red-500 font-semibold opacity-0 group-hover:opacity-100 transition mt-0.5"
+                            title="Dismiss"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {cancelNotifications.length > 0 && (
+                  <div className="px-5 py-3 bg-gray-50 border-t border-gray-100">
+                    <button
+                      onClick={() => { setStatusFilter("Cancelled"); setNotifOpen(false); markAllRead(); }}
+                      className="w-full text-center text-xs font-semibold text-blue-600 hover:text-blue-800"
+                    >
+                      View all cancelled bookings →
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          {/* Total bookings badge & download button */}
           <span className="bg-blue-100 text-blue-700 text-sm font-semibold px-4 py-2 rounded-full">
             {bookings.length} Total Bookings
           </span>
@@ -636,31 +773,27 @@ export default function AdminPackageBookingsPage() {
               {/* Status Actions */}
               <div>
                 <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Update Status</h4>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
+                  {/* Confirm — disabled if already Confirmed, Cancelled, or Completed */}
                   <button
                     onClick={() => handleStatusChange(activeBooking.bookingId, "Confirmed")}
-                    disabled={activeBooking.status === "Confirmed"}
+                    disabled={["Confirmed", "Cancelled", "Completed"].includes(activeBooking.status)}
                     className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 disabled:opacity-40 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-lg font-semibold transition shadow-sm text-sm"
                   >
                     <FiCheckCircle size={15} /> Confirm
                   </button>
+                  {/* Complete — only enabled when Confirmed */}
                   <button
                     onClick={() => handleStatusChange(activeBooking.bookingId, "Completed")}
-                    disabled={activeBooking.status === "Completed"}
+                    disabled={activeBooking.status !== "Confirmed"}
                     className="flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-lg font-semibold transition shadow-sm text-sm"
                   >
                     <FiCalendar size={15} /> Complete
                   </button>
-                  <button
-                    onClick={() => handleStatusChange(activeBooking.bookingId, "Pending")}
-                    disabled={activeBooking.status === "Pending"}
-                    className="flex items-center justify-center gap-2 bg-yellow-500 hover:bg-yellow-600 disabled:opacity-40 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-lg font-semibold transition shadow-sm text-sm"
-                  >
-                    Pending
-                  </button>
+                  {/* Cancel — disabled if Confirmed, Cancelled, or Completed */}
                   <button
                     onClick={() => handleStatusChange(activeBooking.bookingId, "Cancelled")}
-                    disabled={activeBooking.status === "Cancelled"}
+                    disabled={["Confirmed", "Cancelled", "Completed"].includes(activeBooking.status)}
                     className="flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-lg font-semibold transition shadow-sm text-sm"
                   >
                     <FiXCircle size={15} /> Cancel

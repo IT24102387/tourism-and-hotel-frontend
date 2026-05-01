@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const BASE = import.meta.env.VITE_BACKEND_URL ;
 const getToken   = () => localStorage.getItem("token");
@@ -199,18 +201,19 @@ function CheckoutEmailModal({ booking, onClose, onSent }) {
    BOOKING CARD
 ══════════════════════════════════════════════════ */
 function BookingCard({ booking, isAdmin, onCancel, onUploadSlip, onApprove, onReject, onSendCheckoutEmail }) {
-    const isApproved = booking.isApproved;
-    const isRejected = booking.paymentStatus === "rejected";
-    const isPending  = !isApproved && !isRejected;
-    const hasSlip    = !!booking.paymentSlip;
-    const isCheckout = booking.paymentMethod === "checkout";
+    const isCancelled = booking.isCancelled;
+    const isApproved  = booking.isApproved && !isCancelled;
+    const isRejected  = booking.paymentStatus === "rejected" && !isCancelled;
+    const isPending   = !isApproved && !isRejected && !isCancelled;
+    const hasSlip     = !!booking.paymentSlip;
+    const isCheckout  = booking.paymentMethod === "checkout";
 
-    const statusLabel = isApproved ? "✅ Confirmed" : isRejected ? "❌ Rejected" : "⏳ Pending Review";
+    const statusLabel = isCancelled ? "🚫 Cancelled" : isApproved ? "✅ Confirmed" : isRejected ? "❌ Rejected" : "⏳ Pending Review";
     const statusStyle = {
         padding:"5px 14px", borderRadius:"20px", fontSize:"12px", fontWeight:700, display:"inline-block",
-        background: isApproved ? "#d1fae5" : isRejected ? "#fee2e2" : "#fef3c7",
-        color:      isApproved ? "#065f46" : isRejected ? "#991b1b" : "#92400e",
-        border:     `1px solid ${isApproved ? "#6ee7b7" : isRejected ? "#fca5a5" : "#fde68a"}`
+        background: isCancelled ? "#fef2f2" : isApproved ? "#d1fae5" : isRejected ? "#fee2e2" : "#fef3c7",
+        color:      isCancelled ? "#991b1b" : isApproved ? "#065f46" : isRejected ? "#991b1b" : "#92400e",
+        border:     `1px solid ${isCancelled ? "#fca5a5" : isApproved ? "#6ee7b7" : isRejected ? "#fca5a5" : "#fde68a"}`
     };
 
     const payLabel = isCheckout ? "🏨 Pay at Checkout" : booking.paymentMethod === "bank_deposit" ? "🏦 Bank Deposit" : "💳 Online";
@@ -293,7 +296,7 @@ function BookingCard({ booking, isAdmin, onCancel, onUploadSlip, onApprove, onRe
                                     View Slip ↗
                                 </a>
                             )}
-                            {!isAdmin && isPending && (
+                            {!isAdmin && isPending && !isCancelled && (
                                 <button onClick={() => onCancel(booking.bookingId)}
                                     style={{ background:"#fee2e2", color:"#991b1b", border:"1px solid #fca5a5", borderRadius:"12px", padding:"8px 16px", cursor:"pointer", fontSize:"12px", fontWeight:700 }}>
                                     Cancel
@@ -323,17 +326,50 @@ export default function MyRoomBookingsPage() {
     const navigate = useNavigate();
     const isAdmin  = getRole() === "admin";
 
-    const [bookings,       setBookings]       = useState([]);
-    const [loading,        setLoading]        = useState(true);
-    const [slipBooking,    setSlipBooking]     = useState(null);
-    const [checkoutModal,  setCheckoutModal]  = useState(null); // booking object
-    const [activeTab,      setActiveTab]      = useState("all");
-    const [searchQ,        setSearchQ]        = useState("");
+    const [bookings,          setBookings]          = useState([]);
+    const [loading,           setLoading]           = useState(true);
+    const [slipBooking,       setSlipBooking]        = useState(null);
+    const [checkoutModal,     setCheckoutModal]     = useState(null);
+    const [activeTab,         setActiveTab]         = useState("all");
+    const [searchQ,           setSearchQ]           = useState("");
+    const [cancelNotifs,      setCancelNotifs]      = useState([]);
+    const [notifOpen,         setNotifOpen]         = useState(false);
+    const notifRef = useRef(null);
 
     useEffect(() => {
         if (!getToken()) { navigate("/login"); return; }
         loadBookings();
+        if (getRole() === "admin") {
+            fetchCancelNotifs();
+            const interval = setInterval(fetchCancelNotifs, 30000);
+            return () => clearInterval(interval);
+        }
     }, []);
+
+    // Close notification dropdown on outside click
+    useEffect(() => {
+        function handleClickOutside(e) {
+            if (notifRef.current && !notifRef.current.contains(e.target)) {
+                setNotifOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    async function fetchCancelNotifs() {
+        try {
+            const res = await axios.get(`${BASE}/api/rooms/bookings/cancelled-notifications`, { headers: authHeader() });
+            setCancelNotifs(res.data);
+        } catch { /* silent */ }
+    }
+
+    async function markNotifRead(bookingId) {
+        try {
+            await axios.patch(`${BASE}/api/rooms/bookings/${bookingId}/mark-notified`, {}, { headers: authHeader() });
+            setCancelNotifs(prev => prev.filter(n => n.bookingId !== bookingId));
+        } catch { /* silent */ }
+    }
 
     async function loadBookings() {
         setLoading(true);
@@ -399,6 +435,285 @@ export default function MyRoomBookingsPage() {
 
     const title = isAdmin ? "🛏 All Room Bookings" : "🛏 My Room Bookings";
 
+    // ── Download PDF Report ──────────────────────────────────
+    function downloadReport() {
+        const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+        const now     = new Date();
+        const fmtDate = (d) => new Date(d).toLocaleDateString("en-LK");
+        const fmtRs   = (n) => "Rs. " + Number(n || 0).toLocaleString("en-LK", { minimumFractionDigits: 2 });
+
+        // derived stats
+        const total        = bookings.length;
+        const rptPending   = bookings.filter((b) => !b.isCancelled && !b.isApproved && b.paymentStatus !== "rejected").length;
+        const rptConfirmed = bookings.filter((b) => !b.isCancelled && b.isApproved && b.paymentStatus !== "rejected").length;
+        const rptCancelled = bookings.filter((b) => b.isCancelled || b.paymentStatus === "rejected").length;
+        const rptCompleted = bookings.filter((b) => !b.isCancelled && b.isApproved && new Date(b.checkOutDate) < now).length;
+        const totalRev     = bookings.filter((b) => !b.isCancelled).reduce((s, b) => s + (b.totalAmount || 0), 0);
+        const confirmedRev = bookings.filter((b) => !b.isCancelled && b.isApproved).reduce((s, b) => s + (b.totalAmount || 0), 0);
+        const pendingRev   = bookings.filter((b) => !b.isCancelled && !b.isApproved && b.paymentStatus !== "rejected").reduce((s, b) => s + (b.totalAmount || 0), 0);
+        const totalGuests  = bookings.reduce((s, b) => s + (b.numberOfGuests || 0), 0);
+        const avgGuests    = total ? (totalGuests / total).toFixed(1) : 0;
+        const totalNights  = bookings.reduce((s, b) => s + (b.numberOfNights || 0), 0);
+
+        // bookings by room type
+        const roomTypeMap = {};
+        bookings.forEach((b) => {
+            const rt = b.room?.roomType || "Unknown";
+            if (!roomTypeMap[rt]) roomTypeMap[rt] = { count: 0, revenue: 0, guests: 0, nights: 0 };
+            roomTypeMap[rt].count   += 1;
+            roomTypeMap[rt].revenue += b.totalAmount || 0;
+            roomTypeMap[rt].guests  += b.numberOfGuests || 0;
+            roomTypeMap[rt].nights  += b.numberOfNights || 0;
+        });
+        const roomTypeRows = Object.entries(roomTypeMap)
+            .sort((a, b) => b[1].revenue - a[1].revenue)
+            .map(([name, d]) => [name, d.count, d.guests, d.nights, fmtRs(d.revenue)]);
+
+        // bookings by hotel
+        const hotelMap = {};
+        bookings.forEach((b) => {
+            const h = b.room?.hotelName || "Unknown";
+            if (!hotelMap[h]) hotelMap[h] = { count: 0, revenue: 0 };
+            hotelMap[h].count   += 1;
+            hotelMap[h].revenue += b.totalAmount || 0;
+        });
+        const hotelRows = Object.entries(hotelMap)
+            .sort((a, b) => b[1].revenue - a[1].revenue)
+            .map(([name, d]) => [name, d.count, fmtRs(d.revenue)]);
+
+        // payment method breakdown
+        const pmMap = {};
+        bookings.forEach((b) => {
+            const pm = b.paymentMethod === "bank_deposit" ? "Bank Deposit"
+                     : b.paymentMethod === "online"       ? "Online Transfer"
+                     : b.paymentMethod === "checkout"     ? "Pay at Checkout"
+                     : b.paymentMethod || "Unknown";
+            pmMap[pm] = (pmMap[pm] || 0) + 1;
+        });
+        const pmRows = Object.entries(pmMap)
+            .sort((a, b) => b[1] - a[1])
+            .map(([name, count]) => [name, count, total ? ((count / total) * 100).toFixed(1) + "%" : "0%"]);
+
+        // monthly revenue (confirmed/approved only)
+        const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+        const monthlyRev = Array(12).fill(0);
+        bookings.filter((b) => !b.isCancelled && b.isApproved).forEach((b) => {
+            const m = new Date(b.createdAt || b.checkInDate).getMonth();
+            monthlyRev[m] += b.totalAmount || 0;
+        });
+        const monthlyRows = monthNames.map((m, i) => [m, fmtRs(monthlyRev[i])]);
+
+        // PDF layout
+        const PRIMARY  = [47, 45, 143];
+        const ACCENT   = [245, 166, 35];
+        const LIGHT_BG = [245, 246, 251];
+        const W = doc.internal.pageSize.getWidth();
+
+        doc.setFillColor(...PRIMARY);
+        doc.rect(0, 0, W, 28, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(16);
+        doc.setFont("helvetica", "bold");
+        doc.text("Room Bookings Report", 14, 12);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        doc.text("Tourism & Hotel Management System", 14, 20);
+        doc.text("Generated: " + now.toLocaleString("en-LK"), W - 14, 20, { align: "right" });
+
+        let y = 36;
+
+        function secTitle(t) {
+            doc.setFillColor(...ACCENT);
+            doc.rect(14, y, 4, 6, "F");
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(11);
+            doc.setTextColor(30, 30, 80);
+            doc.text(t, 21, y + 4.5);
+            y += 11;
+        }
+
+        function summaryBox(label, value, x, bw, color) {
+            doc.setFillColor(...LIGHT_BG);
+            doc.roundedRect(x, y, bw, 16, 2, 2, "F");
+            doc.setFontSize(7);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(120, 120, 140);
+            doc.text(label.toUpperCase(), x + 4, y + 6);
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(...color);
+            doc.text(String(value), x + 4, y + 13);
+        }
+
+        // 1. Summary stats
+        secTitle("Summary Overview");
+        const boxW = (W - 28 - 10) / 6;
+        [
+            ["Total",     total,           [47,45,143]],
+            ["Pending",   rptPending,      [202,138,4]],
+            ["Confirmed", rptConfirmed,    [22,163,74]],
+            ["Cancelled", rptCancelled,    [220,38,38]],
+            ["Completed", rptCompleted,    [37,99,235]],
+            ["Revenue",   fmtRs(totalRev), [5,150,105]],
+        ].forEach(([lbl, val, col], i) => summaryBox(lbl, val, 14 + i * (boxW + 2), boxW, col));
+        y += 22;
+
+        // 2. Revenue breakdown
+        secTitle("Revenue Breakdown");
+        autoTable(doc, {
+            startY: y,
+            head: [["Category", "Amount", "% of Total"]],
+            body: [
+                ["Confirmed + Completed Revenue", fmtRs(confirmedRev), totalRev ? ((confirmedRev / totalRev) * 100).toFixed(1) + "%" : "0%"],
+                ["Pending Revenue",               fmtRs(pendingRev),   totalRev ? ((pendingRev   / totalRev) * 100).toFixed(1) + "%" : "0%"],
+                ["Total Revenue",                 fmtRs(totalRev),     "100%"],
+            ],
+            styles: { fontSize: 9, cellPadding: 3 },
+            headStyles: { fillColor: PRIMARY, textColor: 255, fontStyle: "bold" },
+            alternateRowStyles: { fillColor: LIGHT_BG },
+            margin: { left: 14, right: 14 },
+        });
+        y = doc.lastAutoTable.finalY + 10;
+
+        // 3. Bookings by Room Type
+        secTitle("Bookings by Room Type");
+        autoTable(doc, {
+            startY: y,
+            head: [["Room Type", "Bookings", "Total Guests", "Total Nights", "Revenue"]],
+            body: roomTypeRows.length ? roomTypeRows : [["No data", "", "", "", ""]],
+            styles: { fontSize: 9, cellPadding: 3 },
+            headStyles: { fillColor: PRIMARY, textColor: 255, fontStyle: "bold" },
+            alternateRowStyles: { fillColor: LIGHT_BG },
+            margin: { left: 14, right: 14 },
+        });
+        y = doc.lastAutoTable.finalY + 10;
+
+        // 4. Bookings by Hotel
+        secTitle("Bookings by Hotel");
+        autoTable(doc, {
+            startY: y,
+            head: [["Hotel Name", "Bookings", "Revenue"]],
+            body: hotelRows.length ? hotelRows : [["No data", "", ""]],
+            styles: { fontSize: 9, cellPadding: 3 },
+            headStyles: { fillColor: PRIMARY, textColor: 255, fontStyle: "bold" },
+            alternateRowStyles: { fillColor: LIGHT_BG },
+            margin: { left: 14, right: 14 },
+        });
+        y = doc.lastAutoTable.finalY + 10;
+
+        // 5. Guest & Stay Statistics
+        secTitle("Guest & Stay Statistics");
+        autoTable(doc, {
+            startY: y,
+            head: [["Metric", "Value"]],
+            body: [
+                ["Total Guests Across All Bookings", totalGuests],
+                ["Average Guests per Booking",       avgGuests],
+                ["Total Nights Booked",              totalNights],
+                ["Average Nights per Booking",       total ? (totalNights / total).toFixed(1) : 0],
+            ],
+            styles: { fontSize: 9, cellPadding: 3 },
+            headStyles: { fillColor: PRIMARY, textColor: 255, fontStyle: "bold" },
+            alternateRowStyles: { fillColor: LIGHT_BG },
+            margin: { left: 14, right: 14 },
+            columnStyles: { 0: { cellWidth: 120 } },
+        });
+        y = doc.lastAutoTable.finalY + 10;
+
+        // 6. Payment Method Breakdown
+        secTitle("Payment Method Breakdown");
+        autoTable(doc, {
+            startY: y,
+            head: [["Payment Method", "Bookings", "% of Total"]],
+            body: pmRows.length ? pmRows : [["No data", "", ""]],
+            styles: { fontSize: 9, cellPadding: 3 },
+            headStyles: { fillColor: PRIMARY, textColor: 255, fontStyle: "bold" },
+            alternateRowStyles: { fillColor: LIGHT_BG },
+            margin: { left: 14, right: 14 },
+        });
+        y = doc.lastAutoTable.finalY + 10;
+
+        // 7. Monthly Revenue
+        secTitle("Monthly Revenue (Confirmed) \u2013 " + now.getFullYear());
+        autoTable(doc, {
+            startY: y,
+            head: [["Month", "Revenue"]],
+            body: monthlyRows,
+            styles: { fontSize: 9, cellPadding: 3 },
+            headStyles: { fillColor: PRIMARY, textColor: 255, fontStyle: "bold" },
+            alternateRowStyles: { fillColor: LIGHT_BG },
+            margin: { left: 14, right: 14 },
+            columnStyles: { 0: { cellWidth: 40 } },
+        });
+
+        // 8. All Bookings Table (new page)
+        doc.addPage();
+        doc.setFillColor(...PRIMARY);
+        doc.rect(0, 0, W, 18, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text("All Room Bookings", 14, 12);
+        y = 26;
+
+        autoTable(doc, {
+            startY: y,
+            head: [["Booking ID", "Customer", "Room", "Hotel", "Check-In", "Check-Out", "Nights", "Guests", "Total", "Status"]],
+            body: bookings.map((b) => {
+                const status = b.isCancelled || b.paymentStatus === "rejected" ? "Cancelled"
+                             : b.isApproved ? (new Date(b.checkOutDate) < now ? "Completed" : "Confirmed")
+                             : "Pending";
+                return [
+                    b.bookingId,
+                    b.user?.name || b.userName || "-",
+                    b.room?.roomType || "-",
+                    b.room?.hotelName || "-",
+                    fmtDate(b.checkInDate),
+                    fmtDate(b.checkOutDate),
+                    b.numberOfNights || "-",
+                    b.numberOfGuests || "-",
+                    fmtRs(b.totalAmount),
+                    status,
+                ];
+            }),
+            styles: { fontSize: 7.5, cellPadding: 2, overflow: "linebreak" },
+            headStyles: { fillColor: PRIMARY, textColor: 255, fontStyle: "bold", fontSize: 7.5 },
+            alternateRowStyles: { fillColor: LIGHT_BG },
+            margin: { left: 14, right: 14 },
+            columnStyles: {
+                0: { cellWidth: 24 }, 1: { cellWidth: 24 }, 2: { cellWidth: 20 },
+                3: { cellWidth: 24 }, 4: { cellWidth: 20 }, 5: { cellWidth: 20 },
+                6: { cellWidth: 12 }, 7: { cellWidth: 12 }, 8: { cellWidth: 22 },
+                9: { cellWidth: 18 },
+            },
+            didParseCell(data) {
+                if (data.section === "body" && data.column.index === 9) {
+                    const s = data.cell.raw;
+                    if      (s === "Confirmed") data.cell.styles.textColor = [22,163,74];
+                    else if (s === "Pending")   data.cell.styles.textColor = [202,138,4];
+                    else if (s === "Cancelled") data.cell.styles.textColor = [220,38,38];
+                    else if (s === "Completed") data.cell.styles.textColor = [37,99,235];
+                    data.cell.styles.fontStyle = "bold";
+                }
+            },
+        });
+
+        // Footer on every page
+        const pageCount = doc.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(160, 160, 180);
+            doc.text(
+                "Page " + i + " of " + pageCount + "  \u2013  Tourism & Hotel Management System",
+                W / 2, doc.internal.pageSize.getHeight() - 8, { align: "center" }
+            );
+        }
+
+        doc.save("room-bookings-report-" + now.toISOString().slice(0, 10) + ".pdf");
+    }
+
     return (
         <div style={{ minHeight:"100vh", background:BG, padding:"32px 24px", fontFamily:"'Outfit','Jost',sans-serif" }}>
             <div style={{ maxWidth:"920px", margin:"0 auto" }}>
@@ -410,7 +725,72 @@ export default function MyRoomBookingsPage() {
                         <p style={{ color:MUTED, fontSize:"14px", margin:0 }}>{bookings.length} booking{bookings.length !== 1 ? "s" : ""} total</p>
                     </div>
                     {!isAdmin && <button onClick={() => navigate("/rooms")} style={goldBtn}>+ New Booking</button>}
-                    {isAdmin  && <button onClick={loadBookings} style={ghostBtn}>🔄 Refresh</button>}
+                    {isAdmin && (
+                        <div style={{ display:"flex", alignItems:"center", gap:"10px", flexWrap:"wrap" }}>
+                            {/* Cancellation notification bell */}
+                            <div style={{ position:"relative" }} ref={notifRef}>
+                                <button
+                                    onClick={() => setNotifOpen(o => !o)}
+                                    style={{ position:"relative", background:CARD, border:`1px solid ${BORDER}`, borderRadius:"12px", width:"42px", height:"42px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"18px" }}
+                                    title="Cancellation notifications"
+                                >
+                                    🔔
+                                    {cancelNotifs.length > 0 && (
+                                        <span style={{ position:"absolute", top:"-6px", right:"-6px", background:"#ef4444", color:"#fff", borderRadius:"999px", fontSize:"11px", fontWeight:700, minWidth:"18px", height:"18px", display:"flex", alignItems:"center", justifyContent:"center", padding:"0 4px" }}>
+                                            {cancelNotifs.length}
+                                        </span>
+                                    )}
+                                </button>
+                                {notifOpen && (
+                                    <div style={{ position:"absolute", top:"48px", right:0, background:CARD, border:`1px solid ${BORDER}`, borderRadius:"16px", boxShadow:"0 12px 40px rgba(0,0,0,0.12)", width:"320px", zIndex:100, overflow:"hidden" }}>
+                                        <div style={{ padding:"14px 16px", borderBottom:`1px solid ${BORDER}`, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                                            <span style={{ fontWeight:700, color:TEXT, fontSize:"14px" }}>🚫 Cancelled by Users</span>
+                                            {cancelNotifs.length > 0 && (
+                                                <button
+                                                    onClick={() => cancelNotifs.forEach(n => markNotifRead(n.bookingId))}
+                                                    style={{ background:"none", border:"none", color:AMBER, fontSize:"12px", fontWeight:700, cursor:"pointer" }}
+                                                >Mark all read</button>
+                                            )}
+                                        </div>
+                                        {cancelNotifs.length === 0 ? (
+                                            <div style={{ padding:"24px", textAlign:"center", color:MUTED, fontSize:"13px" }}>No new cancellations</div>
+                                        ) : (
+                                            <div style={{ maxHeight:"320px", overflowY:"auto" }}>
+                                                {cancelNotifs.map(n => (
+                                                    <div key={n.bookingId} style={{ padding:"12px 16px", borderBottom:`1px solid ${BORDER}` }}>
+                                                        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:"8px" }}>
+                                                            <div>
+                                                                <p style={{ margin:"0 0 2px", fontWeight:700, color:TEXT, fontSize:"13px" }}>{n.bookingId}</p>
+                                                                <p style={{ margin:"0 0 2px", color:MUTED, fontSize:"12px" }}>{n.email}</p>
+                                                                <p style={{ margin:"0 0 2px", color:MUTED, fontSize:"12px" }}>{n.room?.roomType} — Room {n.room?.roomNumber}</p>
+                                                                <p style={{ margin:0, color:"#ef4444", fontSize:"11px" }}>
+                                                                    Cancelled: {new Date(n.cancelledAt).toLocaleString("en-LK")}
+                                                                </p>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => markNotifRead(n.bookingId)}
+                                                                style={{ background:"#fef2f2", border:"1px solid #fecaca", color:"#ef4444", borderRadius:"8px", fontSize:"11px", fontWeight:700, padding:"4px 8px", cursor:"pointer", whiteSpace:"nowrap" }}
+                                                            >Dismiss</button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                            <span style={{ background:"#dbeafe", color:"#1d4ed8", fontSize:"13px", fontWeight:700, padding:"8px 16px", borderRadius:"100px" }}>
+                                {bookings.length} Total Bookings
+                            </span>
+                            <button
+                                onClick={downloadReport}
+                                style={{ display:"flex", alignItems:"center", gap:"8px", background:"linear-gradient(135deg,#2F2D8F,#1E2269)", color:"#fff", border:"none", borderRadius:"100px", padding:"9px 20px", cursor:"pointer", fontSize:"13px", fontWeight:700, boxShadow:"0 4px 12px rgba(47,45,143,0.3)" }}
+                            >
+                                ⬇️ Download Report
+                            </button>
+                            <button onClick={loadBookings} style={ghostBtn}>🔄 Refresh</button>
+                        </div>
+                    )}
                 </div>
 
                 {loading ? (
