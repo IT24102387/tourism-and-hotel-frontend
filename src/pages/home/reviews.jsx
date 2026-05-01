@@ -60,7 +60,7 @@ export default function Reviews() {
     setFetching(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/reviews/my-reviews', {
+      const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/reviews/my-reviews`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUserReviews(res.data);
@@ -84,7 +84,7 @@ export default function Reviews() {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        'http://localhost:5000/api/reviews',
+        `${import.meta.env.VITE_BACKEND_URL}/api/reviews`,
         { rating, comment, section },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -120,7 +120,7 @@ export default function Reviews() {
     try {
       const token = localStorage.getItem('token');
       await axios.put(
-        `http://localhost:5000/api/reviews/${editModal._id}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/reviews/${editModal._id}`,
         {
           rating: editModal.editRating,
           comment: editModal.editComment,
@@ -141,7 +141,7 @@ export default function Reviews() {
     if (!window.confirm('Delete this review?')) return;
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/reviews/${id}`, {
+      await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/reviews/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Review deleted');

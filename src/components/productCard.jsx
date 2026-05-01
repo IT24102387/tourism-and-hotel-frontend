@@ -69,10 +69,23 @@ export default function ProductCard({ item }) {
         {/* Bottom row: price + action */}
         <div className="flex items-center justify-between mt-auto gap-2">
           <div>
-            <span className="text-2xl font-black" style={{ color: "#D97706" }}>
-              {item.dailyRentalprice?.toLocaleString() || "0"}
-            </span>
-            <span className="text-sm font-semibold ml-1" style={{ color: "#A8A29E" }}>LKR / day</span>
+            {item.DiscountPercentage > 0 ? (
+              <>
+                <span className="text-2xl font-black" style={{ color: "#D97706" }}>
+                  {item.discountedPrice?.toLocaleString() || item.dailyRentalprice?.toLocaleString() || "0"}
+                </span>
+                <span className="text-sm font-semibold ml-1 line-through" style={{ color: "#A8A29E" }}>
+                  {item.dailyRentalprice?.toLocaleString() || "0"} LKR / day
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="text-2xl font-black" style={{ color: "#D97706" }}>
+                  {item.dailyRentalprice?.toLocaleString() || "0"}
+                </span>
+                <span className="text-sm font-semibold ml-1" style={{ color: "#A8A29E" }}>LKR / day</span>
+              </>
+            )}
           </div>
 
           {outOfStock ? (

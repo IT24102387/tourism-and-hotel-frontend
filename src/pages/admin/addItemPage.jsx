@@ -19,6 +19,7 @@ export default function AddItemPage() {
   const [EquipmentDescription, setEquipmentDescription] = useState("");
   const [productImages, setProductImages] = useState([]);
   const [stockCount, setStockCount] = useState("");
+  const [discount, setDiscount] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
