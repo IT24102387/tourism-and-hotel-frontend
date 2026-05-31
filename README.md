@@ -104,7 +104,8 @@ client/
 - <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/c7736907-967c-4f35-b63b-61b4506950c6" />
 
 - Room Management
-- <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/9315b9b7-98c3-43a7-98fb-12533f254d22" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/da14e040-00ac-4be5-8375-bf1af73dc2b4" />
+
 
 - Equipment/Inventory Management
 - <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/b745a12e-b887-4f77-81d1-cbafc2c4aee3" />
