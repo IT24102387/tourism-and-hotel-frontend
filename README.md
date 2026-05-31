@@ -1,16 +1,66 @@
-# React + Vite
+# 🏨 Hotel & Tourism Management System (MERN Stack)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A full-stack web application built using the **MERN (MongoDB, Express.js, React.js, Node.js)** stack to manage hotel bookings, tourism services, and user interactions in a seamless and efficient way.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Features
 
-## React Compiler
+### 👤 User Side
+- User registration and login (JWT authentication)
+- Browse hotels and tourism packages
+- View detailed hotel/tour information
+- Book hotels and tour packages
+- View booking history
+- User profile management
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 🛠️ Admin Side
+- Admin dashboard
+- Add / update / delete hotels
+- Manage tour packages
+- View and manage bookings
+- Manage users
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🧑‍💻 Tech Stack
+
+**Frontend:**
+- React.js
+- React Router
+- Axios
+- Tailwind CSS / Bootstrap (optional)
+
+**Backend:**
+- Node.js
+- Express.js
+- MongoDB (Mongoose)
+
+**Authentication:**
+- JSON Web Token (JWT)
+- bcrypt.js for password hashing
+
+---
+
+## 📁 Project Structure
+project-root/
+│
+├── client/ # React Frontend
+│ ├── src/
+│ ├── public/
+│
+├── server/ # Node/Express Backend
+│ ├── models/
+│ ├── routes/
+│ ├── controllers/
+│ ├── middleware/
+│
+├── .env
+├── package.json
+└── README.md
+
+
+📸 Screenshots
+Home page
+<img width="1920" height="1080" alt="image (2)" src="https://github.com/user-attachments/assets/562772ea-9c94-4fee-8fc2-f8637320e5a5" />
+
