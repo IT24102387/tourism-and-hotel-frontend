@@ -321,7 +321,7 @@ VITE_GOOGLE_MAPS_API_KEY=AIzaSyCgb1e1Rk8V1Hiy-4I3Kuy7-zs6wxLXjCg
 * Advanced Analytics Dashboard
 ---
 
-## 👨‍💻 Developer
+## 👨‍💻 Developers
 
 **Kusal Kolambage |**
 **Migara Basuru |**
