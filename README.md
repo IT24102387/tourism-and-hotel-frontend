@@ -42,13 +42,11 @@ A full-stack web application built using the **MERN (MongoDB, Express.js, React.
 - bcrypt.js for password hashing
 
 ---
-
-
 TOURISM-AND-HOTEL-FRONTEND/
 ├── dist/                          # Production build files
 ├── node_modules/                  # Node.js dependencies
 │
-├── public/                        # Static public assets
+├── public/                        # Static assets
 │   ├── _redirects
 │   ├── 4login.jpeg
 │   ├── 123.webp
@@ -62,9 +60,9 @@ TOURISM-AND-HOTEL-FRONTEND/
 │   └── wmremove-transformed (1).jpeg
 │
 ├── src/
-│   ├── assets/                    # Project images and icons
+│   ├── assets/                    # Images and icons
 │   │
-│   ├── components/                # Reusable UI Components
+│   ├── components/                # Reusable UI components
 │   │   ├── bookingItem.jsx
 │   │   ├── header.jsx
 │   │   ├── imageSlider.jsx
@@ -72,8 +70,8 @@ TOURISM-AND-HOTEL-FRONTEND/
 │   │   ├── productCard.css
 │   │   └── testing.jsx
 │   │
-│   └── pages/                     # Application Pages
-│       ├── admin/                 # Admin Dashboard Pages
+│   └── pages/                     # Page Components
+│       ├── admin/                 # Admin Panel
 │       │   ├── AddFooditem.jsx
 │       │   ├── AddFooditemPage.jsx
 │       │   ├── addItemPage.jsx
@@ -102,7 +100,7 @@ TOURISM-AND-HOTEL-FRONTEND/
 │       │   ├── MyRoomBookingsPage.jsx
 │       │   └── ReviewsManagement.jsx
 │       │
-│       ├── home/                  # Main User-Facing Pages
+│       ├── home/                  # Main User Pages
 │       │   ├── contact.jsx
 │       │   ├── equipmentBookingPage.jsx
 │       │   ├── error.jsx
