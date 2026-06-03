@@ -132,6 +132,7 @@ TOURISM-AND-HOTEL-FRONTEND/
 │       └── register/
 │           └── register.css
 │
+|
 ├── package.json
 ├── vite.config.js
 └── README.md
