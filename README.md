@@ -282,7 +282,7 @@ Create a `.env` file in the root directory:
 
 ```env
 VITE_BACKEND_URL=http://localhost:5000
-VITE_GOOGLE_MAPS_API_KEY=AIzaSyCgb1e1Rk8V1Hiy-4I3Kuy7-zs6wxLXjCg
+
 ```
 
 ---
