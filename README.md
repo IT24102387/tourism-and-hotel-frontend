@@ -70,12 +70,13 @@ A full-stack web application built using the **MERN (MongoDB, Express.js, React.
 ---
 
 ## 📂 Project Structure
+# 📂 Project Structure
 
 ```text
 TOURISM-AND-HOTEL-FRONTEND/
-├── dist/
-├── node_modules/
-├── public/
+├── dist/                          # Production build files
+├── node_modules/                  # Project dependencies
+├── public/                        # Static assets
 │   ├── _redirects
 │   ├── 4login.jpeg
 │   ├── 123.webp
@@ -89,8 +90,9 @@ TOURISM-AND-HOTEL-FRONTEND/
 │   └── wmremove-transformed (1).jpeg
 │
 ├── src/
-│   ├── assets/
-│   ├── components/
+│   ├── assets/                    # Images, icons, and other resources
+│   │
+│   ├── components/                # Reusable UI components
 │   │   ├── bookingItem.jsx
 │   │   ├── header.jsx
 │   │   ├── imageSlider.jsx
@@ -99,16 +101,70 @@ TOURISM-AND-HOTEL-FRONTEND/
 │   │   └── testing.jsx
 │   │
 │   ├── pages/
-│   │   ├── admin/
-│   │   ├── home/
+│   │
+│   │   ├── admin/                 # Admin management pages
+│   │   │   ├── AddFooditem.jsx
+│   │   │   ├── AddFooditemPage.jsx
+│   │   │   ├── addItemPage.jsx
+│   │   │   ├── AddMenuPages.jsx
+│   │   │   ├── AddRestaurantPage.jsx
+│   │   │   ├── AddVehiclePage.jsx
+│   │   │   ├── AdminAddRoom.jsx
+│   │   │   ├── adminBookingPage.jsx
+│   │   │   ├── adminDashboard.jsx
+│   │   │   ├── AdminEditRoom.jsx
+│   │   │   ├── adminItemPage.jsx
+│   │   │   ├── AdminMenuPage.jsx
+│   │   │   ├── adminPackageBookingsPage.jsx
+│   │   │   ├── adminPackagesPage.jsx
+│   │   │   ├── adminPackageVehiclesPage.jsx
+│   │   │   ├── adminPage.jsx
+│   │   │   ├── AdminRestaurantPage.jsx
+│   │   │   ├── Adminroompage.jsx
+│   │   │   ├── AdminRooms.jsx
+│   │   │   ├── adminUsersPage.jsx
+│   │   │   ├── AdminVehiclepage.jsx
+│   │   │   ├── adminVehiclesPage.jsx
+│   │   │   ├── EventManagement.jsx
+│   │   │   ├── GoogleMapComponent.jsx
+│   │   │   ├── HotelRoomManagement.jsx
+│   │   │   ├── MyRoomBookingsPage.jsx
+│   │   │   └── ReviewsManagement.jsx
+│   │
+│   │   ├── home/                  # User-facing pages
+│   │   │   ├── contact.jsx
+│   │   │   ├── equipmentBookingPage.jsx
+│   │   │   ├── error.jsx
+│   │   │   ├── gallery.jsx
+│   │   │   ├── GoogleMapsPage.jsx
+│   │   │   ├── home.jsx
+│   │   │   ├── homePage.jsx
+│   │   │   ├── myBookings.jsx
+│   │   │   ├── placeDetails.jsx
+│   │   │   ├── productOverview.jsx
+│   │   │   ├── Resortrooms.jsx
+│   │   │   ├── Restaurants.jsx
+│   │   │   ├── reviews.jsx
+│   │   │   ├── SafariVehicles.jsx
+│   │   │   ├── SafariVehicles.css
+│   │   │   ├── services.jsx
+│   │   │   └── VehicleBookingDetails.jsx
+│   │
 │   │   ├── login/
+│   │   │   ├── login.css
+│   │   │   └── login.jsx
+│   │
 │   │   ├── packages/
+│   │   │   ├── packageOverview.jsx
+│   │   │   └── packagesPage.jsx
+│   │
 │   │   └── register/
+│   │       └── register.css
 │
-├── package.json
-├── vite.config.js
-└── README.md
-```
+├── package.json                   # Project metadata and dependencies
+├── vite.config.js                 # Vite configuration
+└── README.md                     
+
 
 ---
 
