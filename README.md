@@ -44,59 +44,93 @@ A full-stack web application built using the **MERN (MongoDB, Express.js, React.
 ---
 
 ## 📁 Project Structure
-client/
-│
-├── public/                     # Static assets
-│   └── favicon.ico
+TOURISM-AND-HOTEL-FRONTEND/
+├── dist/                          # Production build files
+├── node_modules/                  # Dependencies
+├── public/                        # Static assets
+│   ├── _redirects
+│   ├── 4login.jpeg
+│   ├── 123.webp
+│   ├── backback.jpg
+│   ├── couple-hiking-mountains.jpg
+│   ├── elephant.jpeg
+│   ├── kadiraalogo.png
+│   ├── log1.jpeg
+│   ├── result_0.jpeg
+│   ├── vite.svg
+│   └── wmremove-transformed (1).jpeg
 │
 ├── src/
+│   ├── assets/                    # Images, icons, etc.
 │   │
-│   ├── assets/                # Images, icons, logos
-│   │   ├── images/
-│   │   └── icons/
+│   ├── components/                # Reusable UI components
+│   │   ├── bookingItem.jsx
+│   │   ├── header.jsx
+│   │   ├── imageSlider.jsx
+│   │   ├── productCard.jsx
+│   │   ├── productCard.css
+│   │   └── testing.jsx
 │   │
-│   ├── components/           # Reusable UI components
-│   │   ├── Navbar.jsx
-│   │   ├── Footer.jsx
-│   │   ├── HotelCard.jsx
-│   │   └── Loader.jsx
-│   │
-│   ├── pages/                # Application pages
-│   │   ├── Home.jsx
-│   │   ├── Login.jsx
-│   │   ├── Register.jsx
-│   │   ├── Hotels.jsx
-│   │   ├── HotelDetails.jsx
-│   │   ├── Booking.jsx
-│   │   └── Dashboard.jsx
-│   │
-│   ├── routes/               # Route management
-│   │   └── AppRoutes.jsx
-│   │
-│   ├── services/            # API calls (Axios)
-│   │   ├── api.js
-│   │   ├── authService.js
-│   │   ├── hotelService.js
-│   │   └── bookingService.js
-│   │
-│   ├── context/             # Global state (Context API)
-│   │   ├── AuthContext.jsx
-│   │   └── BookingContext.jsx
-│   │
-│   ├── hooks/               # Custom hooks
-│   │   └── useAuth.js
-│   │
-│   ├── utils/               # Helper functions
-│   │   └── formatDate.js
-│   │
-│   ├── styles/              # Global styles
-│   │   └── global.css
-│   │
-│   ├── App.jsx
-│   ├── main.jsx
-│   └── index.css
+│   └── pages/                     # Page components
+│       ├── admin/                 # Admin Panel Pages
+│       │   ├── AddFooditem.jsx
+│       │   ├── AddFooditemPage.jsx
+│       │   ├── addItemPage.jsx
+│       │   ├── AddMenuPages.jsx
+│       │   ├── AddRestaurantPage.jsx
+│       │   ├── AddVehiclePage.jsx
+│       │   ├── AdminAddRoom.jsx
+│       │   ├── adminBookingPage.jsx
+│       │   ├── adminDashboard.jsx
+│       │   ├── AdminEditRoom.jsx
+│       │   ├── adminItemPage.jsx
+│       │   ├── AdminMenuPage.jsx
+│       │   ├── adminPackageBookingsPage.jsx
+│       │   ├── adminPackagesPage.jsx
+│       │   ├── adminPackageVehiclesPage.jsx
+│       │   ├── adminPage.jsx
+│       │   ├── AdminRestaurantPage.jsx
+│       │   ├── Adminroompage.jsx
+│       │   ├── AdminRooms.jsx
+│       │   ├── adminUsersPage.jsx
+│       │   ├── AdminVehiclepage.jsx
+│       │   ├── adminVehiclesPage.jsx
+│       │   ├── EventManagement.jsx
+│       │   ├── GoogleMapComponent.jsx
+│       │   ├── HotelRoomManagement.jsx
+│       │   ├── MyRoomBookingsPage.jsx
+│       │   └── ReviewsManagement.jsx
+│       │
+│       ├── home/                  # Main User Pages
+│       │   ├── contact.jsx
+│       │   ├── equipmentBookingPage.jsx
+│       │   ├── error.jsx
+│       │   ├── gallery.jsx
+│       │   ├── GoogleMapsPage.jsx
+│       │   ├── home.jsx
+│       │   ├── homePage.jsx
+│       │   ├── myBookings.jsx
+│       │   ├── placeDetails.jsx
+│       │   ├── productOverview.jsx
+│       │   ├── Resortrooms.jsx
+│       │   ├── Restaurants.jsx
+│       │   ├── reviews.jsx
+│       │   ├── SafariVehicles.jsx
+│       │   ├── SafariVehicles.css
+│       │   ├── services.jsx
+│       │   └── VehicleBookingDetails.jsx
+│       │
+│       ├── login/
+│       │   ├── login.css
+│       │   └── login.jsx
+│       │
+│       ├── packages/
+│       │   ├── packageOverview.jsx
+│       │   └── packagesPage.jsx
+│       │
+│       └── register/
+│           └── register.css
 │
-├── .env
 ├── package.json
 ├── vite.config.js
 └── README.md
