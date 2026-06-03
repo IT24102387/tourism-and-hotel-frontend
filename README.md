@@ -101,7 +101,8 @@ client/
 ├── vite.config.js
 └── README.md
 - UI
-- <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/c7736907-967c-4f35-b63b-61b4506950c6" />
+- <img width="1579" height="758" alt="image" src="https://github.com/user-attachments/assets/f4a61baa-bbd2-4d0e-81f5-74fc42d16b2c" />
+
 
 - Room Management
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/da14e040-00ac-4be5-8375-bf1af73dc2b4" />
