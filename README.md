@@ -163,8 +163,8 @@ TOURISM-AND-HOTEL-FRONTEND/
 │
 ├── package.json                   # Project metadata and dependencies
 ├── vite.config.js                 # Vite configuration
-└── README.md                     
-
+└── README.md
+```
 
 ---
 
