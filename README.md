@@ -44,9 +44,6 @@ A full-stack web application built using the **MERN (MongoDB, Express.js, React.
 ---
 
 ## 📁 Project Structure
-### 📁 Project Structure
-
-```bash
 TOURISM-AND-HOTEL-FRONTEND/
 ├── dist/                          # Production build files
 ├── node_modules/                  # Node.js dependencies
