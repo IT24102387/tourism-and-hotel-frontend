@@ -138,6 +138,8 @@ TOURISM-AND-HOTEL-FRONTEND/
 ├── package.json
 ├── vite.config.js
 └── README.md
+
+
 - UI
 - <img width="1579" height="758" alt="image" src="https://github.com/user-attachments/assets/f4a61baa-bbd2-4d0e-81f5-74fc42d16b2c" />
 
