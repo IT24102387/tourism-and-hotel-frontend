@@ -60,12 +60,17 @@ A full-stack web application built using the **MERN (MongoDB, Express.js, React.
 
 ### Authentication & Security
 
+* Google OAuth Authentication
 * JSON Web Token (JWT)
 * bcrypt.js
 
 ### Third-Party Services
 
 * Google Maps API
+  
+### Mail 
+
+*Node Mailer
 
 ---
 
@@ -284,9 +289,9 @@ VITE_GOOGLE_MAPS_API_KEY=AIzaSyCgb1e1Rk8V1Hiy-4I3Kuy7-zs6wxLXjCg
 
 ## 📸 Application Screenshots
 
-### 🏠 Home Page
+###  🗝️ Login Page
 
-<img width="1579" height="758" alt="Home Page" src="https://github.com/user-attachments/assets/f4a61baa-bbd2-4d0e-81f5-74fc42d16b2c" />
+<img width="1841" height="899" alt="image" src="https://github.com/user-attachments/assets/c2e2e4fb-a61f-4151-832b-44efbddaba00" />
 
 ---
 
