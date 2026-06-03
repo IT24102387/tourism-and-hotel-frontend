@@ -74,7 +74,7 @@ A full-stack web application built using the **MERN (MongoDB, Express.js, React.
 
 ---
 
-## 📂 Project Structure
+
 # 📂 Project Structure
 
 ```text
@@ -232,10 +232,19 @@ The application uses:
 
 ## ⚙️ Installation
 
-### Clone Repository
+### Clone Repository-frontend:
 
 ```bash
-git clone https://github.com/your-username/tourism-and-hotel-frontend.git
+
+git clone https://github.com/IT24102387/tourism-and-hotel-frontend.git
+
+```
+### Clone Repository-backend:
+
+```bash
+
+git clone https://github.com/IT24102387/Tourism-and-Hotel_Manage.git
+
 ```
 
 ```bash
@@ -311,11 +320,11 @@ VITE_BACKEND_URL=http://localhost:5000
 
 <img width="1544" height="753" alt="Review Management" src="https://github.com/user-attachments/assets/84aa3fb4-a783-4f4b-a1c3-1ea8c0660c21" />
 
-### ⭐ Admin User Management
+### 👤 Admin User Management
 
 <img width="1557" height="757" alt="image" src="https://github.com/user-attachments/assets/c3f96e7f-089e-46ce-b2a6-abb690dd4815" />
 
-### ⭐ Admin Dashbard
+### 📈 Admin Dashbard
 
 <img width="1554" height="736" alt="image" src="https://github.com/user-attachments/assets/92447c9a-45e0-4ec2-baa3-c30ed04fc2a9" />
 
