@@ -43,7 +43,7 @@ A full-stack web application built using the **MERN (MongoDB, Express.js, React.
 
 ---
 
-## 📁 Project Structure
+
 TOURISM-AND-HOTEL-FRONTEND/
 ├── dist/                          # Production build files
 ├── node_modules/                  # Node.js dependencies
@@ -132,7 +132,6 @@ TOURISM-AND-HOTEL-FRONTEND/
 │       └── register/
 │           └── register.css
 │
-|
 ├── package.json
 ├── vite.config.js
 └── README.md
