@@ -30,10 +30,11 @@ function EventManagement() {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await axios.get('${import.meta.env.VITE_BACKEND_URL}/api/events', {
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/events`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setEvents(response.data.events || response.data);
+      const fetchedEvents = response.data?.events ?? response.data;
+      setEvents(Array.isArray(fetchedEvents) ? fetchedEvents : []);
     } catch (error) {
       toast.error('Failed to fetch events');
       console.error(error);
@@ -164,8 +165,8 @@ function EventManagement() {
     try {
       const token = localStorage.getItem('token');
       const url = editMode
-        ? `${import.meta.env.VITE_BACKEND_URL}/${currentEvent._id}`
-        : '${import.meta.env.VITE_BACKEND_URL}/api/events';
+        ? `${import.meta.env.VITE_BACKEND_URL}/api/events/${currentEvent._id}`
+        : `${import.meta.env.VITE_BACKEND_URL}/api/events`;
       const method = editMode ? 'put' : 'post';
 
       const payload = {
@@ -246,7 +247,7 @@ function EventManagement() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {events.map((event) => (
+              {(Array.isArray(events) ? events : []).map((event) => (
                 <tr key={event._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{event.title}</td>
                   <td className="px-6 py-4">
