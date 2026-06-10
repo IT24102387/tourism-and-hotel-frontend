@@ -304,33 +304,33 @@ VITE_BACKEND_URL=http://localhost:5000
 
 ###  🗝️ Login Page
 
-<img width="1841" height="899" alt="image" src="https://github.com/user-attachments/assets/c2e2e4fb-a61f-4151-832b-44efbddaba00" />
+<img width="900" height="350" alt="image" src="https://github.com/user-attachments/assets/c2e2e4fb-a61f-4151-832b-44efbddaba00" />
 
 ---
 
 ### 🏨 Room Management
 
-<img width="1540" height="764" alt="Room Management" src="https://github.com/user-attachments/assets/1fff8deb-2cd5-4f03-97e5-7f7f1d4bec5a" />
+<img width="900" height="350" alt="Room Management" src="https://github.com/user-attachments/assets/1fff8deb-2cd5-4f03-97e5-7f7f1d4bec5a" />
 
 ---
 
 ### 🎒 Equipment Management
 
-<img width="1573" height="756" alt="Equipment Management" src="https://github.com/user-attachments/assets/cc8ec7c2-b7bf-458d-9dd4-ff9d3cf81fdb" />
+<img width="900" height="350" alt="Equipment Management" src="https://github.com/user-attachments/assets/cc8ec7c2-b7bf-458d-9dd4-ff9d3cf81fdb" />
 
 ---
 
 ### ⭐ Review Management
 
-<img width="1544" height="753" alt="Review Management" src="https://github.com/user-attachments/assets/84aa3fb4-a783-4f4b-a1c3-1ea8c0660c21" />
+<img width="900" height="350" alt="Review Management" src="https://github.com/user-attachments/assets/84aa3fb4-a783-4f4b-a1c3-1ea8c0660c21" />
 
 ### 👤 Admin User Management
 
-<img width="1557" height="757" alt="image" src="https://github.com/user-attachments/assets/c3f96e7f-089e-46ce-b2a6-abb690dd4815" />
+<img width="900" height="350" alt="image" src="https://github.com/user-attachments/assets/c3f96e7f-089e-46ce-b2a6-abb690dd4815" />
 
 ### 📈 Admin Dashbard
 
-<img width="1554" height="736" alt="image" src="https://github.com/user-attachments/assets/92447c9a-45e0-4ec2-baa3-c30ed04fc2a9" />
+<img width="900" height="350" alt="image" src="https://github.com/user-attachments/assets/92447c9a-45e0-4ec2-baa3-c30ed04fc2a9" />
 
 
 
