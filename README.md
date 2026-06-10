@@ -1,4 +1,8 @@
 # 🏨 Hotel & Tourism Management System (MERN Stack)
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/f308363d-eaf8-46e3-9f05-23079ae8c2d6" alt="Banner" width="900">
+</p>
+
 
 A full-stack web application built using the **MERN (MongoDB, Express.js, React.js, Node.js)** stack to streamline hotel operations, tourism services, booking management, and customer interactions. The system provides a modern user experience for travelers while offering powerful administrative tools for managing hotels, restaurants, packages, vehicles, equipment, reviews, and events.
 
