@@ -1,6 +1,6 @@
 # 🏨 Hotel & Tourism Management System (MERN Stack)
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/f308363d-eaf8-46e3-9f05-23079ae8c2d6" alt="Banner" width="900">
+  <img src="https://github.com/user-attachments/assets/f308363d-eaf8-46e3-9f05-23079ae8c2d6" alt="Banner" width="900" height="350">
 </p>
 
 
